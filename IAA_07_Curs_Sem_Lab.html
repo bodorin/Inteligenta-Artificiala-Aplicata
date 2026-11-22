@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IAA 07 – Inteligența artificială colectivă: ACO și PSO</title>
+<style>:root{
+  --bg:#f7f6f2; --panel:#ffffff; --ink:#1d2433; --muted:#5c6577; --line:#e3e0d8;
+  --accent:#2f5d8a; --accent-soft:#e6eef7; --code-bg:#1f2430; --code-ink:#e6e6e6;
+  --b:#2e7d4f; --b-soft:#e5f3ea; --m:#b26a00; --m-soft:#fbf0de; --a:#9b2c4f; --a-soft:#f8e4ea;
+  --ok:#2e7d4f; --bad:#b3261e; --shadow:0 1px 2px rgba(0,0,0,.05),0 4px 14px rgba(0,0,0,.05);
+  --radius:10px; --sans:"Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --serif:Georgia,"Times New Roman",serif; --mono:"JetBrains Mono","Cascadia Code",Consolas,"Liberation Mono",monospace;
+}
+html.dark{
+  --bg:#14171d; --panel:#1c2029; --ink:#e4e6eb; --muted:#9aa3b2; --line:#2c3240;
+  --accent:#7fb0e0; --accent-soft:#1f2b3a; --code-bg:#0f1218;
+  --b:#6cc48f; --b-soft:#17291f; --m:#e0a24a; --m-soft:#2d2415; --a:#e57a9c; --a-soft:#2e1a22;
+  --shadow:none;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.62 var(--sans)}
+a{color:var(--accent)}
+header.top{position:sticky;top:0;z-index:20;background:var(--panel);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:8px 18px;flex-wrap:wrap}
+header.top .brand{font-weight:700;letter-spacing:.2px;white-space:nowrap}
+header.top .brand small{font-weight:400;color:var(--muted);margin-left:6px}
+.lvl-filter{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+.lvl-filter button,.tbtn{border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:5px 11px;border-radius:999px;cursor:pointer;font:inherit;font-size:13.5px}
+.lvl-filter button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+html.dark .lvl-filter button.on{color:#10141a}
+.progress{height:4px;background:var(--line);width:100%;position:absolute;left:0;bottom:-1px}
+.progress i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:28px;max-width:1320px;margin:0 auto;padding:24px 18px 80px}
+nav.toc{position:sticky;top:70px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px;border-right:1px solid var(--line);padding-right:12px}
+nav.toc a{display:block;text-decoration:none;color:var(--muted);padding:3px 8px;border-radius:6px;line-height:1.35}
+nav.toc a.h3{padding-left:20px;font-size:13px}
+nav.toc a:hover,nav.toc a.act{color:var(--ink);background:var(--accent-soft)}
+nav.toc .tocprog{font-size:12.5px;color:var(--muted);margin:12px 8px}
+main{min-width:0}
+.hero{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:26px 28px;box-shadow:var(--shadow);margin-bottom:22px}
+.hero .kicker{text-transform:uppercase;letter-spacing:1.4px;font-size:12px;color:var(--accent);font-weight:700}
+.hero h1{font-family:var(--serif);font-size:34px;line-height:1.2;margin:6px 0 10px}
+.hero .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chip{display:inline-block;font-size:12.5px;padding:3px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent);border:1px solid transparent}
+section.part{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:8px 28px 22px;margin-bottom:22px;box-shadow:var(--shadow)}
+h2{font-family:var(--serif);font-size:27px;margin:26px 0 8px;padding-bottom:6px;border-bottom:2px solid var(--line)}
+h2 .tag{font-family:var(--sans);font-size:12px;vertical-align:middle;margin-left:8px;padding:2px 8px;border-radius:6px;background:var(--accent);color:#fff;letter-spacing:.5px}
+html.dark h2 .tag{color:#10141a}
+h3{font-size:20px;margin:26px 0 8px}
+h4{font-size:16.5px;margin:18px 0 6px}
+p,li{max-width:80ch}
+.lvl{border-left:4px solid var(--line);padding:10px 16px 6px;margin:14px 0;border-radius:0 8px 8px 0;position:relative}
+.lvl[data-lvl=b]{border-color:var(--b);background:var(--b-soft)}
+.lvl[data-lvl=m]{border-color:var(--m);background:var(--m-soft)}
+.lvl[data-lvl=a]{border-color:var(--a);background:var(--a-soft)}
+.badge{display:inline-block;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;padding:2px 8px;border-radius:5px;color:#fff;margin-bottom:4px}
+.badge.b{background:var(--b)}.badge.m{background:var(--m)}.badge.a{background:var(--a)}
+html.dark .badge{color:#10141a}
+.hide-lvl{display:none!important}
+.note,.tip,.warn,.ai,.def{border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin:14px 0;background:var(--panel)}
+.note::before,.tip::before,.warn::before,.ai::before,.def::before{display:block;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px}
+.note::before{content:"Observație";color:var(--accent)}
+.tip::before{content:"Sfat";color:var(--b)}
+.warn::before{content:"Atenție";color:var(--bad)}
+.ai{border-color:#7b61c9;background:rgba(123,97,201,.07)}.ai::before{content:"AI generativ – utilizare responsabilă";color:#7b61c9}
+.def{border-left:4px solid var(--accent)}.def::before{content:"Definiție";color:var(--accent)}
+.formula{font-family:var(--serif);font-size:17px;background:var(--accent-soft);padding:10px 14px;border-radius:8px;margin:10px 0;overflow-x:auto;white-space:nowrap}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14.5px}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}
+th{background:var(--accent-soft)}
+.tablewrap{overflow-x:auto}
+pre.code{position:relative;background:var(--code-bg);color:var(--code-ink);padding:14px 16px;border-radius:8px;overflow:auto;font:13.5px/1.5 var(--mono);max-height:560px}
+pre.code .copy{position:absolute;top:6px;right:6px;font:12px var(--sans);background:#394050;color:#fff;border:0;border-radius:5px;padding:3px 8px;cursor:pointer;opacity:.8}
+pre.code .copy:hover{opacity:1}
+.k{color:#c792ea}.s{color:#c3e88d}.c{color:#7f8aa3;font-style:italic}.n{color:#f78c6c}.f{color:#82aaff}.bi{color:#ffcb6b}
+code{font-family:var(--mono);font-size:.92em;background:var(--accent-soft);padding:1px 5px;border-radius:4px}
+pre code{background:none;padding:0}
+details{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:10px 0;background:var(--panel)}
+details>summary{cursor:pointer;font-weight:600;color:var(--accent)}
+details[open]>summary{margin-bottom:8px}
+.ex{border:1px dashed var(--line);border-radius:8px;padding:10px 16px;margin:14px 0}
+.ex .exh{font-weight:700}
+.widget{border:1px solid var(--line);border-radius:10px;padding:14px;margin:16px 0;background:var(--bg)}
+.widget .wtitle{font-weight:700;margin-bottom:8px}
+.widget .ctrl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0;font-size:14px}
+.widget button,.btn{border:1px solid var(--accent);background:var(--accent);color:#fff;padding:5px 12px;border-radius:6px;cursor:pointer;font:inherit;font-size:14px}
+html.dark .widget button,html.dark .btn{color:#10141a}
+.widget button.sec,.btn.sec{background:transparent;color:var(--accent)}
+.widget select,.widget input[type=number],.widget input[type=text],.widget textarea{font:inherit;font-size:14px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
+.widget canvas{max-width:100%;background:var(--panel);border:1px solid var(--line);border-radius:6px;display:block}
+.widget .out{font:13px/1.45 var(--mono);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 10px;white-space:pre-wrap;max-height:260px;overflow:auto;margin-top:8px}
+.stats{display:flex;gap:14px;flex-wrap:wrap;font-size:14px;margin-top:6px}
+.stats b{font-variant-numeric:tabular-nums}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.quiz .qq{border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:12px 0;background:var(--panel)}
+.quiz .qq .qt{font-weight:600;margin-bottom:6px}
+.quiz label{display:block;padding:5px 8px;border-radius:6px;cursor:pointer;margin:2px 0}
+.quiz label:hover{background:var(--accent-soft)}
+.quiz label.right{background:var(--b-soft);outline:1px solid var(--ok)}
+.quiz label.wrong{background:var(--a-soft);outline:1px solid var(--bad)}
+.quiz .expl{font-size:14px;color:var(--muted);margin-top:6px;display:none}
+.quiz .qq.done .expl{display:block}
+.quiz .score{font-weight:700;font-size:17px;margin-top:8px}
+ul.check{list-style:none;padding-left:0}
+ul.check li{padding:4px 0}
+ul.check input{margin-right:8px;transform:scale(1.15)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin:12px 0}
+.card{perspective:800px;height:150px;cursor:pointer}
+.card .in{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
+.card.flip .in{transform:rotateY(180deg)}
+.card .fr,.card .bk{position:absolute;inset:0;backface-visibility:hidden;border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:14px;overflow:auto}
+.card .fr{background:var(--panel);font-weight:700;font-size:15.5px}
+.card .bk{background:var(--accent-soft);transform:rotateY(180deg)}
+.agenda td:first-child{white-space:nowrap;font-variant-numeric:tabular-nums}
+.drag-item{display:inline-block;padding:4px 10px;margin:3px;border:1px solid var(--line);border-radius:6px;background:var(--panel);cursor:grab;font-size:14px}
+.ok{color:var(--ok);font-weight:700}.bad{color:var(--bad);font-weight:700}
+footer{max-width:1320px;margin:0 auto;padding:0 18px 40px;color:var(--muted);font-size:13px}
+.pager{display:flex;justify-content:space-between;gap:10px;margin:12px 0}
+@media (max-width:900px){.layout{grid-template-columns:1fr}nav.toc{display:none}.grid2{grid-template-columns:1fr}.hero h1{font-size:27px}section.part{padding:6px 16px 16px}}
+@media print{header.top,nav.toc,.widget button,.lvl-filter{display:none!important}.layout{display:block}details{display:block}details>*{display:block!important}section.part{box-shadow:none;break-inside:auto}body{background:#fff}}
+</style>
+</head>
+<body data-session="07">
+<header class="top">
+  <div class="brand">IAA · Inteligență artificială aplicată<small>Ședința 7/7 · Curs + Seminar + Laborator</small></div>
+  <div class="lvl-filter" role="group" aria-label="Filtru nivel">
+    <button data-f="all" class="on">Toate nivelele</button>
+    <button data-f="b">Începător</button>
+    <button data-f="m">Mediu</button>
+    <button data-f="a">Avansat</button>
+    <button class="tbtn" id="themeBtn" title="Temă luminoasă / întunecată">Temă</button>
+    <button class="tbtn" id="printBtn" title="Tipărește (deschide toate soluțiile)">Tipărire</button>
+  </div>
+  <div class="progress"><i></i></div>
+</header>
+<div class="layout">
+<nav class="toc"><div class="tocprog"></div><div class="links"></div></nav>
+<main>
+<div class="hero">
+  <div class="kicker">Ședința 7 din 7 · Orele de curs 13–14 din 14 · Capitolul 4 din fișa disciplinei</div>
+  <h1>Inteligența artificială colectivă: colonii de furnici (ACO) și roiuri de particule (PSO)</h1>
+  <p>Modelarea inteligenței manifestate de organisme sociale non-umane: furnici, albine, stoluri de păsări. Eficiența acestei inteligențe în rezolvarea unor probleme dificile de optimizare. Comparația cu algoritmii genetici.</p>
+  <div class="meta">
+    <span class="chip">Curs: 2 ore</span><span class="chip">Laborator asociat: 2 ore (L4)</span>
+    <span class="chip">Python 3 · scipy</span><span class="chip">Nivele: începător · mediu · avansat</span>
+  </div>
+</div>
+
+<section class="part">
+<h2>0. Organizarea ședinței</h2>
+<div class="tablewrap"><table class="agenda">
+<tr><th>Interval</th><th>Activitate</th><th>Metodă</th></tr>
+<tr><td>Săpt. 13 · 0–10 min</td><td>Problematizare: „O furnică are câteva sute de mii de neuroni. Cum găsește colonia drumul cel mai scurt?”</td><td>Conversația</td></tr>
+<tr><td>10–50 min</td><td>§7.1–§7.4: emergență, stigmergie, experimentul podului dublu, ACO, albine</td><td>Predare interactivă, simulare</td></tr>
+<tr><td>Lab · 50 min</td><td>ACO pentru TSP (aceeași instanță ca AG din ședința 5); influența α, β, ρ</td><td>Exercițiul</td></tr>
+<tr><td>Săpt. 14 · 0–50 min</td><td>§7.5–§7.7: PSO, topologii, parametri; comparație AG / ACO / PSO; recapitulare și proiect</td><td>Predare, sinteză</td></tr>
+<tr><td>Lab · 50 min</td><td>PSO pe Rastrigin; comparație statistică cu AG la buget egal; pregătirea proiectului</td><td>Exercițiul, evaluare critică</td></tr>
+</table></div>
+<h3>Obiective</h3>
+<ul class="check">
+<li><label><input type="checkbox">Pot explica stigmergia și auto-organizarea pe exemplul furnicilor.</label></li>
+<li><label><input type="checkbox">Pot scrie regulile de tranziție și de actualizare a feromonului în Ant System și MAX-MIN AS.</label></li>
+<li><label><input type="checkbox">Pot scrie ecuațiile PSO și pot explica rolul lui w, c<sub>1</sub>, c<sub>2</sub> și al topologiei.</label></li>
+<li><label><input type="checkbox">Pot compara ACO, PSO și AG după calitatea soluției și timpul de rulare, cu un test statistic.</label></li>
+<li><label><input type="checkbox">Știu ce trebuie să conțină proiectul final.</label></li>
+</ul>
+</section>
+
+<section class="part">
+<h2>1. Curs<span class="tag">CURS</span></h2>
+
+<h3>7.1 Inteligența colectivă (swarm intelligence)</h3>
+<div class="lvl" data-lvl="b">
+<p>Insectele sociale rezolvă probleme complicate (drumuri scurte spre hrană, construirea unor cuiburi termoreglate, împărțirea muncii) fără un conducător și fără ca vreun individ să aibă imaginea de ansamblu. Comportamentul „inteligent” <b>emerge</b> din interacțiunile locale ale multor indivizi simpli.</p>
+<p>Ingredientele auto-organizării (Bonabeau, Dorigo, Theraulaz, 1999):</p>
+<ul>
+<li><b>feedback pozitiv</b> – drumurile bune primesc mai mult feromon, deci atrag mai multe furnici;</li>
+<li><b>feedback negativ</b> – evaporarea feromonului, epuizarea sursei de hrană;</li>
+<li><b>aleatoriu</b> – explorarea de drumuri noi;</li>
+<li><b>interacțiuni multiple</b> între indivizi.</li>
+</ul>
+<p><b>Stigmergia</b> (Grassé, 1959) este comunicarea indirectă prin modificarea mediului: furnica nu „vorbește” cu celelalte, ci lasă feromon pe drum, iar mediul devine o memorie colectivă. Legătura cu ședința 1: fiecare furnică este un <b>agent reactiv</b> simplu; inteligența aparține sistemului multi-agent.</p>
+</div>
+
+<h3>7.2 Experimentul podului dublu</h3>
+<div class="lvl" data-lvl="b">
+<p>Deneubourg și colaboratorii (1990), Goss et al. (1989): între cuib și hrană există două ramuri. Când ramurile sunt egale, colonia ajunge să folosească aproape exclusiv una dintre ele (alegerea e aleatoare – simetria se rupe). Când una e mai scurtă, furnicile care o aleg se întorc mai repede, deci depun feromon mai des, iar ramura scurtă câștigă. Modelul de alegere:</p>
+<div class="formula">P(ramura 1) = (k + τ<sub>1</sub>)<sup>h</sup> / [ (k + τ<sub>1</sub>)<sup>h</sup> + (k + τ<sub>2</sub>)<sup>h</sup> ], &nbsp; cu k ≈ 20, h ≈ 2 (valori estimate experimental)</div>
+</div>
+<div class="widget" id="bridw">
+  <div class="wtitle">Simulare: podul dublu</div>
+  <div class="ctrl">Raport lungimi (lungă/scurtă): <select id="brR"><option value="1">1 (egale)</option><option value="2" selected>2</option><option value="1.3">1,3</option></select>
+    Evaporare ρ: <input type="number" id="brRho" value="0.01" step="0.01" min="0" max="0.5" style="width:66px">
+    <button id="brRun">Pornește</button><button class="sec" id="brRun5">5 colonii independente</button></div>
+  <canvas id="brCv" width="880" height="240"></canvas>
+  <div class="out" id="brOut" style="max-height:120px"></div>
+</div>
+
+<h3>7.3 Optimizarea prin colonii de furnici (ACO)</h3>
+<div class="lvl" data-lvl="b">
+<p>Marco Dorigo (1992) a transformat observația într-un algoritm. Pentru TSP: fiecare furnică artificială construiește un tur, oraș cu oraș; alegerea următorului oraș depinde de <b>feromonul</b> τ<sub>ij</sub> de pe muchie (experiența colectivă) și de <b>vizibilitatea</b> η<sub>ij</sub> = 1/d<sub>ij</sub> (informația euristică, lacomă). După ce toate furnicile au terminat, feromonul se evaporă parțial, iar fiecare furnică depune feromon pe muchiile turului său – cu atât mai mult cu cât turul e mai scurt.</p>
+</div>
+<div class="lvl" data-lvl="m">
+<h4>Ant System (AS)</h4>
+<p>Regula proporțională aleatoare, pentru furnica k aflată în orașul i, cu N<sub>i</sub><sup>k</sup> = orașele încă nevizitate:</p>
+<div class="formula">p<sub>ij</sub><sup>k</sup> = [τ<sub>ij</sub>]<sup>α</sup> [η<sub>ij</sub>]<sup>β</sup> / Σ<sub>l ∈ N<sub>i</sub><sup>k</sup></sub> [τ<sub>il</sub>]<sup>α</sup> [η<sub>il</sub>]<sup>β</sup></div>
+<p>Actualizarea feromonului (evaporare + depunere):</p>
+<div class="formula">τ<sub>ij</sub> ← (1 − ρ) τ<sub>ij</sub> + Σ<sub>k</sub> Δτ<sub>ij</sub><sup>k</sup>, &nbsp;&nbsp; Δτ<sub>ij</sub><sup>k</sup> = Q / L<sub>k</sub> dacă furnica k a folosit muchia (i, j), altfel 0</div>
+<ul>
+<li>α = 0 → algoritm lacom stocastic (doar distanțele); β = 0 → doar feromonul, fără euristică → stagnare rapidă pe tururi proaste (în laborator: 1117 față de 426!).</li>
+<li>Valori recomandate (Dorigo &amp; Stützle, 2004): α = 1, β = 2…5, ρ = 0,5 pentru AS (0,02 pentru MMAS), m = n furnici, τ<sub>0</sub> = m / L<sub>nn</sub>.</li>
+</ul>
+<h4>Variante</h4>
+<div class="tablewrap"><table>
+<tr><th>Variantă</th><th>Ideea</th></tr>
+<tr><td>Elitist AS</td><td>cel mai bun tur găsit până acum primește depunere suplimentară, cu ponderea e</td></tr>
+<tr><td>Rank-based AS</td><td>depun doar cele mai bune w furnici, ponderate după rang</td></tr>
+<tr><td><b>MAX-MIN AS</b> (Stützle &amp; Hoos)</td><td>depune doar cea mai bună furnică (a iterației sau globală); τ ∈ [τ<sub>min</sub>, τ<sub>max</sub>] evită stagnarea; inițializare cu τ<sub>max</sub> → explorare</td></tr>
+<tr><td>Ant Colony System (Dorigo &amp; Gambardella)</td><td>regula pseudo-aleatoare: cu probabilitatea q<sub>0</sub> alege lacom argmax τ·η<sup>β</sup>; actualizare locală care „șterge” feromonul de pe muchiile tocmai folosite (diversificare)</td></tr>
+</table></div>
+</div>
+<div class="lvl" data-lvl="a">
+<h4>Metaeuristica ACO, dincolo de TSP</h4>
+<p>Orice problemă de optimizare combinatorie care poate fi formulată ca o <b>construcție de soluții pe un graf</b> admite ACO: rutarea vehiculelor (VRP), programarea job-shop (feromon pe perechi sarcină–poziție), asignarea cuadratică, colorarea grafurilor, rutarea în rețele (AntNet), plierea proteinelor. Hibridizarea cu căutare locală (2-opt, 3-opt, Lin–Kernighan) aplicată tururilor furnicilor este practic obligatorie pentru instanțe mari.</p>
+<p><b>Rezultate teoretice</b>: Gutjahr (2000) – convergență în probabilitate la optim pentru GBAS; Stützle &amp; Dorigo (2002) – pentru MMAS și ACS, probabilitatea de a găsi optimul tinde la 1. ACO poate fi interpretată ca <b>căutare bazată pe modele</b> (estimarea unei distribuții de probabilitate peste soluții), înrudită cu metoda entropiei încrucișate și cu algoritmii de estimare a distribuției (EDA).</p>
+</div>
+
+<div class="widget" id="acow">
+  <div class="wtitle">ACO pe TSP: feromonul (grosimea muchiilor) și cel mai bun tur</div>
+  <div class="ctrl">Variantă: <select id="acV"><option value="as">Ant System</option><option value="mmas" selected>MAX-MIN AS</option></select>
+    α: <input type="number" id="acA" value="1" step="0.5" min="0" max="5" style="width:56px">
+    β: <input type="number" id="acB" value="3" step="0.5" min="0" max="8" style="width:56px">
+    ρ: <input type="number" id="acRho" value="0.1" step="0.05" min="0.01" max="0.9" style="width:62px">
+    Furnici: <input type="number" id="acM" value="20" min="1" max="60" style="width:56px">
+    Orașe: <input type="number" id="acN" value="25" min="6" max="60" style="width:56px">
+  </div>
+  <div class="ctrl"><button id="acRun">Rulează / Pauză</button><button class="sec" id="acReset">Orașe noi</button><label><input type="checkbox" id="acPh" checked> arată feromonul</label></div>
+  <div class="grid2"><canvas id="acCv" width="440" height="440"></canvas><div><canvas id="acCh" width="420" height="220"></canvas><div class="stats" style="flex-direction:column;gap:2px"><span>Iterația: <b id="acIt">0</b></span><span>Cel mai bun tur: <b id="acBest">–</b></span><span>Vecinul cel mai apropiat: <b id="acNN">–</b></span><span>Tururi construite: <b id="acEv">0</b></span></div></div></div>
+</div>
+
+<h3>7.4 Albinele: algoritmul coloniei artificiale de albine (ABC)</h3>
+<div class="lvl" data-lvl="m">
+<p>Karaboga (2005) modelează căutarea hranei la albinele melifere. Fiecare sursă de hrană = o soluție; cantitatea de nectar = fitness-ul.</p>
+<ul>
+<li><b>Albinele lucrătoare</b> exploatează câte o sursă: încearcă o soluție vecină v<sub>ij</sub> = x<sub>ij</sub> + φ(x<sub>ij</sub> − x<sub>kj</sub>), φ ∈ [−1, 1], și o păstrează pe cea mai bună (selecție lacomă).</li>
+<li><b>Albinele observatoare</b> aleg surse proporțional cu calitatea lor (ca ruleta din AG) – comunicate prin „dansul legănat” (waggle dance) – și le explorează vecinătatea.</li>
+<li><b>Albinele cercetașe</b>: o sursă neîmbunătățită de <i>limit</i> ori este abandonată și înlocuită cu una aleatoare (diversificare).</li>
+</ul>
+<p>Alți algoritmi inspirați din natură: Bees Algorithm (Pham), Firefly, Cuckoo Search, Grey Wolf… Atenție: o parte din această literatură a fost criticată (Sörensen, 2015, „Metaheuristics – the metaphor exposed”) pentru că reambalează idei cunoscute sub metafore noi. Evaluați un algoritm după mecanismele și rezultatele lui, nu după metafora din titlu.</p>
+</div>
+
+<h3>7.5 Optimizarea cu roiuri de particule (PSO)</h3>
+<div class="lvl" data-lvl="b">
+<p>Kennedy și Eberhart (1995), plecând de la simularea stolurilor de păsări (modelul <i>boids</i> al lui Reynolds, 1987: separare, aliniere, coeziune). Fiecare <b>particulă</b> este o soluție candidat x<sub>i</sub> ∈ ℝ<sup>n</sup>, cu o <b>viteză</b> v<sub>i</sub>. Particula își amintește cea mai bună poziție proprie (<b>pbest</b>) și cunoaște cea mai bună poziție a vecinilor (<b>gbest</b> / lbest).</p>
+<div class="formula">v<sub>i</sub> ← w·v<sub>i</sub> + c<sub>1</sub>·r<sub>1</sub>·(pbest<sub>i</sub> − x<sub>i</sub>) + c<sub>2</sub>·r<sub>2</sub>·(gbest − x<sub>i</sub>); &nbsp;&nbsp; x<sub>i</sub> ← x<sub>i</sub> + v<sub>i</sub></div>
+<p>Cei trei termeni: <b>inerție</b> (continuă direcția), <b>componenta cognitivă</b> (memoria proprie), <b>componenta socială</b> (experiența grupului). r<sub>1</sub>, r<sub>2</sub> sunt numere aleatoare uniforme în [0, 1], noi la fiecare pas și pe fiecare dimensiune.</p>
+<p>Spre deosebire de AG, PSO nu are selecție și nici încrucișare: toate particulele supraviețuiesc, iar informația circulă prin pbest și gbest.</p>
+</div>
+<div class="lvl" data-lvl="m">
+<h4>Parametri și variante</h4>
+<ul>
+<li><b>Inerția</b> w (Shi &amp; Eberhart, 1998): w mare → explorare; w mic → exploatare. Uzual w scade liniar de la 0,9 la 0,4.</li>
+<li><b>Factorul de constricție</b> (Clerc &amp; Kennedy, 2002): χ = 2 / |2 − φ − √(φ² − 4φ)|, φ = c<sub>1</sub> + c<sub>2</sub> &gt; 4; cu φ = 4,1: χ ≈ 0,7298, c ≈ 1,49618 – garantează convergența fără limitarea vitezei.</li>
+<li><b>Topologia</b>: <i>gbest</i> (toți văd cel mai bun global – convergență rapidă, risc de optim local), <i>lbest</i> inel (fiecare vede 2 vecini – mai lent, mai robust pe funcții multimodale), von Neumann (grilă).</li>
+<li><b>v<sub>max</sub></b>: limitarea vitezei (de ex. 20% din domeniu) previne „explozia” roiului.</li>
+<li><b>PSO binar</b> (Kennedy &amp; Eberhart, 1997): viteza dă probabilitatea ca bitul să fie 1, prin sigmoidă. Pentru permutări – variante discrete, mai puțin naturale.</li>
+</ul>
+</div>
+<div class="lvl" data-lvl="a">
+<h4>Analiza stabilității</h4>
+<p>Pentru o particulă cu pbest și gbest fixate, sistemul e liniar stocastic. Analiza de ordinul al doilea (Poli, 2009) dă regiunea de stabilitate în ordinul 1 și 2:</p>
+<div class="formula">−1 &lt; w &lt; 1, &nbsp;&nbsp; 0 &lt; c<sub>1</sub> + c<sub>2</sub> &lt; 24(1 − w²) / (7 − 5w)</div>
+<p>Pentru w = 0,7298: limita este ≈ 3,35 &gt; 2 · 1,496 ≈ 2,99 ✓. Cu w = 1 și c = 2 (PSO „original”, fără v<sub>max</sub>), roiul diverge – în laborator, rezultatul este de ~10 ori mai slab. PSO standard nu este nici măcar un optimizator local garantat (van den Bergh): variante ca GCPSO sau SPSO-2011 corectează asta.</p>
+</div>
+
+<div class="widget" id="psow">
+  <div class="wtitle">PSO în 2D: particule, viteze, pbest și gbest</div>
+  <div class="ctrl">Funcție: <select id="psF"><option value="rastrigin">Rastrigin</option><option value="ackley">Ackley</option><option value="sphere">Sphere</option></select>
+    w: <input type="number" id="psW" value="0.729" step="0.05" min="0" max="1.2" style="width:66px">
+    c₁: <input type="number" id="psC1" value="1.49" step="0.1" min="0" max="4" style="width:60px">
+    c₂: <input type="number" id="psC2" value="1.49" step="0.1" min="0" max="4" style="width:60px">
+    Topologie: <select id="psT"><option value="g">globală</option><option value="r">inel</option></select>
+    Particule: <input type="number" id="psN" value="30" min="2" max="150" style="width:56px">
+  </div>
+  <div class="ctrl"><button id="psRun">Rulează / Pauză</button><button class="sec" id="psReset">Reset</button><label><input type="checkbox" id="psVel" checked> arată vitezele</label></div>
+  <div class="grid2"><canvas id="psCv" width="420" height="420"></canvas><div><canvas id="psCh" width="420" height="200"></canvas><div class="stats" style="flex-direction:column;gap:2px"><span>Iterația: <b id="psIt">0</b></span><span>gbest: <b id="psBest">–</b></span><span>Viteza medie: <b id="psV">–</b></span></div>
+  <p style="font-size:13px">Experimente: w = 1, c = 2 (fără amortizare) · c₂ = 0 (fiecare particulă singură) · c₁ = 0 (doar social) · topologie inel pe Rastrigin.</p></div></div>
+</div>
+
+<h3>7.6 Comparație: AG vs. ACO vs. PSO</h3>
+<div class="lvl" data-lvl="m">
+<div class="tablewrap"><table>
+<tr><th></th><th>Algoritm genetic</th><th>ACO</th><th>PSO</th></tr>
+<tr><td>Inspirație</td><td>evoluție darwinistă</td><td>furnici, stigmergie</td><td>stoluri, bancuri de pești</td></tr>
+<tr><td>Soluții</td><td>populație de cromozomi</td><td>construite pas cu pas de furnici</td><td>poziții ale particulelor</td></tr>
+<tr><td>Memorie</td><td>implicită în populație</td><td>explicită: matricea de feromon (model probabilist)</td><td>pbest, gbest</td></tr>
+<tr><td>Spațiu natural</td><td>orice (cu reprezentarea potrivită)</td><td>discret, combinatoric, pe grafuri</td><td>continuu</td></tr>
+<tr><td>Informație euristică</td><td>de obicei nu</td><td>da (η) – avantaj major</td><td>nu</td></tr>
+<tr><td>Restricții</td><td>penalizare, reparare, decodificatori</td><td>prin construcție (furnica alege doar mutări fezabile)</td><td>penalizare, proiecție pe domeniu</td></tr>
+<tr><td>Parametri principali</td><td>N, p<sub>c</sub>, p<sub>m</sub>, selecție</td><td>α, β, ρ, m</td><td>w, c<sub>1</sub>, c<sub>2</sub>, topologie</td></tr>
+</table></div>
+<p><b>Rezultatele din laborator</b> (buget egal, 10 rulări, test Mann–Whitney):</p>
+<ul>
+<li>Rastrigin n = 10, 20 000 de evaluări: PSO (w 0,9 → 0,4) medie 3,89 vs. AG (BLX) 5,18 – <b>diferență nesemnificativă</b> (p ≈ 0,31). PSO a fost însă de ~3 ori mai rapid.</li>
+<li>TSP 30 de orașe, ~6000 de tururi: ACO (MMAS) 425,4 vs. AG (OX + inversiune) 529,9 – <b>diferență semnificativă</b> (p ≈ 0,0001). ACO folosește informația euristică 1/d, de care AG nu beneficiază – o comparație corectă ar trebui să menționeze asta sau să ofere AG-ului o inițializare euristică.</li>
+</ul>
+</div>
+<div class="lvl" data-lvl="a">
+<h4>Inteligența colectivă în medii virtuale</h4>
+<p>Pentru programul vostru de master (medii virtuale multimodale distribuite), modelele de roi au și aplicații directe, nu doar de optimizare: simularea mulțimilor și a stolurilor (boids, modele bazate pe forțe sociale – Helbing), comportamentul NPC-urilor în grup, echilibrarea încărcării serverelor distribuite cu algoritmi inspirați de furnici, plasarea camerelor/senzorilor cu PSO, generarea procedurală de conținut. Simulatorul de mai jos arată un stol: trei reguli locale, comportament global coerent.</p>
+</div>
+
+<div class="widget" id="boidw">
+  <div class="wtitle">Bonus: stolul lui Reynolds (boids) – emergență din 3 reguli locale</div>
+  <div class="ctrl">Separare: <input type="range" id="bS" min="0" max="3" step="0.1" value="1.5"> Aliniere: <input type="range" id="bA" min="0" max="3" step="0.1" value="1.0"> Coeziune: <input type="range" id="bC" min="0" max="3" step="0.1" value="1.0"> <button id="bRun">Pornește / Oprește</button></div>
+  <canvas id="bCv" width="880" height="300"></canvas>
+</div>
+
+<h3>7.7 Recapitularea cursului și proiectul</h3>
+<div class="lvl" data-lvl="b">
+<div class="tablewrap"><table>
+<tr><th>Ședința</th><th>Tema</th><th>Ce folosiți în proiect</th></tr>
+<tr><td>1</td><td>Agenți, medii, căutare</td><td>PEAS, clasificarea mediului, A* ca referință</td></tr>
+<tr><td>2–3</td><td>Planificare: STRIPS/PDDL, GraphPlan, SATPlan</td><td>modelarea secvențelor de acțiuni, planificatoare gata făcute</td></tr>
+<tr><td>4</td><td>Planificare reală; introducere AG</td><td>timp și resurse, euristici constructive</td></tr>
+<tr><td>5–6</td><td>AG: operatori, variante, restricții</td><td>reprezentare, operatori, tratarea restricțiilor, DEAP</td></tr>
+<tr><td>7</td><td>ACO, PSO</td><td>a doua (a treia) abordare pentru comparație</td></tr>
+</table></div>
+<h4>Ce trebuie să conțină proiectul (70% din nota finală)</h4>
+<ul class="check">
+<li><label><input type="checkbox">Descrierea problemei reale și a datelor; formularea (căutare / planificare / optimizare), cu restricțiile.</label></li>
+<li><label><input type="checkbox">Cel puțin un algoritm euristic implementat (AG, ACO sau PSO) – cerință a standardului minim.</label></li>
+<li><label><input type="checkbox">Cel puțin două abordări comparate după calitatea soluției și timpul de rulare, la buget egal, cu rulări multiple.</label></li>
+<li><label><input type="checkbox">Interpretarea rezultatelor: tabele, grafice, test statistic, discuția limitărilor.</label></li>
+<li><label><input type="checkbox">Secțiunea „Utilizarea instrumentelor AI”: instrument, scop, contribuție, modul de verificare.</label></li>
+<li><label><input type="checkbox">Cod sursă rulabil și reproductibil (seed-uri, versiuni ale bibliotecilor, instrucțiuni).</label></li>
+</ul>
+</div>
+</section>
+
+<section class="part">
+<h2>2. Seminar<span class="tag">SEMINAR</span></h2>
+
+<div class="ex lvl" data-lvl="b">
+<div class="exh">S7.1 – Alegerea furnicii</div>
+<p>O furnică e în orașul A; nevizitate: B, C, D. Distanțe: d(A,B) = 2, d(A,C) = 4, d(A,D) = 5. Feromon: τ(A,B) = 1, τ(A,C) = 3, τ(A,D) = 1. Calculați probabilitățile de tranziție pentru (a) α = 1, β = 1; (b) α = 1, β = 0; (c) α = 0, β = 2.</p>
+<details><summary>Soluție</summary>
+<p>η = 1/d: B 0,5; C 0,25; D 0,2.</p>
+<p>(a) τ·η: B 0,5; C 0,75; D 0,2; Σ = 1,45 → <b>0,345; 0,517; 0,138</b>.</p>
+<p>(b) doar τ: 1, 3, 1 → <b>0,2; 0,6; 0,2</b>.</p>
+<p>(c) doar η²: 0,25; 0,0625; 0,04; Σ = 0,3525 → <b>0,709; 0,177; 0,113</b> (lacom: orașul cel mai apropiat).</p></details>
+</div>
+
+<div class="ex lvl" data-lvl="m">
+<div class="exh">S7.2 – Actualizarea feromonului</div>
+<p>3 orașe, 2 furnici. Furnica 1: tur A-B-C-A, L = 10. Furnica 2: tur A-C-B-A (aceleași muchii, sens invers), L = 10. τ inițial = 1 pe toate muchiile, ρ = 0,5, Q = 10. Calculați τ după o iterație în AS. Ce observați? Ce s-ar întâmpla în MMAS cu τ<sub>max</sub> = 2?</p>
+<details><summary>Soluție</summary><p>Într-un graf cu 3 orașe există un singur tur (în ambele sensuri), deci ambele furnici folosesc toate cele 3 muchii. Pe fiecare muchie: τ = 0,5 · 1 + 10/10 + 10/10 = <b>2,5</b>. Feromonul crește uniform – fără alternative, nu există „învățare”. În MMAS depune doar cea mai bună furnică: τ = 0,5 + 1 = 1,5 ≤ τ<sub>max</sub> = 2. Exercițiul arată de ce MMAS limitează feromonul: în AS valorile pot crește nemărginit pe muchiile frecvent folosite.</p></details>
+</div>
+
+<div class="ex lvl" data-lvl="b">
+<div class="exh">S7.3 – Un pas PSO de mână</div>
+<p>1D, minimizare f(x) = x². Particula: x = 4, v = −1, pbest = 3, gbest = 1. w = 0,5, c<sub>1</sub> = c<sub>2</sub> = 2, r<sub>1</sub> = 0,5, r<sub>2</sub> = 0,25. Calculați noua viteză și poziție. Se actualizează pbest?</p>
+<details><summary>Soluție</summary><p>v = 0,5·(−1) + 2·0,5·(3 − 4) + 2·0,25·(1 − 4) = −0,5 − 1 − 1,5 = <b>−3</b>. x = 4 − 3 = <b>1</b>. f(1) = 1 &lt; f(pbest = 3) = 9 → pbest = 1. Particula a ajuns chiar în gbest; în pasul următor, dacă nimeni nu găsește ceva mai bun, termenii cognitiv și social devin 0 și doar inerția o mai mișcă – de aici riscul de stagnare a PSO gbest.</p></details>
+</div>
+
+<div class="ex lvl" data-lvl="m">
+<div class="exh">S7.4 – Ce algoritm ați alege?</div>
+<p>Pentru fiecare problemă, alegeți AG, ACO sau PSO și justificați: (a) reglarea a 6 parametri reali ai unui controler PID; (b) rutarea a 10 vehicule de livrare în Constanța, cu ferestre de timp; (c) selecția a 20 de atribute din 500 pentru un clasificator; (d) orarul facultății.</p>
+<details><summary>Răspuns orientativ</summary>
+<p>(a) <b>PSO</b> (sau CMA-ES/DE): continuu, dimensiune mică. (b) <b>ACO</b> (construcție pe graf, restricții tratate prin construcție, informație euristică 1/d) sau AG cu decodificator split + căutare locală. (c) <b>AG binar</b> (sau PSO binar): reprezentare naturală pe biți, restricție de cardinalitate tratată prin reparare. (d) <b>AG memetic</b> / căutare locală, cu penalizarea restricțiilor tari (ședința 6). Nu există un răspuns unic: în proiect, alegerea se justifică <i>experimental</i>.</p></details>
+</div>
+
+<div class="ex lvl" data-lvl="a">
+<div class="exh">S7.5 – Stabilitatea PSO</div>
+<p>(a) Verificați că parametrii de constricție (w = 0,7298, c<sub>1</sub> = c<sub>2</sub> = 1,49618) sunt în regiunea de stabilitate Poli. (b) Pentru w = 0,4, care este valoarea maximă a lui c<sub>1</sub> + c<sub>2</sub>? (c) Este stabil w = 1, c = 2?</p>
+<details><summary>Soluție</summary><p>(a) 24(1 − 0,5326)/(7 − 3,649) = 24 · 0,4674/3,351 ≈ 3,35 &gt; 2,99 ✓. (b) 24 · 0,84/(7 − 2) = 4,03. (c) w = 1 iese din −1 &lt; w &lt; 1 → instabil (fără limitarea vitezei, roiul diverge; cu v<sub>max</sub>, particulele „ricoșează” haotic – vezi rezultatul ~35,8 din laborator).</p></details>
+</div>
+</section>
+
+<section class="part">
+<h2>3. Laborator<span class="tag">LABORATOR</span></h2>
+<p>Corespunde punctului 4 din secțiunea 8.2: <i>implementarea algoritmilor de tip colonie de furnici (ACO) și roi de particule (PSO); compararea performanței cu algoritmii genetici</i>. Puneți în același director fișierele din ședința 5 (<code>s05_deap_rastrigin.py</code>, <code>s05_tsp_ga.py</code>). Instalare: <code>pip install deap numpy scipy</code>.</p>
+
+<div class="lvl" data-lvl="b m">
+<h4>L7.1 – ACO pentru TSP</h4>
+<pre class="code" data-lang="python">
+"""Optimizarea prin colonii de furnici (ACO) pentru TSP: Ant System și MAX-MIN Ant System.
+Aceeași instanță ca în ședința 5 (30 de orașe, seed 42), pentru comparația cu AG.   Rulare: python s07_aco_tsp.py"""
+import random, math, statistics, time
+
+def cities(n=30, seed=42):
+    r = random.Random(seed)
+    return [(r.uniform(0, 100), r.uniform(0, 100)) for _ in range(n)]
+C = cities(); N = len(C)
+D = [[math.dist(a, b) or 1e-9 for b in C] for a in C]
+
+def tour_len(t):
+    return sum(D[t[i]][t[i - 1]] for i in range(N))
+
+def nearest_neighbour(start=0):
+    t, left = [start], set(range(N)) - {start}
+    while left:
+        nxt = min(left, key=lambda j: D[t[-1]][j]); t.append(nxt); left.remove(nxt)
+    return t
+
+def aco(n_ants=30, iters=200, alpha=1.0, beta=3.0, rho=0.1, Q=100.0, mmas=False, seed=0):
+    """Ant System (Dorigo, 1992); cu mmas=True: MAX-MIN AS (Stützle &amp; Hoos, 2000)."""
+    rng = random.Random(seed)
+    L_nn = tour_len(nearest_neighbour())
+    tau_max = 1 / (rho * L_nn); tau_min = tau_max / (2 * N)
+    tau = [[tau_max if mmas else 1.0 / L_nn] * N for _ in range(N)]     # feromon inițial
+    eta = [[1.0 / D[i][j] for j in range(N)] for i in range(N)]         # vizibilitate (informație euristică)
+    best_t, best_L, history = None, float("inf"), []
+    for it in range(iters):
+        tours = []
+        for _ in range(n_ants):
+            start = rng.randrange(N); t = [start]; unvisited = set(range(N)) - {start}
+            while unvisited:
+                i = t[-1]; cand = list(unvisited)
+                w = [(tau[i][j] ** alpha) * (eta[i][j] ** beta) for j in cand]   # regula proporțională aleatoare
+                r, acc = rng.random() * sum(w), 0.0
+                for j, wj in zip(cand, w):
+                    acc += wj
+                    if acc &gt;= r: break
+                t.append(j); unvisited.remove(j)
+            tours.append((tour_len(t), t))
+        it_L, it_t = min(tours)
+        if it_L &lt; best_L: best_L, best_t = it_L, it_t
+        for i in range(N):                                   # evaporare
+            for j in range(N): tau[i][j] *= (1 - rho)
+        depositors = [(best_L, best_t) if it % 10 == 0 else (it_L, it_t)] if mmas else tours
+        for L, t in depositors:                              # depunere (MMAS: doar cea mai bună furnică)
+            for k in range(N):
+                a, b = t[k - 1], t[k]; d = (1.0 / L) if mmas else Q / L
+                tau[a][b] += d; tau[b][a] += d
+        if mmas:                                             # limite [τ_min, τ_max] contra stagnării
+            tau_max = 1 / (rho * best_L); tau_min = tau_max / (2 * N)
+            for i in range(N):
+                for j in range(N): tau[i][j] = min(tau_max, max(tau_min, tau[i][j]))
+        history.append(best_L)
+    return best_L, best_t, history
+
+if __name__ == "__main__":
+    print(f"Vecinul cel mai apropiat: {tour_len(nearest_neighbour()):.1f}")
+    for mm in (False, True):
+        t0 = time.perf_counter()
+        res = [aco(mmas=mm, seed=s)[0] for s in range(5)]
+        print(f"{'MAX-MIN AS' if mm else 'Ant System'}: medie={statistics.mean(res):.1f}  min={min(res):.1f}  "
+              f"timp/rulare={(time.perf_counter()-t0)/5:.1f}s   (30 furnici × 200 iterații = 6000 de tururi)")
+    for beta in (0, 1, 5):
+        print(f"  AS cu β={beta}: {aco(beta=beta, seed=0, iters=100)[0]:.1f}")</pre>
+<pre class="code" data-lang="text">
+Vecinul cel mai apropiat: 505.8
+Ant System: medie=425.9  min=425.9  timp/rulare=0.5s   (30 furnici × 200 iterații = 6000 de tururi)
+MAX-MIN AS: medie=425.4  min=423.5  timp/rulare=0.4s   (30 furnici × 200 iterații = 6000 de tururi)
+  AS cu β=0: 1117.4
+  AS cu β=1: 429.8
+  AS cu β=5: 425.9
+</pre>
+<ul class="check">
+<li><label><input type="checkbox">(Începător) Explicați rezultatul pentru β = 0. Verificați în simulator.</label></li>
+<li><label><input type="checkbox">(Începător) Variați ρ ∈ {0,01; 0,1; 0,5; 0,9}. Desenați curba de convergență (<code>history</code>).</label></li>
+<li><label><input type="checkbox">(Mediu) Implementați Ant Colony System (regula q<sub>0</sub> = 0,9 și actualizarea locală).</label></li>
+<li><label><input type="checkbox">(Mediu) Aplicați 2-opt (din <code>s05_tsp_ga.py</code>) celui mai bun tur al fiecărei iterații. Testați pe 100 de orașe.</label></li>
+<li><label><input type="checkbox">(Avansat) Vectorizați construcția tururilor cu numpy și măsurați accelerarea pe 200 de orașe.</label></li>
+</ul>
+</div>
+
+<div class="lvl" data-lvl="b m">
+<h4>L7.2 – PSO pe Rastrigin</h4>
+<pre class="code" data-lang="python">
+"""Optimizarea cu roiuri de particule (PSO): varianta globală cu inerție și varianta cu factor de constricție.
+Funcția Rastrigin, n = 10 (aceeași ca în ședința 5).   Rulare: python s07_pso.py"""
+import random, math, statistics
+
+N_DIM, LO, HI = 10, -5.12, 5.12
+def rastrigin(x):
+    return 10 * len(x) + sum(xi * xi - 10 * math.cos(2 * math.pi * xi) for xi in x)
+def sphere(x):
+    return sum(xi * xi for xi in x)
+
+def pso(f, n=40, iters=500, w=0.729, c1=1.49445, c2=1.49445, w_end=None, topology="global", seed=0):
+    """v ← w·v + c1·r1·(pbest − x) + c2·r2·(gbest − x);  x ← x + v.
+    Parametrii impliciți = constricția lui Clerc &amp; Kennedy (χ = 0,729, φ1 = φ2 = 2,05 → c = χ·φ ≈ 1,494)."""
+    rng = random.Random(seed)
+    vmax = 0.2 * (HI - LO)
+    X = [[rng.uniform(LO, HI) for _ in range(N_DIM)] for _ in range(n)]
+    V = [[rng.uniform(-vmax, vmax) for _ in range(N_DIM)] for _ in range(n)]
+    P = [x[:] for x in X]; Pf = [f(x) for x in X]                       # cele mai bune poziții personale
+    history = []
+    for t in range(iters):
+        wt = w if w_end is None else w + (w_end - w) * t / iters           # inerție descrescătoare (opțional)
+        for i in range(n):
+            if topology == "global":
+                g = min(range(n), key=Pf.__getitem__)
+            else:                                                           # topologie inel: vecinii i−1, i, i+1
+                g = min(((i - 1) % n, i, (i + 1) % n), key=Pf.__getitem__)
+            for d in range(N_DIM):
+                r1, r2 = rng.random(), rng.random()
+                V[i][d] = wt * V[i][d] + c1 * r1 * (P[i][d] - X[i][d]) + c2 * r2 * (P[g][d] - X[i][d])
+                V[i][d] = max(-vmax, min(vmax, V[i][d]))                    # limitarea vitezei
+                X[i][d] = max(LO, min(HI, X[i][d] + V[i][d]))
+            fx = f(X[i])
+            if fx &lt; Pf[i]: P[i], Pf[i] = X[i][:], fx
+        history.append(min(Pf))
+    return min(Pf), history
+
+if __name__ == "__main__":
+    print("Sphere n=10 (unimodală):  PSO global =", f"{pso(sphere, seed=0)[0]:.2e}")
+    print("Rastrigin n=10, 40 particule × 500 iterații = 20 000 de evaluări, 10 rulări:")
+    cfgs = [("global, constricție", {}),
+            ("inel, constricție", {"topology": "ring"}),
+            ("global, w 0.9→0.4, c=2", {"w": 0.9, "w_end": 0.4, "c1": 2.0, "c2": 2.0}),
+            ("global, w=1 (fără amortizare)", {"w": 1.0, "c1": 2.0, "c2": 2.0})]
+    for name, kw in cfgs:
+        res = [pso(rastrigin, seed=s, **kw)[0] for s in range(10)]
+        print(f"  {name:30s} medie={statistics.mean(res):7.3f}  std={statistics.stdev(res):6.3f}  min={min(res):6.3f}")</pre>
+<pre class="code" data-lang="text">
+Sphere n=10 (unimodală):  PSO global = 8.81e-28
+Rastrigin n=10, 40 particule × 500 iterații = 20 000 de evaluări, 10 rulări:
+  global, constricție            medie=  7.761  std= 4.110  min= 2.985
+  inel, constricție              medie=  7.173  std= 3.405  min= 1.995
+  global, w 0.9→0.4, c=2         medie=  3.890  std= 1.357  min= 1.990
+  global, w=1 (fără amortizare)  medie= 35.800  std= 4.770  min=26.411
+</pre>
+<ul class="check">
+<li><label><input type="checkbox">(Începător) Observați diferența uriașă dintre Sphere și Rastrigin. Ce spune asta despre peisajul funcției?</label></li>
+<li><label><input type="checkbox">(Mediu) Implementați topologia von Neumann (grilă 5×8) și comparați cu inel și global.</label></li>
+<li><label><input type="checkbox">(Mediu) Implementați ABC (§7.4) și adăugați-l în comparație.</label></li>
+<li><label><input type="checkbox">(Avansat) Rulați pe n = 30 și pe funcția Ackley; comparați cu CMA-ES (<code>pip install cma</code>).</label></li>
+</ul>
+</div>
+
+<div class="lvl" data-lvl="m a">
+<h4>L7.3 – Comparația cerută de fișă: AG vs. PSO și AG vs. ACO</h4>
+<pre class="code" data-lang="python">
+"""Comparația cerută de fișa disciplinei: AG vs. PSO (Rastrigin) și AG vs. ACO (TSP),
+la BUGET EGAL de evaluări, cu 10 rulări și test Mann–Whitney U.
+Necesită fișierele din ședințele 5 și 7 în același director + pip install scipy."""
+import time, statistics, random
+from scipy.stats import mannwhitneyu
+import s05_deap_rastrigin as GAR, s05_tsp_ga as GAT, s07_pso as PSO, s07_aco_tsp as ACO
+from deap import algorithms, tools
+
+def ga_rastrigin(seed, budget=20000, mu=100):
+    """AG generațional (BLX-0.5, turnir 3) oprit exact la bugetul de evaluări."""
+    random.seed(seed); tb = GAR.make_toolbox("blend")
+    pop = tb.population(n=mu); evals = 0
+    for ind in pop: ind.fitness.values = tb.evaluate(ind); evals += 1
+    while evals &lt; budget:
+        off = algorithms.varAnd(tb.select(pop, mu), tb, cxpb=0.8, mutpb=0.2)
+        for ind in off:
+            if not ind.fitness.valid: ind.fitness.values = tb.evaluate(ind); evals += 1
+        best = tools.selBest(pop, 1)[0]; pop = off; pop[0] = best        # elitism
+    return min(ind.fitness.values[0] for ind in pop)
+
+def compare(name, fa, fb, la, lb, runs=10):
+    ta = time.perf_counter(); A = [fa(s) for s in range(runs)]; ta = (time.perf_counter() - ta) / runs
+    tb = time.perf_counter(); B = [fb(s) for s in range(runs)]; tb = (time.perf_counter() - tb) / runs
+    p = mannwhitneyu(A, B, alternative="two-sided").pvalue
+    print(f"== {name}")
+    for lab, X, t in ((la, A, ta), (lb, B, tb)):
+        print(f"  {lab:28s} medie={statistics.mean(X):8.2f} mediană={statistics.median(X):8.2f} min={min(X):8.2f} timp/rulare={t:5.2f}s")
+    print(f"  Mann–Whitney U: p = {p:.4f} -&gt; " + ("diferență semnificativă (α = 0,05)" if p &lt; 0.05 else "nicio diferență semnificativă"))
+
+if __name__ == "__main__":
+    compare("Rastrigin n=10, 20 000 de evaluări",
+            ga_rastrigin, lambda s: PSO.pso(PSO.rastrigin, n=40, iters=500, w=0.9, w_end=0.4, c1=2, c2=2, seed=s)[0],
+            "AG (BLX-0.5, turnir 3)", "PSO (w 0.9→0.4)")
+    compare("TSP 30 de orașe, 6 000 de tururi evaluate",
+            lambda s: GAT.run("ox", "inv", seed=s, mu=60, ngen=100)[0], lambda s: ACO.aco(mmas=True, seed=s)[0],
+            "AG (OX + inversiune)", "ACO (MAX-MIN AS)")</pre>
+<pre class="code" data-lang="text">
+== Rastrigin n=10, 20 000 de evaluări
+  AG (BLX-0.5, turnir 3)       medie=    5.18 mediană=    4.97 min=    2.98 timp/rulare= 0.26s
+  PSO (w 0.9→0.4)              medie=    3.89 mediană=    3.98 min=    1.99 timp/rulare= 0.09s
+  Mann–Whitney U: p = 0.3057 -> nicio diferență semnificativă
+== TSP 30 de orașe, 6 000 de tururi evaluate
+  AG (OX + inversiune)         medie=  529.86 mediană=  531.31 min=  480.48 timp/rulare= 0.09s
+  ACO (MAX-MIN AS)             medie=  425.41 mediană=  425.89 min=  423.46 timp/rulare= 0.39s
+  Mann–Whitney U: p = 0.0001 -> diferență semnificativă (α = 0,05)
+</pre>
+<div class="note">Bugetul AG pe TSP (60 × 100) este aproximativ 6000 de evaluări: <code>eaSimple</code> evaluează doar indivizii modificați, deci puțin sub. Pentru raportul de proiect, numărați exact evaluările (ca în <code>ga_rastrigin</code>).</div>
+<ul class="check">
+<li><label><input type="checkbox">Creșteți la 30 de rulări. Se schimbă concluzia pe Rastrigin?</label></li>
+<li><label><input type="checkbox">Dați AG-ului pe TSP o populație inițială construită cu vecinul cel mai apropiat (din orașe de start diferite). Mai e ACO semnificativ mai bun?</label></li>
+<li><label><input type="checkbox">Raportați și efectul (nu doar p): diferența medianelor și dimensiunea efectului (Vargha–Delaney A<sub>12</sub>).</label></li>
+<li><label><input type="checkbox">Desenați curbele de convergență (mediană + cvartile) ale celor 4 algoritmi pe aceeași axă a evaluărilor.</label></li>
+</ul>
+</div>
+
+<h3>Evaluarea critică: concluzii trase de AI</h3>
+<div class="ai">Ați dat unui LLM tabelul de mai sus și i-ați cerut o concluzie. Răspunsul: „PSO este superior AG pentru optimizare continuă, iar ACO este superior AG pentru probleme combinatorii.”</div>
+<div class="lvl" data-lvl="m a">
+<details><summary>Ce e greșit în această concluzie?</summary>
+<ol>
+<li>Pe Rastrigin, diferența <b>nu este semnificativă</b> (p ≈ 0,31): „superior” nu e susținut de date.</li>
+<li>Generalizare de la o funcție și o instanță la „optimizare continuă” / „probleme combinatorii” – interzisă de No Free Lunch și de bunul-simț experimental.</li>
+<li>Comparația TSP e inechitabilă: ACO folosește informația euristică 1/d. Concluzia corectă: „pe această instanță, MMAS cu euristică bate AG fără euristică, la ~6000 de evaluări”.</li>
+<li>Configurațiile nu au fost reglate egal (PSO cu cea mai bună variantă din 4; AG cu o singură configurație).</li>
+</ol>
+<p>Formularea corectă în raport: limitați concluzia la instanțele, bugetele și configurațiile testate; raportați p și dimensiunea efectului; menționați amenințările la validitate. În declarația AI precizați că ați folosit LLM-ul pentru redactare și ce ați corectat.</p></details>
+</div>
+</section>
+
+<section class="part">
+<h2>4. Autoevaluare<span class="tag">QUIZ</span></h2>
+<div class="cards">
+  <div class="card"><div class="in"><div class="fr">Stigmergie</div><div class="bk">Comunicare indirectă prin modificarea mediului (feromon).</div></div></div>
+  <div class="card"><div class="in"><div class="fr">Evaporarea feromonului</div><div class="bk">Feedback negativ: uitarea drumurilor proaste, evitarea stagnării.</div></div></div>
+  <div class="card"><div class="in"><div class="fr">MAX-MIN AS</div><div class="bk">Depune doar cea mai bună furnică; τ limitat în [τ<sub>min</sub>, τ<sub>max</sub>].</div></div></div>
+  <div class="card"><div class="in"><div class="fr">Ecuația vitezei PSO</div><div class="bk">w·v + c₁r₁(pbest − x) + c₂r₂(gbest − x)</div></div></div>
+  <div class="card"><div class="in"><div class="fr">Topologia lbest</div><div class="bk">Fiecare particulă vede doar vecinii: convergență mai lentă, mai robustă.</div></div></div>
+  <div class="card"><div class="in"><div class="fr">Boids</div><div class="bk">Separare, aliniere, coeziune: trei reguli locale, un stol coerent.</div></div></div>
+</div>
+<script type="application/json" class="quiz-data">
+[
+{"lvl":"b","q":"Stigmergia înseamnă:","o":["comunicare directă între indivizi","comunicare indirectă prin modificarea mediului","conducerea coloniei de către regină","învățare individuală"],"a":1,"e":"Feromonul de pe drum este „mesajul” lăsat în mediu."},
+{"lvl":"b","q":"În experimentul podului dublu cu ramuri inegale, ramura scurtă câștigă pentru că:","o":["furnicile văd lungimea","furnicile care o folosesc se întorc mai repede și depun feromon mai des","feromonul se evaporă mai încet acolo","regina o alege"],"a":1,"e":"Feedback pozitiv amplificat de diferența de timp."},
+{"lvl":"b","q":"În PSO, pbest este:","o":["cea mai bună poziție a întregului roi","cea mai bună poziție vizitată de particula respectivă","viteza maximă","parametrul de inerție"],"a":1,"e":"Memoria individuală (componenta cognitivă)."},
+{"lvl":"m","q":"În ACO, β = 0 înseamnă:","o":["fără feromon","fără informație euristică (distanțe)","fără evaporare","algoritm lacom"],"a":1,"e":"Furnicile urmează doar feromonul – stagnare pe tururi proaste (1117 în laborator)."},
+{"lvl":"m","q":"Prin ce diferă MAX-MIN AS de Ant System?","o":["nu folosește feromon","depune doar cea mai bună furnică și limitează τ în [τ_min, τ_max]","folosește mutație","nu folosește evaporare"],"a":1,"e":"Limitele previn stagnarea; inițializarea cu τ_max favorizează explorarea."},
+{"lvl":"m","q":"Cu α = 1, β = 1, τ = (1, 3, 1), d = (2, 4, 5), probabilitatea de a alege al doilea oraș este:","o":["0,345","0,517","0,6","0,177"],"a":1,"e":"0,75 / 1,45 ≈ 0,517 (S7.1)."},
+{"lvl":"m","q":"Topologia inel (lbest), față de gbest:","o":["converge mai repede","răspândește informația mai lent, fiind de obicei mai robustă pe funcții multimodale","nu folosește pbest","este echivalentă"],"a":1,"e":"Vezi și rezultatele din L7.2."},
+{"lvl":"m","q":"Pentru a compara corect AG și PSO trebuie:","o":["același număr de generații/iterații","același număr de evaluări, rulări multiple, test statistic","o singură rulare cu același seed","aceeași mărime a populației"],"a":1,"e":"Cerință explicită a fișei: calitatea soluției și timpul de rulare."},
+{"lvl":"a","q":"Parametrii w = 1, c₁ = c₂ = 2 în PSO:","o":["sunt în regiunea de stabilitate","duc la divergență (w nu e în (−1, 1))","sunt parametrii de constricție","sunt optimi pentru Rastrigin"],"a":1,"e":"Regiunea Poli cere −1 < w < 1."},
+{"lvl":"a","q":"ACO poate fi interpretat ca:","o":["o variantă de A*","căutare bazată pe modele: învățarea unei distribuții de probabilitate peste soluții","o rețea neuronală","programare dinamică"],"a":1,"e":"Matricea de feromon definește un model probabilist de construcție a soluțiilor (înrudit cu EDA, cross-entropy)."}
+]
+</script>
+</section>
+
+<section class="part">
+<h2>5. Temă finală și proiect</h2>
+<div class="lvl" data-lvl="b"><p><b>T1:</b> Rulați simulatoarele ACO și PSO cu 3 configurații de parametri fiecare; explicați în 1 pagină ce ați observat (explorare vs. exploatare).</p></div>
+<div class="lvl" data-lvl="m"><p><b>T2:</b> Completați L7.3 cu 30 de rulări, curbe de convergență și dimensiunea efectului. Adăugați ACS și ABC.</p></div>
+<div class="lvl" data-lvl="a"><p><b>T3:</b> Aplicați ACO la problema de programare din ședința 4 (feromon pe perechi „sarcina i pe poziția j” a permutării + schema serială) și comparați cu AG-ul vostru din T3 de atunci și cu CP-SAT.</p></div>
+<div class="note"><b>Proiectul</b> (prezentat și susținut în sesiune, 70%): modelarea și rezolvarea unei probleme reale cu algoritmi euristici. Standardul minim: descrierea agentului și a mediului; modelarea problemei ca problemă de căutare, planificare sau optimizare; cel puțin un algoritm euristic (AG, ACO sau PSO); compararea a cel puțin două abordări după calitatea soluției și timpul de rulare. Nu uitați secțiunea „Utilizarea instrumentelor AI”: instrument, scop, contribuție.</div>
+</section>
+
+<section class="part">
+<h2>6. Bibliografie</h2>
+<ol>
+<li>J. Kennedy, R. C. Eberhart, Y. Shi – <i>Swarm Intelligence</i>, Morgan Kaufmann, 2001.</li>
+<li>M. Dorigo, T. Stützle – <i>Ant Colony Optimization</i>, MIT Press, 2004 – cap. 1–3.</li>
+<li>A. Konar – <i>Artificial Intelligence and Soft Computing</i>, CRC Press, 1999.</li>
+<li>S. Russell, P. Norvig – <i>Artificial Intelligence: A Modern Approach</i>, ed. a 4-a, 2020 – §4.1 (căutare locală, metaeuristici).</li>
+<li>Z. Michalewicz – <i>Genetic Algorithms + Data Structures = Evolution Programs</i>, ed. a 3-a, Springer, 1996 (pentru comparația cu AG).</li>
+<li>D. M. Popovici et al. – <i>Medii virtuale multimodale distribuite</i>, vol. 1, 2014 (aplicații în medii virtuale).</li>
+<li>C. W. Reynolds – „Flocks, Herds, and Schools: A Distributed Behavioral Model”, <i>SIGGRAPH</i> 1987.</li>
+<li>DEAP – <a href="https://deap.readthedocs.io/" target="_blank" rel="noopener">deap.readthedocs.io</a> (exemplul PSO).</li>
+</ol>
+</section>
+
+<div class="pager"><a href="IAA_06_Curs_Sem_Lab.html">← Ședința 6</a><span></span></div>
+</main>
+</div>
+<footer>Material didactic pentru disciplina <b>Inteligență artificială aplicată</b> (MVMOD.1.1.10), Master „Medii virtuale multi-modale distribuite”, Facultatea de Matematică și Informatică, Universitatea „Ovidius” din Constanța, anul universitar 2026–2027. Conținutul urmează fișa disciplinei (secțiunile 8.1 și 8.2). Material elaborat cu asistența unui instrument AI generativ (Claude, Anthropic) – a se verifica și adapta de titularul disciplinei.</footer>
+<script>(function(){
+"use strict";
+var KEY = "IAA_" + (document.body.getAttribute("data-session") || "x") + "_";
+function store(k, v){ try{ if(v===undefined) return localStorage.getItem(KEY+k); localStorage.setItem(KEY+k, v); }catch(e){ return null; } }
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+/* ---------- temă ---------- */
+var themeBtn = document.getElementById("themeBtn");
+if(store("theme")==="dark") document.documentElement.classList.add("dark");
+if(themeBtn) themeBtn.onclick = function(){ var d=document.documentElement.classList.toggle("dark"); store("theme", d?"dark":"light"); document.dispatchEvent(new Event("themechange")); };
+var printBtn = document.getElementById("printBtn");
+if(printBtn) printBtn.onclick = function(){ document.querySelectorAll("details").forEach(function(d){d.open=true;}); window.print(); };
+
+/* ---------- insigne de nivel ---------- */
+var LBL = {b:"Începător", m:"Mediu", a:"Avansat"};
+document.querySelectorAll(".lvl").forEach(function(el){
+  var l = el.getAttribute("data-lvl"); var b = document.createElement("span");
+  b.className = "badge "+l; b.textContent = LBL[l]||l; el.insertBefore(b, el.firstChild);
+});
+
+/* ---------- filtru pe nivele ---------- */
+function applyFilter(f){
+  document.querySelectorAll(".lvl-filter button").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-f")===f); });
+  document.querySelectorAll("[data-lvl]").forEach(function(el){
+    var l = el.getAttribute("data-lvl");
+    el.classList.toggle("hide-lvl", f!=="all" && l.indexOf(f)<0);
+  });
+  store("filter", f); buildToc();
+}
+document.querySelectorAll(".lvl-filter button").forEach(function(b){ b.onclick=function(){ applyFilter(b.getAttribute("data-f")); }; });
+
+/* ---------- evidențiere sintaxă Python ---------- */
+var KW = "False None True and as assert async await break class continue def del elif else except finally for from global if import in is lambda nonlocal not or pass raise return try while with yield match case".split(" ");
+var BI = "print range len int float str list dict set tuple min max sum abs sorted enumerate zip map filter isinstance any all open round reversed super self heapq random math deque defaultdict itertools np".split(" ");
+function hlPython(src){
+  var re = /(#[^\n]*)|("""[\s\S]*?"""|'''[\s\S]*?'''|f?"(?:\\.|[^"\\\n])*"|f?'(?:\\.|[^'\\\n])*')|(\b\d+(?:\.\d+)?(?:e[-+]?\d+)?\b)|([A-Za-z_][A-Za-z0-9_]*)(\s*\()?/g;
+  var out = "", last = 0, m;
+  while((m = re.exec(src))){
+    out += esc(src.slice(last, m.index)); last = re.lastIndex;
+    if(m[1]) out += '<span class="c">'+esc(m[1])+'</span>';
+    else if(m[2]) out += '<span class="s">'+esc(m[2])+'</span>';
+    else if(m[3]) out += '<span class="n">'+m[3]+'</span>';
+    else if(m[4]){
+      var w = m[4], tail = m[5]||"";
+      if(KW.indexOf(w)>=0) out += '<span class="k">'+w+'</span>'+esc(tail);
+      else if(BI.indexOf(w)>=0) out += '<span class="bi">'+w+'</span>'+esc(tail);
+      else if(tail) out += '<span class="f">'+w+'</span>'+esc(tail);
+      else out += w;
+    }
+  }
+  return out + esc(src.slice(last));
+}
+function hlPddl(src){
+  return esc(src).replace(/(;[^\n]*)/g,'<span class="c">$1</span>')
+    .replace(/(\(\s*)(define|domain|problem|:requirements|:types|:predicates|:action|:parameters|:precondition|:effect|:objects|:init|:goal|:domain|and|not|or|forall|when)/g,'$1<span class="k">$2</span>')
+    .replace(/(\?[a-z0-9_-]+)/gi,'<span class="n">$1</span>')
+    .replace(/(:[a-z-]+)/gi,'<span class="f">$1</span>');
+}
+document.querySelectorAll("pre.code").forEach(function(pre){
+  var lang = pre.getAttribute("data-lang")||"python";
+  var src = pre.textContent.replace(/^\n/,"").replace(/\s+$/,"");
+  pre.innerHTML = lang==="python" ? hlPython(src) : (lang==="pddl" ? hlPddl(src) : esc(src));
+  var b = document.createElement("button"); b.className="copy"; b.textContent="Copiază";
+  b.onclick = function(){
+    var done=function(){ b.textContent="Copiat ✓"; setTimeout(function(){b.textContent="Copiază";},1500); };
+    if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(src).then(done, function(){ fallback(); }); } else fallback();
+    function fallback(){ var t=document.createElement("textarea"); t.value=src; document.body.appendChild(t); t.select(); try{document.execCommand("copy");}catch(e){} document.body.removeChild(t); done(); }
+  };
+  pre.appendChild(b);
+});
+
+/* ---------- flashcards ---------- */
+document.querySelectorAll(".card").forEach(function(c){ c.onclick=function(){ c.classList.toggle("flip"); }; });
+
+/* ---------- quiz ---------- */
+var answered = {};
+document.querySelectorAll("script.quiz-data").forEach(function(sc, qi){
+  var data = JSON.parse(sc.textContent); var host = document.createElement("div"); host.className="quiz";
+  sc.parentNode.insertBefore(host, sc);
+  var score = document.createElement("div"); score.className="score";
+  data.forEach(function(q, i){
+    var box = document.createElement("div"); box.className="qq"; if(q.lvl) box.setAttribute("data-lvl", q.lvl);
+    var html = '<div class="qt">'+(i+1)+'. '+(q.lvl?'<span class="badge '+q.lvl+'">'+LBL[q.lvl]+'</span> ':'')+q.q+'</div>';
+    q.o.forEach(function(o, j){ html += '<label><input type="radio" name="q'+qi+'_'+i+'" value="'+j+'"> '+o+'</label>'; });
+    html += '<div class="expl">'+(q.e||"")+'</div>';
+    box.innerHTML = html; host.appendChild(box);
+    box.querySelectorAll("input").forEach(function(inp){
+      inp.onchange = function(){
+        if(box.classList.contains("done")) return;
+        box.classList.add("done");
+        var j = +inp.value; var labels = box.querySelectorAll("label");
+        labels[q.a].classList.add("right"); if(j!==q.a) labels[j].classList.add("wrong");
+        box.querySelectorAll("input").forEach(function(x){ x.disabled=true; });
+        answered[qi+"_"+i] = (j===q.a); upd();
+      };
+    });
+  });
+  var reset = document.createElement("button"); reset.className="btn sec"; reset.textContent="Reia testul";
+  reset.onclick = function(){ host.querySelectorAll(".qq").forEach(function(b,i){ b.classList.remove("done"); b.querySelectorAll("label").forEach(function(l){l.className="";}); b.querySelectorAll("input").forEach(function(x){x.disabled=false;x.checked=false;}); delete answered[qi+"_"+i]; }); upd(); };
+  host.appendChild(score); host.appendChild(reset);
+  function upd(){ var n=0,ok=0; for(var k in answered){ if(k.indexOf(qi+"_")===0){ n++; if(answered[k]) ok++; } } score.textContent = "Scor: "+ok+" / "+n+" răspunsuri ("+data.length+" întrebări în total)"; progress(); }
+  upd();
+});
+
+/* ---------- liste de verificare + progres ---------- */
+var checks = document.querySelectorAll("ul.check input[type=checkbox]");
+checks.forEach(function(c, i){ if(store("chk"+i)==="1") c.checked=true; c.onchange=function(){ store("chk"+i, c.checked?"1":"0"); progress(); }; });
+function progress(){
+  var cks = document.querySelectorAll("ul.check input[type=checkbox]");
+  var tot = cks.length + document.querySelectorAll(".quiz .qq").length;
+  var done = 0; cks.forEach(function(c){ if(c.checked) done++; });
+  done += document.querySelectorAll(".quiz .qq.done").length;
+  var p = tot? Math.round(100*done/tot):0;
+  var bar = document.querySelector(".progress i"); if(bar) bar.style.width = p+"%";
+  var t = document.querySelector(".tocprog"); if(t) t.textContent = "Progres ședință: "+p+"% ("+done+"/"+tot+" sarcini + întrebări)";
+}
+
+/* ---------- cuprins ---------- */
+function buildToc(){
+  var toc = document.querySelector("nav.toc .links"); if(!toc) return; toc.innerHTML="";
+  document.querySelectorAll("main h2, main h3").forEach(function(h, i){
+    if(h.closest(".hide-lvl")) return;
+    if(!h.id) h.id = "s"+i;
+    var a = document.createElement("a"); a.href="#"+h.id; var hc = h.cloneNode(true); hc.querySelectorAll(".tag,.badge").forEach(function(x){x.remove();}); a.textContent = hc.textContent.trim();
+    a.className = h.tagName.toLowerCase(); toc.appendChild(a);
+  });
+}
+var spyLinks = [];
+window.addEventListener("scroll", function(){
+  var hs = document.querySelectorAll("main h2, main h3"), cur=null;
+  hs.forEach(function(h){ if(h.getBoundingClientRect().top < 120 && !h.closest(".hide-lvl")) cur = h.id; });
+  document.querySelectorAll("nav.toc a").forEach(function(a){ a.classList.toggle("act", a.getAttribute("href")==="#"+cur); });
+}, {passive:true});
+
+applyFilter(store("filter")||"all");
+progress();
+
+/* ---------- utilitare pentru simulări ---------- */
+window.IAA = {
+  rng: function(seed){ var s = (Math.imul(seed|0, 2654435761) ^ 0x9e3779b9)>>>0 || 1; var f = function(){ s ^= s<<13; s>>>=0; s ^= s>>>17; s ^= s<<5; s>>>=0; return s/4294967296; }; for(var i=0;i<12;i++) f(); return f; },
+  css: function(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); },
+  fit: function(cv){ var r = window.devicePixelRatio||1; if(!cv._w){ cv._w = +cv.getAttribute("width"); cv._h = +cv.getAttribute("height"); cv.style.width = cv._w+"px"; cv.style.aspectRatio = cv._w+"/"+cv._h; cv.width = cv._w*r; cv.height = cv._h*r; } var g = cv.getContext("2d"); g.setTransform(r,0,0,r,0,0); g.W = cv._w; g.H = cv._h; return g; },
+  pos: function(cv, ev){ var b = cv.getBoundingClientRect(); return {x:(ev.clientX-b.left)*cv._w/b.width, y:(ev.clientY-b.top)*cv._h/b.height}; },
+  esc: esc
+};
+})();
+</script>
+<script>(function(){
+/* ===== podul dublu ===== */
+function bridgeSim(ratio, rho, seed){
+  var r=IAA.rng(seed), tau=[0,0], k=20, h=2, Ls=10, Ll=Math.round(10*ratio), ants=[], frac=[], cnt=[0,0];
+  for(var t=0;t<1500;t++){
+    if(t%2===0){ var a=Math.pow(k+tau[0],h), b=Math.pow(k+tau[1],h), br = r()<a/(a+b) ? 0 : 1, L = br===0?Ls:Ll; ants.push({br:br, mid:t+L, back:t+2*L}); cnt[br]++; }
+    // feromon depus la sosirea la hrană și la întoarcerea în cuib: ramura scurtă e marcată mai devreme
+    ants=ants.filter(function(x){ if(x.mid===t) tau[x.br]+=1; if(x.back===t){ tau[x.br]+=1; return false; } return true; });
+    tau[0]*=(1-rho); tau[1]*=(1-rho);
+    if(t%10===0) frac.push(cnt[0]/(cnt[0]+cnt[1]||1));
+  }
+  return frac;
+}
+function brDraw(runs){
+  var cv=document.getElementById("brCv"), g=IAA.fit(cv), W=g.W, H=g.H; g.clearRect(0,0,W,H);
+  var x0=50, w=W-70, hh=H-40; g.strokeStyle=IAA.css("--line"); g.fillStyle=IAA.css("--muted"); g.font="11px sans-serif";
+  [0,0.5,1].forEach(function(q){ var y=10+hh*(1-q); g.beginPath(); g.moveTo(x0,y); g.lineTo(x0+w,y); g.stroke(); g.fillText((q*100)+"%", 10, y+4); });
+  g.fillText("timp →   (fracția cumulată a furnicilor care au ales ramura SCURTĂ / ramura 1)", x0, H-6);
+  var cols=["#2f5d8a","#d9534f","#2e7d4f","#b26a00","#7b61c9"];
+  runs.forEach(function(fr,k){ g.strokeStyle=cols[k%5]; g.lineWidth=2; g.beginPath(); fr.forEach(function(v,i){ var x=x0+i/(fr.length-1)*w, y=10+hh*(1-v); if(i) g.lineTo(x,y); else g.moveTo(x,y); }); g.stroke(); }); g.lineWidth=1;
+  document.getElementById("brOut").textContent = runs.map(function(fr,k){ return "Colonia "+(k+1)+": "+(fr[fr.length-1]*100).toFixed(1)+"% au ales ramura scurtă (ramura 1)"; }).join("\n");
+}
+function brRun(n){ var ratio=+document.getElementById("brR").value, rho=+document.getElementById("brRho").value, runs=[]; for(var k=0;k<n;k++) runs.push(bridgeSim(ratio, rho, 1000+k*37+Math.floor(Math.random()*1000))); brDraw(runs); }
+document.getElementById("brRun").onclick=function(){ brRun(1); }; document.getElementById("brRun5").onclick=function(){ brRun(5); };
+brRun(5);
+
+/* ===== ACO pe TSP ===== */
+var A={}, acTimer=null, rngA=IAA.rng(4242);
+function acReset(){ if(acTimer){ clearInterval(acTimer); acTimer=null; } var n=+document.getElementById("acN").value; A.n=n; A.P=[];
+  for(var i=0;i<n;i++) A.P.push([0.05+0.9*rngA(), 0.05+0.9*rngA()]);
+  A.D=A.P.map(function(p){ return A.P.map(function(q){ return Math.hypot(p[0]-q[0],p[1]-q[1])||1e-9; }); });
+  var t=[0], left=[]; for(i=1;i<n;i++) left.push(i); while(left.length){ var c=t[t.length-1], bi=0; for(var j=1;j<left.length;j++) if(A.D[c][left[j]]<A.D[c][left[bi]]) bi=j; t.push(left.splice(bi,1)[0]); }
+  A.Lnn=len(t); A.it=0; A.best=null; A.bestL=Infinity; A.hist=[]; A.ev=0; initTau(); document.getElementById("acNN").textContent=(A.Lnn*100).toFixed(1); acDraw(); }
+function len(t){ var s=0; for(var i=0;i<t.length;i++) s+=A.D[t[i]][t[(i+1)%t.length]]; return s; }
+function initTau(){ var rho=+document.getElementById("acRho").value, mm=document.getElementById("acV").value==="mmas"; var v = mm ? 1/(rho*A.Lnn) : 1/A.Lnn; A.tau=[]; for(var i=0;i<A.n;i++){ A.tau.push(new Array(A.n).fill(v)); } }
+function acStep(){
+  var al=+document.getElementById("acA").value, be=+document.getElementById("acB").value, rho=+document.getElementById("acRho").value, m=+document.getElementById("acM").value, mm=document.getElementById("acV").value==="mmas", n=A.n;
+  var tours=[];
+  for(var k=0;k<m;k++){ var st=Math.floor(rngA()*n), t=[st], vis=new Array(n).fill(false); vis[st]=true;
+    for(var s=1;s<n;s++){ var i=t[t.length-1], ws=[], tot=0; for(var j=0;j<n;j++){ var w = vis[j]?0:Math.pow(A.tau[i][j],al)*Math.pow(1/A.D[i][j],be); ws.push(w); tot+=w; }
+      var r=rngA()*tot, acc=0, nx=-1; for(j=0;j<n;j++){ if(vis[j]) continue; acc+=ws[j]; nx=j; if(acc>=r) break; } t.push(nx); vis[nx]=true; }
+    var L=len(t); tours.push([L,t]); A.ev++; if(L<A.bestL){ A.bestL=L; A.best=t; } }
+  for(var i=0;i<n;i++) for(var j=0;j<n;j++) A.tau[i][j]*=(1-rho);
+  var dep = mm ? [ (A.it%10===0) ? [A.bestL,A.best] : tours.reduce(function(a,b){ return b[0]<a[0]?b:a; }) ] : tours;
+  dep.forEach(function(x){ var t=x[1], d=1/x[0]; for(var q=0;q<n;q++){ var a=t[q], b=t[(q+1)%n]; A.tau[a][b]+=d; A.tau[b][a]+=d; } });
+  if(mm){ var tmax=1/(rho*A.bestL), tmin=tmax/(2*n); for(i=0;i<n;i++) for(j=0;j<n;j++) A.tau[i][j]=Math.min(tmax,Math.max(tmin,A.tau[i][j])); }
+  A.it++; A.hist.push(A.bestL); acDraw();
+}
+function acDraw(){
+  var cv=document.getElementById("acCv"), g=IAA.fit(cv), W=g.W; g.clearRect(0,0,W,W); g.fillStyle=IAA.css("--panel"); g.fillRect(0,0,W,W);
+  if(document.getElementById("acPh").checked && A.tau){ var mx=0; for(var i=0;i<A.n;i++) for(var j=0;j<A.n;j++) if(i!==j) mx=Math.max(mx,A.tau[i][j]);
+    for(i=0;i<A.n;i++) for(j=i+1;j<A.n;j++){ var v=A.tau[i][j]/mx; if(v<0.05) continue; g.strokeStyle="rgba(178,106,0,"+Math.min(1,v)+")"; g.lineWidth=0.5+5*v; g.beginPath(); g.moveTo(A.P[i][0]*W,A.P[i][1]*W); g.lineTo(A.P[j][0]*W,A.P[j][1]*W); g.stroke(); } }
+  if(A.best){ g.strokeStyle="#2f5d8a"; g.lineWidth=2; g.beginPath(); A.best.forEach(function(c,k){ var p=A.P[c]; if(k) g.lineTo(p[0]*W,p[1]*W); else g.moveTo(p[0]*W,p[1]*W); }); g.closePath(); g.stroke(); }
+  g.lineWidth=1; A.P.forEach(function(p){ g.fillStyle="#d9534f"; g.beginPath(); g.arc(p[0]*W,p[1]*W,4,0,7); g.fill(); });
+  document.getElementById("acIt").textContent=A.it; document.getElementById("acBest").textContent=A.best?(A.bestL*100).toFixed(1):"–"; document.getElementById("acEv").textContent=A.ev;
+  var ch=document.getElementById("acCh"), h=IAA.fit(ch); h.clearRect(0,0,h.W,h.H); var x0=40, w=h.W-50, hh=h.H-36, len2=Math.max(100,A.hist.length), lo=A.bestL*0.95, hi=A.Lnn*1.1;
+  h.strokeStyle=IAA.css("--line"); h.fillStyle=IAA.css("--muted"); h.font="11px sans-serif"; h.beginPath(); h.moveTo(x0,10+hh); h.lineTo(x0+w,10+hh); h.stroke();
+  var ynn=10+hh*(1-(A.Lnn-lo)/(hi-lo)); h.setLineDash([4,3]); h.strokeStyle="#5c6577"; h.beginPath(); h.moveTo(x0,ynn); h.lineTo(x0+w,ynn); h.stroke(); h.setLineDash([]); h.fillText("vecinul cel mai apropiat", x0+w-130, ynn-4);
+  h.strokeStyle="#2f5d8a"; h.lineWidth=2; h.beginPath(); A.hist.forEach(function(v,i){ var x=x0+i/len2*w, y=Math.max(4,10+hh*(1-(v-lo)/(hi-lo))); if(i) h.lineTo(x,y); else h.moveTo(x,y); }); h.stroke(); h.lineWidth=1; h.fillText("lungimea celui mai bun tur vs. iterație", x0, h.H-4);
+}
+document.getElementById("acRun").onclick=function(){ if(acTimer){ clearInterval(acTimer); acTimer=null; } else acTimer=setInterval(function(){ acStep(); if(A.it>=300){ clearInterval(acTimer); acTimer=null; } }, 50); };
+document.getElementById("acReset").onclick=acReset; document.getElementById("acN").onchange=acReset;
+document.getElementById("acV").onchange=function(){ initTau(); A.it=0; A.hist=[]; A.best=null; A.bestL=Infinity; A.ev=0; acDraw(); };
+document.getElementById("acPh").onchange=acDraw; document.addEventListener("themechange", acDraw);
+acReset();
+
+/* ===== PSO 2D ===== */
+var R=5.12, rngP=IAA.rng(777), S={}, psTimer=null, bgCache={};
+var FN={ rastrigin:function(x,y){ return 20+x*x-10*Math.cos(2*Math.PI*x)+y*y-10*Math.cos(2*Math.PI*y); },
+  ackley:function(x,y){ return -20*Math.exp(-0.2*Math.sqrt(0.5*(x*x+y*y)))-Math.exp(0.5*(Math.cos(2*Math.PI*x)+Math.cos(2*Math.PI*y)))+Math.E+20; },
+  sphere:function(x,y){ return x*x+y*y; } };
+function psReset(){ if(psTimer){ clearInterval(psTimer); psTimer=null; } var n=+document.getElementById("psN").value, f=FN[document.getElementById("psF").value]; S.P=[];
+  for(var i=0;i<n;i++){ var x=[(rngP()*2-1)*R,(rngP()*2-1)*R], v=[(rngP()*2-1)*R*0.2,(rngP()*2-1)*R*0.2]; S.P.push({x:x,v:v,p:x.slice(),pf:f(x[0],x[1])}); } S.it=0; S.hist=[]; rec(); psDraw(); }
+function gb(i){ var P=S.P, n=P.length; if(document.getElementById("psT").value==="g"){ var b=0; for(var k=1;k<n;k++) if(P[k].pf<P[b].pf) b=k; return P[b]; } var c=[(i-1+n)%n,i,(i+1)%n]; return c.map(function(k){ return P[k]; }).reduce(function(a,b){ return b.pf<a.pf?b:a; }); }
+function rec(){ S.hist.push(Math.min.apply(null,S.P.map(function(p){ return p.pf; }))); }
+function psStep(){ var w=+document.getElementById("psW").value, c1=+document.getElementById("psC1").value, c2=+document.getElementById("psC2").value, f=FN[document.getElementById("psF").value], vmax=0.2*2*R;
+  var G=S.P.map(function(p,i){ return gb(i).p.slice(); });
+  S.P.forEach(function(p,i){ for(var d=0;d<2;d++){ p.v[d]=w*p.v[d]+c1*rngP()*(p.p[d]-p.x[d])+c2*rngP()*(G[i][d]-p.x[d]); p.v[d]=Math.max(-vmax,Math.min(vmax,p.v[d])); p.x[d]=Math.max(-R,Math.min(R,p.x[d]+p.v[d])); }
+    var fx=f(p.x[0],p.x[1]); if(fx<p.pf){ p.pf=fx; p.p=p.x.slice(); } });
+  S.it++; rec(); psDraw(); }
+function psDraw(){ var fname=document.getElementById("psF").value, f=FN[fname], cv=document.getElementById("psCv"), g=IAA.fit(cv), W=g.W;
+  if(!bgCache[fname]){ var off=document.createElement("canvas"); off.width=200; off.height=200; var o=off.getContext("2d"), img=o.createImageData(200,200), mx=0, vals=[];
+    for(var py=0;py<200;py++) for(var px=0;px<200;px++){ var v=f((px/199*2-1)*R,(1-py/199*2)*R); vals.push(v); mx=Math.max(mx,v); }
+    vals.forEach(function(v,k){ var q=Math.sqrt(v/mx); img.data[4*k]=255*Math.min(1,0.12+q*1.1); img.data[4*k+1]=255*Math.min(1,0.22+q*0.8); img.data[4*k+2]=255*Math.min(1,0.42+q*0.35); img.data[4*k+3]=255; });
+    o.putImageData(img,0,0); bgCache[fname]=off; }
+  g.drawImage(bgCache[fname],0,0,W,W);
+  function X(v){ return (v/R+1)/2*W; } function Y(v){ return (1-v/R)/2*W; }
+  var showV=document.getElementById("psVel").checked, vs=0;
+  S.P.forEach(function(p){ vs+=Math.hypot(p.v[0],p.v[1]); g.fillStyle="rgba(255,255,255,.5)"; g.fillRect(X(p.p[0])-2,Y(p.p[1])-2,4,4);
+    if(showV){ g.strokeStyle="#ffcb6b"; g.beginPath(); g.moveTo(X(p.x[0]),Y(p.x[1])); g.lineTo(X(p.x[0]+p.v[0]*2),Y(p.x[1]+p.v[1]*2)); g.stroke(); }
+    g.fillStyle="#fff"; g.strokeStyle="#111"; g.beginPath(); g.arc(X(p.x[0]),Y(p.x[1]),3.5,0,7); g.fill(); g.stroke(); });
+  var b=S.P.reduce(function(a,p){ return p.pf<a.pf?p:a; }); g.strokeStyle="#d9534f"; g.lineWidth=2; g.beginPath(); g.arc(X(b.p[0]),Y(b.p[1]),8,0,7); g.stroke(); g.lineWidth=1;
+  document.getElementById("psIt").textContent=S.it; document.getElementById("psBest").textContent=b.pf.toFixed(5)+" la ("+b.p[0].toFixed(3)+", "+b.p[1].toFixed(3)+")"; document.getElementById("psV").textContent=(vs/S.P.length).toFixed(4);
+  var ch=document.getElementById("psCh"), h=IAA.fit(ch); h.clearRect(0,0,h.W,h.H); var x0=40, w=h.W-50, hh=h.H-34, len2=Math.max(100,S.hist.length), top=Math.log10(S.hist[0]+1)+0.1;
+  h.strokeStyle=IAA.css("--line"); h.beginPath(); h.moveTo(x0,10+hh); h.lineTo(x0+w,10+hh); h.stroke(); h.fillStyle=IAA.css("--muted"); h.font="11px sans-serif"; h.fillText("log₁₀(1 + gbest) vs. iterație", x0, h.H-4);
+  h.strokeStyle="#d9534f"; h.lineWidth=2; h.beginPath(); S.hist.forEach(function(v,i){ var x=x0+i/len2*w, y=10+hh*(1-Math.log10(v+1)/top); if(i) h.lineTo(x,y); else h.moveTo(x,y); }); h.stroke(); h.lineWidth=1;
+}
+document.getElementById("psRun").onclick=function(){ if(psTimer){ clearInterval(psTimer); psTimer=null; } else psTimer=setInterval(function(){ psStep(); if(S.it>=400){ clearInterval(psTimer); psTimer=null; } }, 60); };
+document.getElementById("psReset").onclick=psReset; ["psF","psN"].forEach(function(id){ document.getElementById(id).onchange=psReset; });
+document.getElementById("psVel").onchange=psDraw;
+psReset();
+
+/* ===== boids ===== */
+var B=[], bTimer=null, rngB=IAA.rng(5);
+for(var i=0;i<70;i++) B.push({x:rngB()*880,y:rngB()*300,vx:rngB()*2-1,vy:rngB()*2-1});
+function bStep(){ var ks=+document.getElementById("bS").value, ka=+document.getElementById("bA").value, kc=+document.getElementById("bC").value;
+  B.forEach(function(b){ var sx=0,sy=0,ax=0,ay=0,cx=0,cy=0,n=0;
+    B.forEach(function(o){ if(o===b) return; var dx=o.x-b.x, dy=o.y-b.y, d=Math.hypot(dx,dy); if(d<50){ n++; ax+=o.vx; ay+=o.vy; cx+=o.x; cy+=o.y; if(d<16){ sx-=dx/(d*d+0.01); sy-=dy/(d*d+0.01); } } });
+    if(n){ b.vx+=ks*sx*4 + ka*(ax/n-b.vx)*0.05 + kc*(cx/n-b.x)*0.002; b.vy+=ks*sy*4 + ka*(ay/n-b.vy)*0.05 + kc*(cy/n-b.y)*0.002; }
+    var sp=Math.hypot(b.vx,b.vy); if(sp>3){ b.vx*=3/sp; b.vy*=3/sp; } if(sp<1){ b.vx*=1.2; b.vy*=1.2; } });
+  B.forEach(function(b){ b.x=(b.x+b.vx+880)%880; b.y=(b.y+b.vy+300)%300; }); bDraw(); }
+function bDraw(){ var g=IAA.fit(document.getElementById("bCv")); g.fillStyle=IAA.css("--panel"); g.fillRect(0,0,g.W,g.H);
+  B.forEach(function(b){ var a=Math.atan2(b.vy,b.vx); g.save(); g.translate(b.x,b.y); g.rotate(a); g.fillStyle="#2f5d8a"; g.beginPath(); g.moveTo(8,0); g.lineTo(-5,4); g.lineTo(-5,-4); g.closePath(); g.fill(); g.restore(); }); }
+document.getElementById("bRun").onclick=function(){ if(bTimer){ clearInterval(bTimer); bTimer=null; } else bTimer=setInterval(bStep, 33); };
+document.addEventListener("themechange", function(){ bDraw(); psDraw(); });
+bDraw();
+})();
+</script>
+</body>
+</html>
