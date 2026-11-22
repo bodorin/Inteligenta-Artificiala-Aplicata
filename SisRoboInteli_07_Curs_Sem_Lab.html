@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SRI 07 · Machine Learning în robotică: învățare supervizată, învățare prin consolidare, sim-to-real</title>
+<style>
+:root{
+  --bg:#f6f7fb; --card:#ffffff; --ink:#1b2333; --muted:#5b667a; --line:#e2e6ef;
+  --pri:#1f3c88; --pri2:#2f5bd3; --acc:#0f9d8a; --warn:#c77700; --bad:#c0392b;
+  --b:#2e8b57; --m:#d08700; --a:#b03a48; --code:#0f1726; --codeink:#e6edf7;
+  --shadow:0 1px 2px rgba(16,24,40,.06),0 4px 14px rgba(16,24,40,.06);
+}
+body.dark{
+  --bg:#0f1420; --card:#171e2d; --ink:#e6ebf5; --muted:#9aa6bd; --line:#2a3447;
+  --pri:#8fb0ff; --pri2:#6f95ff; --acc:#38c9b4; --code:#0a0f19; --codeink:#e6edf7;
+  --shadow:0 1px 2px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;
+  background:var(--bg);color:var(--ink);line-height:1.6;font-size:16.5px}
+a{color:var(--pri2)}
+header.top{background:linear-gradient(120deg,#13275e,#1f3c88 55%,#0f7f73);color:#fff;padding:26px 28px 18px}
+header.top .kicker{opacity:.85;font-size:.86rem;letter-spacing:.06em;text-transform:uppercase}
+header.top h1{margin:.2rem 0 .3rem;font-size:1.85rem;line-height:1.25}
+header.top .sub{opacity:.92;max-width:1000px}
+header.top .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chip{display:inline-block;padding:2px 10px;border-radius:999px;background:rgba(255,255,255,.16);font-size:.82rem}
+.bar{position:sticky;top:0;z-index:50;background:var(--card);border-bottom:1px solid var(--line);box-shadow:var(--shadow)}
+.bar .inner{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 18px}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;flex:1}
+.tabs button,.lvl button,.tool{border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:6px 12px;
+  border-radius:8px;cursor:pointer;font:inherit;font-size:.92rem}
+.tabs button.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+.lvl{display:flex;gap:4px;align-items:center;font-size:.85rem;color:var(--muted)}
+.lvl button.on[data-l="b"]{background:var(--b);color:#fff;border-color:var(--b)}
+.lvl button.on[data-l="m"]{background:var(--m);color:#fff;border-color:var(--m)}
+.lvl button.on[data-l="a"]{background:var(--a);color:#fff;border-color:var(--a)}
+.layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:22px;max-width:1320px;margin:0 auto;padding:22px 18px 60px}
+nav.toc{position:sticky;top:64px;align-self:start;max-height:calc(100vh - 80px);overflow:auto;font-size:.88rem;
+  background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 12px}
+nav.toc b{display:block;margin-bottom:6px;color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.05em}
+nav.toc a{display:block;text-decoration:none;color:var(--ink);padding:3px 6px;border-radius:6px}
+nav.toc a.h3{padding-left:18px;color:var(--muted);font-size:.84rem}
+nav.toc a:hover{background:var(--bg)}
+@media (max-width:900px){.layout{grid-template-columns:1fr}nav.toc{display:none}}
+main{min-width:0}
+.panel{display:none}
+.panel.on{display:block}
+section.card,.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 24px;margin:0 0 18px;box-shadow:var(--shadow)}
+h2{font-size:1.45rem;margin:.2rem 0 .8rem;color:var(--pri)}
+h3{font-size:1.15rem;margin:1.3rem 0 .5rem}
+h4{margin:1rem 0 .4rem}
+.lead{font-size:1.05rem;color:var(--muted)}
+.badge{display:inline-block;font-size:.72rem;font-weight:700;padding:1px 8px;border-radius:999px;color:#fff;vertical-align:middle;margin-right:6px;letter-spacing:.03em}
+.badge.b{background:var(--b)} .badge.m{background:var(--m)} .badge.a{background:var(--a)}
+.lb,.lm,.la{border-left:4px solid var(--line);padding:6px 0 6px 14px;margin:12px 0}
+.lb{border-left-color:var(--b)} .lm{border-left-color:var(--m)} .la{border-left-color:var(--a)}
+body.f-b .lm,body.f-b .la{display:none!important}
+body.f-m .la{display:none!important}
+.box{border-radius:10px;padding:12px 16px;margin:12px 0;border:1px solid var(--line);background:var(--bg)}
+.box.def{border-left:5px solid var(--pri2)}
+.box.tip{border-left:5px solid var(--acc)}
+.box.warn{border-left:5px solid var(--warn)}
+.box.ai{border-left:5px solid #7b4bd1}
+.box > .t{font-weight:700;display:block;margin-bottom:4px}
+.eq{font-family:"Cambria Math","STIX Two Math","Latin Modern Math",Georgia,serif;font-size:1.08rem;background:var(--bg);
+  border:1px dashed var(--line);border-radius:8px;padding:10px 14px;margin:10px 0;overflow-x:auto;text-align:center}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media (max-width:760px){.grid2,.grid3{grid-template-columns:1fr}}
+table{border-collapse:collapse;width:100%;margin:10px 0;font-size:.93rem}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}
+th{background:var(--bg)}
+pre{background:var(--code);color:var(--codeink);padding:14px 16px;border-radius:10px;overflow:auto;font-size:.86rem;line-height:1.45;position:relative;margin:10px 0}
+code{font-family:"JetBrains Mono","Fira Code",Consolas,Menlo,monospace}
+:not(pre)>code{background:var(--bg);border:1px solid var(--line);padding:0 5px;border-radius:5px;font-size:.88em}
+pre .cp{position:absolute;top:6px;right:6px;font-size:.74rem;background:#2b3a55;color:#fff;border:0;border-radius:6px;padding:3px 8px;cursor:pointer;opacity:.8}
+pre .cp:hover{opacity:1}
+pre .lang{position:absolute;top:6px;right:66px;font-size:.7rem;color:#8ea0bf}
+details{border:1px solid var(--line);border-radius:10px;padding:8px 14px;margin:10px 0;background:var(--card)}
+details summary{cursor:pointer;font-weight:600}
+details[open] summary{margin-bottom:8px}
+.sim{border:1px solid var(--line);border-radius:12px;padding:14px;margin:14px 0;background:var(--bg)}
+.sim h4{margin-top:0}
+.sim canvas{display:block;max-width:100%;background:#fff;border-radius:8px;border:1px solid var(--line);touch-action:none}
+body.dark .sim canvas{background:#f4f6fb}
+.ctrl{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin:10px 0;font-size:.9rem}
+.ctrl label{display:flex;align-items:center;gap:6px}
+.ctrl input[type=range]{width:140px}
+.ctrl .val{font-family:monospace;min-width:3.2em;display:inline-block}
+.btn{border:0;background:var(--pri2);color:#fff;padding:6px 14px;border-radius:8px;cursor:pointer;font:inherit;font-size:.9rem}
+.btn.sec{background:var(--muted)}
+.btn.ok{background:var(--acc)}
+.out{font-family:monospace;font-size:.88rem;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;white-space:pre-wrap;margin-top:8px}
+.agenda{display:grid;grid-template-columns:110px 1fr;gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.agenda div{padding:7px 10px;border-bottom:1px solid var(--line)}
+.agenda div:nth-child(odd){background:var(--bg);font-family:monospace;font-size:.88rem}
+.quiz .q{border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:12px 0;background:var(--card)}
+.quiz .q p{margin:.2rem 0 .5rem;font-weight:600}
+.quiz .opt{display:block;padding:6px 10px;border-radius:8px;border:1px solid var(--line);margin:5px 0;cursor:pointer}
+.quiz .opt:hover{background:var(--bg)}
+.quiz .opt.ok{background:rgba(46,139,87,.15);border-color:var(--b)}
+.quiz .opt.ko{background:rgba(192,57,43,.13);border-color:var(--bad)}
+.quiz .fb{font-size:.92rem;margin-top:6px;display:none}
+.quiz .score{font-weight:700;font-size:1.05rem}
+.check li{list-style:none;margin:4px 0}
+.check li label{cursor:pointer}
+.check{padding-left:4px}
+.pill{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:1px 9px;font-size:.8rem;margin:2px;background:var(--bg)}
+.kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 5px;font-family:monospace;font-size:.85em}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}
+.flow .n{background:var(--card);border:2px solid var(--pri2);border-radius:10px;padding:8px 12px;font-weight:600;text-align:center}
+.flow .ar{color:var(--muted);font-size:1.3rem}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.cards .c{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:.9rem;cursor:pointer}
+.cards .c:hover{border-color:var(--pri2)}
+.cards .c b{display:block}
+.muted{color:var(--muted)}
+.small{font-size:.88rem}
+footer{max-width:1320px;margin:0 auto;padding:10px 18px 40px;color:var(--muted);font-size:.84rem}
+@media print{.bar,nav.toc,.cp,.ctrl,.btn{display:none!important}.panel{display:block!important}.layout{display:block}
+  section.card{break-inside:avoid-page;box-shadow:none}body{background:#fff}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="kicker">Sisteme robotice inteligente · MVMOD.1.1.8 · Master MVMMD · Unitatea 07 din 7</div>
+  <h1>Machine Learning în robotică: învățare supervizată, învățare prin consolidare, sim-to-real</h1>
+  <div class="sub">Învățarea supervizată și învățarea prin consolidare (reinforcement learning) pentru controlul mișcării și elaborarea deciziilor; antrenarea în simulare și transferul pe roboți reali (sim-to-real). Laborator: antrenarea unei politici de control prin învățare prin consolidare în simulare și evaluarea performanței.</div>
+  <div class="meta"><span class="chip">Curs: 2 ore</span><span class="chip">Seminar (aplicații de curs)</span><span class="chip">Laborator: 2 ore</span><span class="chip">Niveluri: începător · mediu · avansat</span><span class="chip">Universitatea „Ovidius” din Constanța · 2026–2027</span></div>
+</header>
+<div class="bar"><div class="inner">
+  <div class="tabs" id="tabs">
+    <button data-p="intro">Prezentare</button>
+    <button data-p="curs">Curs</button>
+    <button data-p="sem">Seminar</button>
+    <button data-p="lab">Laborator</button>
+    <button data-p="quiz">Autoevaluare</button>
+    <button data-p="res">AI responsabil &amp; resurse</button>
+  </div>
+  <div class="lvl" id="lvl"><span>Nivel:</span>
+    <button data-l="b" title="Doar conținut de bază">Începător</button>
+    <button data-l="m" title="Bază + mediu">Mediu</button>
+    <button data-l="a" title="Tot conținutul">Avansat</button>
+  </div>
+  <button class="tool" id="dark" title="Temă luminoasă / întunecată">◐</button>
+  <button class="tool" id="printall" title="Tipărește tot materialul">⎙</button>
+</div></div>
+<div class="layout">
+  <nav class="toc" id="toc"></nav>
+  <main id="main">
+
+
+<div class="panel" id="p-intro">
+<section class="card">
+<h2>Despre această unitate</h2>
+<p class="lead">Unitățile anterioare au construit comportamentul robotului din modele scrise de om (senzori, filtre, planificatoare). Aici comportamentul este <b>învățat din date</b>: din demonstrații (învățare supervizată, imitație) sau din încercare și eroare (învățare prin consolidare). Întrebarea practică centrală: cum antrenăm în simulare, în siguranță, și cum transferăm pe un robot real?</p>
+<div class="grid3">
+<div class="box def"><span class="t">Curs (2 ore)</span>Unde intră ML în arhitectura robotică; învățare supervizată (percepție, modele de dinamică, clonarea comportamentului, DAgger); RL: MDP, valoare, Bellman, Q-learning, DQN, gradient de politică, actor-critic (PPO, SAC); proiectarea recompensei; antrenarea în simulare; sim-to-real (randomizarea domeniului, identificarea sistemului); siguranță și evaluare.</div>
+<div class="box tip"><span class="t">Seminar</span>Randament actualizat, actualizări Bellman/Q-learning de mână, ε-greedy, on-/off-policy, capcane ale recompensei, deriva distribuției în imitație, strategii sim-to-real.</div>
+<div class="box warn"><span class="t">Laborator (2 ore)</span>Q-learning tabular; mediu Gymnasium propriu pentru navigarea unui robot diferențial; PPO cu Stable-Baselines3; evaluare (rată de succes, coliziuni, curbe de învățare); randomizarea domeniului; opțional – politica rulată ca nod ROS 2.</div>
+</div>
+<h3>Agenda orientativă</h3>
+<div class="agenda">
+<div>Curs 0:00</div><div>Problematizare: „Putem scrie de mână un controler pentru un patruped pe gheață? Dar să-l învățăm?”</div>
+<div>Curs 0:10</div><div>ML în robotică: unde și de ce; învățare supervizată; clonarea comportamentului și DAgger (demonstrație)</div>
+<div>Curs 0:35</div><div>RL: MDP, valoare, Bellman, Q-learning (gridworld interactiv)</div>
+<div>Curs 1:00</div><div>RL profund: DQN, PPO, SAC; proiectarea recompensei</div>
+<div>Curs 1:20</div><div>Simulare și sim-to-real: randomizarea domeniului (demonstrație); siguranță; spre proiectul final</div>
+<div>Lab 0:00</div><div>Q-learning tabular; mediul propriu Gymnasium</div>
+<div>Lab 0:40</div><div>PPO: antrenare, curbe, evaluare</div>
+<div>Lab 1:20</div><div>Randomizare, robustețe, sarcini pe niveluri; declarație AI</div>
+</div>
+<h3>Rezultate ale învățării vizate</h3>
+<div class="lb"><span class="badge b">Începător</span>Distinge învățarea supervizată de RL; definește stare, acțiune, recompensă, politică; antrenează un agent Q-learning și interpretează curba de recompensă.</div>
+<div class="lm"><span class="badge m">Mediu</span>Aplică ecuația Bellman și actualizarea Q-learning; construiește un mediu Gymnasium; antrenează și evaluează o politică PPO; identifică deriva distribuției în clonarea comportamentului.</div>
+<div class="la"><span class="badge a">Avansat</span>Proiectează recompense și spații de observație robuste; aplică randomizarea domeniului și evaluează transferul; analizează critic metodologia de evaluare (semințe, intervale de încredere) și riscurile de siguranță.</div>
+</section>
+</div>
+
+<div class="panel" id="p-curs">
+<section class="card">
+<h2>1. Unde intră învățarea automată într-un robot</h2>
+<table>
+<tr><th>Bloc</th><th>Abordare clasică</th><th>Abordare învățată</th></tr>
+<tr><td>Percepție</td><td>Filtre, caracteristici proiectate manual</td><td>CNN / transformere pentru detecție, segmentare, adâncime (U4)</td></tr>
+<tr><td>Modelul dinamicii</td><td>Ecuații fizice + identificare de parametri</td><td>Rețele care prezic starea următoare (modele învățate, pentru MPC)</td></tr>
+<tr><td>Control / decizie</td><td>PID, MPC, planificatoare (U6)</td><td>Politici învățate prin imitație sau RL</td></tr>
+<tr><td>End-to-end</td><td>—</td><td>Senzori → acțiuni direct (inclusiv modele vision-language-action)</td></tr>
+</table>
+<div class="lb"><span class="badge b">Începător</span>
+<div class="grid2">
+<div class="box"><span class="t">Învățare supervizată</span>Avem perechi (intrare, răspuns corect) – de ex. (imagine, chenar) sau (stare, acțiunea expertului). Modelul învață funcția de la intrare la răspuns.</div>
+<div class="box"><span class="t">Învățare prin consolidare (RL)</span>Nu avem răspunsul corect, doar o <b>recompensă</b> după acțiuni. Agentul descoperă prin încercare și eroare ce acțiuni maximizează recompensa pe termen lung.</div>
+</div>
+</div>
+</section>
+
+<section class="card">
+<h2>2. Învățarea supervizată pentru control: clonarea comportamentului</h2>
+<div class="lb"><span class="badge b">Începător</span><p>Un om (sau un controler expert) conduce robotul; înregistrăm (observație, acțiune) și antrenăm un model care imită expertul. Simplu și eficient – dar cu o capcană: dacă robotul ajunge într-o situație pe care expertul nu a demonstrat-o (puțin în afara drumului), modelul nu știe ce să facă, greșește și mai mult, și erorile se <b>acumulează</b>.</p></div>
+<div class="lm"><span class="badge m">Mediu</span><p>Formal, modelul este antrenat pe distribuția stărilor expertului d<sub>π*</sub>, dar evaluat pe distribuția stărilor proprii d<sub>π</sub> (<b>covariate shift</b>). Eroarea poate crește cu O(T²) în orizontul T (Ross &amp; Bagnell). <b>DAgger</b> (Dataset Aggregation): rulează politica învățată, cere expertului etichete pe stările vizitate de ea, adaugă la set, reantrenează – eroarea devine O(T).</p></div>
+<div class="sim">
+<h4>Demonstrație: clonarea comportamentului vs. DAgger (urmărirea unei benzi)</h4>
+<p class="small">Stare: abaterea laterală e și unghiul ψ față de bandă. Expertul: ω = −k<sub>1</sub>e − k<sub>2</sub>ψ. Elevul: regresie k-NN pe demonstrații. Demonstrațiile inițiale acoperă doar stări apropiate de centru.</p>
+<div class="ctrl">
+<label>Abatere inițială la test (m) <input type="range" id="bc_e0" min="0.1" max="1.5" step="0.05" value="0.8"><span class="val" id="bc_e0_v"></span></label>
+<label>Diversitatea demonstrațiilor <input type="range" id="bc_div" min="0.05" max="1" step="0.05" value="0.15"><span class="val" id="bc_div_v"></span></label>
+<button class="btn" id="bc_reset">Set nou de demonstrații</button><button class="btn ok" id="bc_dag">Iterație DAgger</button>
+</div>
+<canvas id="bc" width="760" height="300"></canvas><div class="out" id="bc_out"></div>
+</div>
+<div class="la"><span class="badge a">Avansat</span><p>Variante moderne: <b>Diffusion Policy</b> și <b>Action Chunking Transformers</b> (prezic secvențe de acțiuni, modelează distribuții multimodale ale demonstrațiilor), teleoperare cu dispozitive de tip leader-follower pentru colectarea datelor de manipulare; modele de fundație antrenate pe seturi mari multi-robot și ajustate pe sarcini specifice. Limitele rămân: datele de demonstrație sunt scumpe, iar garanțiile de siguranță sunt dificile.</p></div>
+</section>
+
+<section class="card">
+<h2>3. Învățarea prin consolidare: fundamente</h2>
+<div class="lb"><span class="badge b">Începător</span>
+<div class="flow"><div class="n">Agent<br><span class="small muted">politica π</span></div><div class="ar">→ acțiune a<sub>t</sub> →</div><div class="n">Mediu<br><span class="small muted">robot + lume</span></div><div class="ar">→ stare s<sub>t+1</sub>, recompensă r<sub>t+1</sub> →</div><div class="n">Agent</div></div>
+<p>Scopul: maximizarea <b>randamentului</b> – suma recompenselor viitoare, cu cele îndepărtate cântărite mai puțin (factor de discount γ ∈ [0, 1)):</p>
+<div class="eq">G<sub>t</sub> = r<sub>t+1</sub> + γ r<sub>t+2</sub> + γ² r<sub>t+3</sub> + … = Σ<sub>k≥0</sub> γ<sup>k</sup> r<sub>t+k+1</sub></div>
+</div>
+<div class="lm"><span class="badge m">Mediu</span>
+<p>Un <b>MDP</b> este ⟨S, A, P, R, γ⟩. Funcția de valoare a acțiunii Q<sup>π</sup>(s, a) = E[G<sub>t</sub> | s<sub>t</sub>=s, a<sub>t</sub>=a]. Valoarea optimă satisface ecuația Bellman de optimalitate:</p>
+<div class="eq">Q*(s, a) = E[ r + γ · max<sub>a′</sub> Q*(s′, a′) ]</div>
+<p><b>Q-learning</b> (off-policy, fără model) aproximează Q* din experiență:</p>
+<div class="eq">Q(s, a) ← Q(s, a) + α [ r + γ · max<sub>a′</sub> Q(s′, a′) − Q(s, a) ]</div>
+<p>Explorarea <b>ε-greedy</b>: cu probabilitatea ε acțiune aleatoare, altfel cea mai bună acțiune cunoscută; ε scade de-a lungul antrenării.</p>
+</div>
+<div class="sim">
+<h4>Gridworld: Q-learning în timp real</h4>
+<p class="small">Robotul (cerc) învață să ajungă la țintă (verde, +10) evitând gropile (roșu, −10); fiecare pas costă −0,1. Săgețile arată politica greedy, culoarea – valoarea max<sub>a</sub> Q(s, a). Opțional: acțiunile „alunecă” (mediu stocastic).</p>
+<div class="ctrl">
+<label>α <input type="range" id="ql_a" min="0.01" max="1" step="0.01" value="0.3"><span class="val" id="ql_a_v"></span></label>
+<label>γ <input type="range" id="ql_g" min="0" max="0.99" step="0.01" value="0.95"><span class="val" id="ql_g_v"></span></label>
+<label>ε inițial <input type="range" id="ql_e" min="0" max="1" step="0.01" value="0.5"><span class="val" id="ql_e_v"></span></label>
+<label>Alunecare (%) <input type="range" id="ql_s" min="0" max="40" step="5" value="0"><span class="val" id="ql_s_v"></span></label>
+<label>Viteză <select id="ql_sp"><option value="1">lent</option><option value="20" selected>mediu</option><option value="300">rapid</option></select></label>
+</div>
+<div class="ctrl"><button class="btn" id="ql_run">Start / Pauză</button><button class="btn sec" id="ql_rst">Reset Q</button><button class="btn ok" id="ql_demo">Rulează politica greedy</button></div>
+<canvas id="ql" width="760" height="330"></canvas><div class="out" id="ql_out"></div>
+</div>
+<div class="la"><span class="badge a">Avansat</span><p>Convergența Q-learning tabular la Q* este garantată în condiții Robbins–Monro (Σα = ∞, Σα² &lt; ∞, toate perechile vizitate infinit de des). Cu γ mic, agentul devine miop (nu „vede” ținta îndepărtată și preferă să evite gropile stând pe loc). Cu alunecare, politica optimă ocolește gropile la distanță mai mare – diferența dintre Q-learning (off-policy, învață politica optimă greedy, „riscantă”) și SARSA (on-policy, învață o politică mai prudentă sub explorare) – exemplul clasic „cliff walking” din Sutton &amp; Barto.</p></div>
+</section>
+
+<section class="card">
+<h2>4. RL profund pentru controlul roboților</h2>
+<div class="lm"><span class="badge m">Mediu</span>
+<table>
+<tr><th>Algoritm</th><th>Tip</th><th>Acțiuni</th><th>Idee cheie</th></tr>
+<tr><td>DQN</td><td>valoare, off-policy</td><td>discrete</td><td>Q aproximat de o rețea; replay buffer; rețea-țintă</td></tr>
+<tr><td>REINFORCE</td><td>gradient de politică</td><td>orice</td><td>∇J = E[∇ log π(a|s) · G<sub>t</sub>]; varianță mare</td></tr>
+<tr><td>PPO</td><td>actor-critic, on-policy</td><td>discrete / continue</td><td>actualizări „tăiate” (clipped) ale politicii – stabil, robust; standard în simulare masiv paralelă</td></tr>
+<tr><td>SAC</td><td>actor-critic, off-policy</td><td>continue</td><td>maximizează recompensa + entropia; eficient la date (bun pe robot real)</td></tr>
+</table>
+<div class="eq">L<sup>CLIP</sup>(θ) = E<sub>t</sub>[ min( ρ<sub>t</sub>(θ) Â<sub>t</sub> ,  clip(ρ<sub>t</sub>(θ), 1−ε, 1+ε) Â<sub>t</sub> ) ] ,   ρ<sub>t</sub> = π<sub>θ</sub>(a<sub>t</sub>|s<sub>t</sub>) / π<sub>θ<sub>old</sub></sub>(a<sub>t</sub>|s<sub>t</sub>)</div>
+</div>
+<div class="lm"><span class="badge m">Mediu</span>
+<h3>Proiectarea recompensei și a observațiilor</h3>
+<ul>
+<li><b>Recompensă rară</b> (doar +1 la țintă) – corectă, dar greu de învățat; <b>recompensă modelată</b> (progres spre țintă, penalizări de coliziune, de efort, de smucituri) – învățare rapidă, dar risc de <b>reward hacking</b> (agentul exploatează formula: de ex. oscilează lângă țintă ca să colecteze progres). Modelarea bazată pe potențial (F = γΦ(s′) − Φ(s)) păstrează politica optimă.</li>
+<li><b>Observații</b>: relative la robot (distanța și unghiul spre țintă, nu coordonate absolute), normalizate; istoric scurt pentru viteze; aceleași observații trebuie să existe și pe robotul real.</li>
+<li><b>Acțiuni</b>: comenzi de nivel mediu (v, ω sau ținte pentru PD la articulații) – mai ușor de învățat și mai sigure decât cupluri brute.</li>
+</ul>
+</div>
+<div class="la"><span class="badge a">Avansat</span><ul>
+<li><b>Simulare masiv paralelă pe GPU</b> (Isaac Lab, MuJoCo/MJX, Genesis etc.): mii de medii simultan → politici de locomoție în minute/ore.</li>
+<li><b>Curriculum</b>: sarcini din ce în ce mai grele (teren, viteze). <b>Asymmetric actor-critic</b>: criticul vede starea privilegiată din simulator, actorul doar observațiile reale. <b>Teacher–student</b>: profesorul cu informație privilegiată, elevul distilat pe senzori reali.</li>
+<li><b>Evaluare corectă</b>: mai multe semințe aleatoare (≥ 5), intervale de încredere, metrici robuste (IQM), separarea mediilor de antrenare și de test; RL este notoriu de sensibil la hiperparametri.</li>
+</ul></div>
+</section>
+
+<section class="card">
+<h2>5. Antrenarea în simulare și transferul pe robotul real (sim-to-real)</h2>
+<div class="lb"><span class="badge b">Începător</span><p>RL are nevoie de milioane de încercări – pe un robot real ar dura luni și l-ar distruge. De aceea se antrenează în simulare. Problema: simulatorul nu este identic cu realitatea (frecări, mase, întârzieri, zgomotul senzorilor, aspectul imaginilor) – <b>reality gap</b>. O politică „perfectă” în simulare poate eșua pe robot.</p></div>
+<div class="lm"><span class="badge m">Mediu</span>
+<table>
+<tr><th>Strategie</th><th>Idee</th></tr>
+<tr><td>Identificarea sistemului</td><td>Măsurăm parametrii reali (mase, frecări, latențe) și calibrăm simulatorul</td></tr>
+<tr><td>Randomizarea domeniului</td><td>Antrenăm pe o distribuție largă de parametri (masă, frecare, întârziere, zgomot, texturi) → politica învață să fie robustă; realitatea devine „încă o variantă”</td></tr>
+<tr><td>Observații robuste</td><td>Evităm intrările greu de simulat; adăugăm zgomot și întârzieri realiste</td></tr>
+<tr><td>Adaptare</td><td>Ajustare fină pe robotul real (puține date), adaptare online a parametrilor (de ex. un modul care estimează parametrii mediului din istoric)</td></tr>
+<tr><td>Strat de siguranță</td><td>Limite de viteză/cuplu, oprire de urgență, monitorizare – independente de politica învățată (U1)</td></tr>
+</table>
+</div>
+<div class="sim">
+<h4>Demonstrație: randomizarea domeniului</h4>
+<p class="small">Sarcină: un controler PD duce un robot (masă punctuală pe o axă) la poziția 1 m. Căutăm câștigurile (K<sub>p</sub>, K<sub>d</sub>) care minimizează costul (eroare + efort) <b>(a)</b> în simulatorul nominal, <b>(b)</b> pe o distribuție randomizată de parametri. Apoi evaluăm pe „robotul real”, cu parametri necunoscuți la antrenare.</p>
+<div class="ctrl">
+<label>Masă reală <input type="range" id="dr_m" min="0.5" max="2.5" step="0.05" value="1.7"><span class="val" id="dr_m_v"></span></label>
+<label>Frecare reală <input type="range" id="dr_c" min="0.1" max="2" step="0.05" value="0.3"><span class="val" id="dr_c_v"></span></label>
+<label>Întârziere reală (pași) <input type="range" id="dr_d" min="0" max="8" step="1" value="5"><span class="val" id="dr_d_v"></span></label>
+<label>Lățimea randomizării <input type="range" id="dr_w" min="0" max="1" step="0.05" value="0.7"><span class="val" id="dr_w_v"></span></label>
+<button class="btn" id="dr_go">Antrenează și evaluează</button>
+</div>
+<canvas id="dr" width="760" height="270"></canvas><div class="out" id="dr_out"></div>
+</div>
+<div class="la"><span class="badge a">Avansat</span><p>Randomizarea prea largă produce politici conservatoare (performanță medie mai slabă); prea îngustă – fragile. Soluții: randomizare automată adaptivă (ADR – lărgirea treptată a intervalelor cât timp performanța rămâne bună), politici condiționate de parametri estimați, identificarea sistemului în buclă (real-to-sim-to-real). Evaluarea transferului cere protocoale riguroase pe robotul real (număr de încercări, condiții, criterii de eșec), nu doar demonstrații video selectate.</p></div>
+</section>
+
+<section class="card">
+<h2>6. Siguranță, etică și utilizarea responsabilă</h2>
+<div class="grid2">
+<div class="box warn"><span class="t">Siguranță</span>Politicile învățate pot avea comportamente neașteptate în afara distribuției de antrenare. Pe hardware: viteze limitate, zonă delimitată, oprire de urgență, persoană de supraveghere, testare treptată (simulare → banc de test → mediu controlat).</div>
+<div class="box"><span class="t">Etică</span>Transparența asupra limitelor (rata de eșec), datele demonstrațiilor (consimțământ, confidențialitate), impactul asupra muncii, responsabilitatea pentru decizii autonome.</div>
+</div>
+</section>
+
+<section class="card">
+<h2>7. Spre proiectul final</h2>
+<p>Proiectul (70% din nota finală) cere <b>proiectarea și implementarea, în simulare sau pe o platformă fizică, a unui sistem robotic care integrează percepția, localizarea și planificarea mișcării</b>, prezentat și susținut în sesiune. Componentele învățate (detector, politică RL) sunt binevenite, dar nu obligatorii.</p>
+<table>
+<tr><th>Componentă</th><th>Exemple din unități</th></tr>
+<tr><td>Percepție</td><td>LiDAR filtrat (U2), fuziune de senzori (U3), detecție + poziție 3D (U4)</td></tr>
+<tr><td>Localizare / mapare</td><td>slam_toolbox, AMCL, filtru propriu (U5)</td></tr>
+<tr><td>Planificare și evitare</td><td>A*/Dijkstra, APF, DWA, Nav2 (U6)</td></tr>
+<tr><td>Decizie / învățare (opțional)</td><td>Politică RL, mașină de stare / arbore de comportament (U1, U7)</td></tr>
+</table>
+<p><b>Exemple de teme</b>: robot care cartografiază o încăpere, găsește obiecte de o anumită culoare/clasă și le raportează poziția pe hartă; robot de patrulare cu puncte intermediare și detecția persoanelor; robot care urmărește o persoană evitând obstacolele; comparația unui controler RL cu DWA pentru navigația locală.</p>
+<p><b>Livrabile</b>: cod (depozit Git), raport (arhitectură, metode, experimente, metrici, limitări), video/demonstrație, secțiunea „Utilizarea instrumentelor AI”. Standardul minim de promovare: arhitectura și senzorii explicați, date de la cel puțin două tipuri de senzori, un algoritm Dijkstra sau A* folosit pentru navigarea în simulare cu evitarea obstacolelor, explicarea SLAM și interpretarea hărții.</p>
+</section>
+
+<section class="card">
+<h2>8. Sinteză</h2>
+<ul>
+<li>Învățarea supervizată: percepție, modele, imitație – atenție la deriva distribuției (DAgger).</li>
+<li>RL: MDP, Bellman, Q-learning → RL profund (PPO, SAC); recompensa și observațiile sunt decizii de proiectare critice.</li>
+<li>Simularea face RL fezabil; randomizarea domeniului și identificarea sistemului reduc decalajul față de realitate.</li>
+<li>Componentele învățate se integrează într-o arhitectură cu straturi de siguranță independente.</li>
+</ul>
+</section>
+</div>
+
+<div class="panel" id="p-sem">
+<section class="card">
+<h2>Seminar 7 – Învățare automată în robotică</h2>
+<h3>Problema 1 – Randamentul actualizat</h3>
+<div class="lb"><span class="badge b">Începător</span><p>Recompense: −1, −1, −1, +10 (episod încheiat). Calculați G<sub>0</sub> pentru γ = 1, γ = 0,9 și γ = 0,5. Ce observați?</p>
+<details><summary>Soluție</summary><p>γ = 1: 7. γ = 0,9: −1 − 0,9 − 0,81 + 7,29 = 4,58. γ = 0,5: −1 − 0,5 − 0,25 + 1,25 = −0,5. Cu γ mic, recompensa îndepărtată contează puțin – agentul devine „miop”; un drum lung spre țintă poate părea mai prost decât a nu face nimic.</p></details></div>
+<h3>Problema 2 – Actualizare Q-learning</h3>
+<div class="lm"><span class="badge m">Mediu</span><p>Q(s, dreapta) = 2,0; α = 0,5; γ = 0,9. Agentul face „dreapta”, primește r = −0,1 și ajunge în s′ cu Q(s′, ·) = [1,0; 4,0; 3,0; 0,5]. Calculați noul Q(s, dreapta). Ce valoare ar folosi SARSA dacă următoarea acțiune aleasă (ε-greedy) ar fi cea cu Q = 1,0?</p>
+<details><summary>Soluție</summary><p>Țintă Q-learning: −0,1 + 0,9·4,0 = 3,5; Q ← 2,0 + 0,5·(3,5 − 2,0) = 2,75. SARSA: țintă −0,1 + 0,9·1,0 = 0,8; Q ← 2,0 + 0,5·(0,8 − 2,0) = 1,4.</p></details></div>
+<h3>Problema 3 – Explorare</h3>
+<div class="lb"><span class="badge b">Începător</span><p>Cu 4 acțiuni și ε = 0,2, care este probabilitatea de a alege acțiunea greedy? De ce nu folosim ε = 0 de la început?</p>
+<details><summary>Soluție</summary><p>(1 − 0,2) + 0,2/4 = 0,85. Cu ε = 0, agentul exploatează estimările inițiale (adesea greșite) și poate să nu descopere niciodată drumuri mai bune.</p></details></div>
+<h3>Problema 4 – Dimensiunea tabelului Q</h3>
+<div class="lm"><span class="badge m">Mediu</span><p>Un robot are ca observație 8 raze LiDAR, fiecare discretizată în 5 niveluri, plus unghiul spre țintă în 8 sectoare. Acțiuni: 5. Câte intrări are tabelul Q? Concluzie?</p>
+<details><summary>Soluție</summary><p>5⁸·8·5 = 390 625·40 = 15 625 000 intrări – majoritatea nevizitate vreodată. Concluzie: aproximarea funcției (rețele neuronale – DQN/PPO), care generalizează între stări similare.</p></details></div>
+<h3>Problema 5 – Reward hacking</h3>
+<div class="lm"><span class="badge m">Mediu</span><p>Recompensa unui robot de navigație: +1 pentru fiecare pas în care distanța la țintă scade, −100 la coliziune. După antrenare, robotul oscilează înainte și înapoi lângă start. Explicați și propuneți o recompensă mai bună.</p>
+<details><summary>Soluție</summary><p>Oscilația produce pași alternativi „în progres” (+1) fără penalizare pentru pașii de regres; în plus, riscul de coliziune pe drum descurajează avansul. Recompensă bazată pe potențial: r = k·(d<sub>t−1</sub> − d<sub>t</sub>) (pozitivă la apropiere, negativă la îndepărtare – suma telescopică nu poate fi „păcălită”), + bonus la țintă, − cost de timp, − penalizare de coliziune proporționată.</p></details></div>
+<h3>Problema 6 – Clonarea comportamentului</h3>
+<div class="lm"><span class="badge m">Mediu</span><p>Un model antrenat pe 2 ore de conducere umană pe centrul benzii iese de pe bandă după câteva secunde în test. De ce? Propuneți două remedii.</p>
+<details><summary>Soluție</summary><p>Covariate shift: modelul nu a văzut niciodată stări cu abatere mare și acțiunile de corecție. Remedii: DAgger (expertul etichetează stările vizitate de model); colectarea intenționată de date de recuperare (demonstrații care pornesc din stări perturbate; augmentări de tip camere laterale cu etichete de corecție); antrenarea cu zgomot injectat în acțiuni (DART).</p></details></div>
+<h3>Problema 7 – Sim-to-real</h3>
+<div class="la"><span class="badge a">Avansat</span><p>O politică PPO de navigație antrenată în Gazebo cu LiDAR perfect lovește obstacole pe TurtleBot-ul real, deși în simulare are 98% succes. Enumerați cel puțin 5 cauze posibile și un experiment pentru fiecare care să o confirme sau să o infirme.</p>
+<details><summary>Indicații</summary><p>Zgomot/valori lipsă la LiDAR (comparați histogramele scan sim vs. real; antrenați cu zgomot și dropout); latență a buclei (măsurați timpul de la scan la cmd_vel; randomizați întârzierea); dinamica (accelerații limitate, alunecare; identificați răspunsul la treaptă); frecvența de control diferită; obstacole care nu apar în planul LiDAR (mese, picioare subțiri); diferențe de rază maximă / unghiuri; inversarea convențiilor de unghi. Experiment general: rulați politica în simulare cu parametrii măsurați pe robotul real – reproduce eșecul?</p></details></div>
+<h3>Problema 8 – Evaluare critică AI</h3>
+<div class="box ai"><span class="t">Exercițiu</span><p>Un asistent AI generează un mediu Gymnasium și scrie: „După 50 000 de pași, PPO atinge recompensa medie 180, deci problema este rezolvată.” Ce întrebări puneți înainte de a accepta concluzia?</p>
+<details><summary>Discuție</summary><p>Pe câte semințe? Pe medii de test diferite de cele de antrenare (alte poziții ale obstacolelor)? Ce înseamnă 180 în termeni de rată de succes și coliziuni? Este recompensa „hackabilă”? Este curba stabilă sau un vârf? Se compară cu un reper (DWA, controler simplu)? Este implementarea mediului corectă (verificați cu <code>gymnasium.utils.env_checker.check_env</code> și cu episoade vizualizate)?</p></details></div>
+</section>
+</div>
+
+<div class="panel" id="p-lab">
+<section class="card">
+<h2>Laborator 7 – Antrenarea unei politici de control prin RL în simulare</h2>
+<pre data-lang="bash"><code>python3 -m venv ~/venv_rl && source ~/venv_rl/bin/activate
+pip install "gymnasium>=1.0" "stable-baselines3>=2.3" numpy matplotlib tensorboard</code></pre>
+<ul class="check">
+<li><label><input type="checkbox"> Partea A – Q-learning tabular (FrozenLake sau gridworld propriu)</label></li>
+<li><label><input type="checkbox"> Partea B – mediul DiffDriveNav verificat cu check_env</label></li>
+<li><label><input type="checkbox"> Partea B – PPO antrenat; curbe de învățare</label></li>
+<li><label><input type="checkbox"> Partea C – evaluare: rată de succes, coliziuni, comparație cu un reper</label></li>
+<li><label><input type="checkbox"> Partea D – randomizare / transfer (mediu/avansat)</label></li>
+<li><label><input type="checkbox"> Raport + declarație AI</label></li>
+</ul>
+</section>
+<section class="card">
+<h2>Partea A – Q-learning tabular</h2>
+<pre data-lang="python"><code>import numpy as np, gymnasium as gym, matplotlib.pyplot as plt
+env = gym.make('FrozenLake-v1', map_name='4x4', is_slippery=True)
+Q = np.zeros((env.observation_space.n, env.action_space.n))
+alpha, gamma, eps, eps_min, decay = 0.1, 0.99, 1.0, 0.05, 0.9995
+rng = np.random.default_rng(0); returns = []
+for ep in range(20000):
+    s, _ = env.reset(seed=int(rng.integers(1e9))); done = False; G = 0.0
+    while not done:
+        a = env.action_space.sample() if rng.random() < eps else int(np.argmax(Q[s]))
+        s2, r, term, trunc, _ = env.step(a); done = term or trunc
+        target = r + (0 if term else gamma * np.max(Q[s2]))
+        Q[s, a] += alpha * (target - Q[s, a]); s = s2; G += r
+    eps = max(eps_min, eps * decay); returns.append(G)
+w = 500; plt.plot(np.convolve(returns, np.ones(w)/w, mode='valid'))
+plt.xlabel('episod'); plt.ylabel(f'rată de succes (medie mobilă {w})'); plt.grid(); plt.show()
+print(np.argmax(Q, axis=1).reshape(4, 4))      # 0=stânga 1=jos 2=dreapta 3=sus</code></pre>
+</section>
+<section class="card">
+<h2>Partea B – Mediu propriu: navigarea unui robot diferențial</h2>
+<pre data-lang="python"><code># diffdrive_env.py
+import numpy as np, gymnasium as gym
+from gymnasium import spaces
+
+class DiffDriveNav(gym.Env):
+    """Robot diferențial într-o arenă 6x6 m cu obstacole circulare aleatoare.
+    Observație: [d_țintă/6, sin α, cos α, v/vmax, ω/ωmax, 12 raze/rmax]; acțiune continuă [v, ω] în [-1, 1]."""
+    metadata = {'render_modes': []}
+    def __init__(self, n_obs=5, rand=0.0, max_steps=400):
+        self.n_obs, self.rand, self.max_steps = n_obs, rand, max_steps
+        self.vmax, self.wmax, self.dt, self.R, self.rmax, self.nr = 0.25, 1.8, 0.1, 0.12, 2.0, 12
+        self.action_space = spaces.Box(-1.0, 1.0, (2,), np.float32)
+        self.observation_space = spaces.Box(-1.0, 1.0, (5 + self.nr,), np.float32)
+
+    def _rays(self):
+        angs = self.th + np.linspace(-np.pi, np.pi, self.nr, endpoint=False)
+        out = np.full(self.nr, self.rmax)
+        for i, a in enumerate(angs):
+            d = np.array([np.cos(a), np.sin(a)])
+            for (ox, oy, r) in self.obs:                         # intersecție rază–cerc
+                f = self.p - (ox, oy); b = f @ d; c = f @ f - r * r; disc = b * b - c
+                if disc >= 0:
+                    t = -b - np.sqrt(disc)
+                    if 0 < t < out[i]: out[i] = t
+            for k in range(2):                                   # pereții arenei [0, 6]
+                if abs(d[k]) > 1e-9:
+                    for wall in (0.0, 6.0):
+                        t = (wall - self.p[k]) / d[k]
+                        if 0 < t < out[i]: out[i] = t
+        noise = self.np_random.normal(0, 0.02 + 0.03 * self.rand, self.nr)   # zgomot de senzor
+        return np.clip(out + noise, 0, self.rmax)
+
+    def _obs(self):
+        dvec = self.goal - self.p; dist = np.linalg.norm(dvec)
+        al = np.arctan2(dvec[1], dvec[0]) - self.th
+        o = np.concatenate([[min(dist / 6, 1), np.sin(al), np.cos(al), self.v / self.vmax, self.w / self.wmax],
+                            self._rays() / self.rmax])
+        return np.clip(o, -1.0, 1.0).astype(np.float32)          # cu randomizare, v/vmax poate depăși 1
+
+    def reset(self, seed=None, options=None):
+        super().reset(seed=seed); rng = self.np_random
+        self.p = rng.uniform(0.5, 1.5, 2); self.goal = rng.uniform(4.5, 5.5, 2)
+        self.th = rng.uniform(-np.pi, np.pi); self.v = self.w = 0.0; self.t = 0
+        self.obs = []
+        while len(self.obs) < self.n_obs:
+            o = (*rng.uniform(1.5, 4.5, 2), rng.uniform(0.2, 0.45))
+            if np.linalg.norm(np.array(o[:2]) - self.goal) > o[2] + 0.4: self.obs.append(o)
+        self.gain = 1.0 + self.rand * rng.uniform(-0.3, 0.3)     # randomizare: câștigul actuatorului
+        self.prev_d = np.linalg.norm(self.goal - self.p)
+        return self._obs(), {}
+
+    def step(self, action):
+        a = np.clip(action, -1, 1)
+        v_cmd, w_cmd = (a[0] + 1) / 2 * self.vmax * self.gain, a[1] * self.wmax * self.gain
+        self.v += np.clip(v_cmd - self.v, -0.05, 0.05); self.w += np.clip(w_cmd - self.w, -0.4, 0.4)   # accelerații limitate
+        self.th += self.w * self.dt
+        self.p = self.p + self.v * self.dt * np.array([np.cos(self.th), np.sin(self.th)]); self.t += 1
+        d = np.linalg.norm(self.goal - self.p)
+        collided = any(np.linalg.norm(self.p - (ox, oy)) < r + self.R for ox, oy, r in self.obs) \
+                   or np.any(self.p < self.R) or np.any(self.p > 6 - self.R)
+        reward = 5.0 * (self.prev_d - d) - 0.01 - 0.02 * abs(a[1])   # progres − timp − efort
+        self.prev_d = d
+        terminated = False
+        if collided: reward -= 10.0; terminated = True
+        if d < 0.25: reward += 10.0; terminated = True
+        truncated = self.t >= self.max_steps
+        return self._obs(), float(reward), terminated, truncated, {'success': d < 0.25, 'collision': collided}</code></pre>
+<pre data-lang="python"><code># train.py
+from gymnasium.utils.env_checker import check_env
+from stable_baselines3 import PPO
+from stable_baselines3.common.env_util import make_vec_env
+from stable_baselines3.common.monitor import Monitor
+from diffdrive_env import DiffDriveNav
+
+check_env(DiffDriveNav())                                        # verificare automată a interfeței
+venv = make_vec_env(lambda: Monitor(DiffDriveNav(rand=0.0)), n_envs=8, seed=0)
+model = PPO('MlpPolicy', venv, n_steps=1024, batch_size=256, gamma=0.99, learning_rate=3e-4,
+            ent_coef=0.0, verbose=1, tensorboard_log='./tb', seed=0)
+model.learn(total_timesteps=300_000)                             # câteva minute pe CPU
+model.save('ppo_diffdrive')
+# vizualizare: tensorboard --logdir ./tb   (ep_rew_mean, ep_len_mean)</code></pre>
+</section>
+<section class="card">
+<h2>Partea C – Evaluare</h2>
+<pre data-lang="python"><code># evaluate.py
+import numpy as np
+from stable_baselines3 import PPO
+from diffdrive_env import DiffDriveNav
+
+def evaluate(policy_fn, n=200, rand=0.0, seed=1000):
+    env = DiffDriveNav(rand=rand); succ = coll = 0; lens = []
+    for i in range(n):
+        o, _ = env.reset(seed=seed + i); done = False; k = 0
+        while not done:
+            o, r, term, trunc, info = env.step(policy_fn(o)); done = term or trunc; k += 1
+        succ += info['success']; coll += info['collision']; lens.append(k)
+    return succ / n, coll / n, np.mean(lens)
+
+model = PPO.load('ppo_diffdrive')
+ppo = lambda o: model.predict(o, deterministic=True)[0]
+ANG = np.linspace(-np.pi, np.pi, 12, endpoint=False)         # unghiurile razelor (indice 6 = înainte)
+def baseline(o):                                    # reper reactiv: atracție spre țintă + respingere de la raze
+    sin_a, cos_a, rays = o[1], o[2], o[5:] * 2.0    # raze în metri
+    rep = np.sum(-np.sin(ANG) * np.clip(0.5 - rays, 0, None) / 0.5 * (np.abs(ANG) < 1.6)) * 2.5
+    w = np.clip(1.5 * np.arctan2(sin_a, cos_a) + rep, -1.8, 1.8) / 1.8
+    v = np.clip((rays[4:9].min() - 0.2) / 0.5, 0, 1)
+    return np.array([2 * v - 1, w], np.float32)
+
+for name, f in [('PPO', ppo), ('reper reactiv', baseline)]:
+    for rand in [0.0, 1.0]:
+        s, c, L = evaluate(f, rand=rand)
+        print(f'{name:14s} rand={rand}: succes={s:.1%} coliziuni={c:.1%} lungime medie={L:.0f}')</code></pre>
+<div class="box tip"><span class="t">Raportare corectă</span>Antrenați cu cel puțin 3 semințe diferite și raportați media ± abaterea standard a ratei de succes pe medii de test cu semințe nefolosite la antrenare. Includeți curbele de învățare și o analiză a eșecurilor (vizualizați 5 episoade eșuate). Orientativ, reperul reactiv de mai sus reușește în aproximativ 50–65% din episoade, aproape fără coliziuni – eșecurile sunt blocaje în minime locale (depășirea timpului), ca la APF în U6.</div>
+</section>
+<section class="card">
+<h2>Partea D – Randomizare și transfer</h2>
+<ol>
+<li>Antrenați o a doua politică cu <code>DiffDriveNav(rand=1.0)</code> (zgomot mai mare, câștig al actuatorului variabil). Evaluați ambele politici pe <code>rand=0</code> și <code>rand=1</code> – tabel 2×2 și interpretare.</li>
+<li>Adăugați în mediu o întârziere a acțiunii (coadă de 0–3 pași, randomizată) și repetați.</li>
+<li><b>Avansat</b>: rulați politica într-un nod ROS 2 pe TurtleBot3 în Gazebo – construiți aceeași observație din <code>/scan</code> (12 sectoare, minimul pe sector), <code>/odom</code> și ținta din <code>/goal_pose</code>; publicați <code>/cmd_vel</code> la 10 Hz, cu limitări de viteză și oprire reactivă independentă. Măsurați rata de succes pe 10 ținte și comparați cu Nav2.</li>
+</ol>
+<pre data-lang="python"><code># schelet: politica PPO ca nod ROS 2
+import numpy as np, rclpy, math
+from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
+from sensor_msgs.msg import LaserScan
+from nav_msgs.msg import Odometry
+from geometry_msgs.msg import Twist, PoseStamped
+from stable_baselines3 import PPO
+
+class RLDriver(Node):
+    def __init__(self):
+        super().__init__('rl_driver')
+        self.model = PPO.load('ppo_diffdrive'); self.scan = None; self.odom = None; self.goal = None
+        self.create_subscription(LaserScan, 'scan', lambda m: setattr(self, 'scan', m), qos_profile_sensor_data)
+        self.create_subscription(Odometry, 'odom', lambda m: setattr(self, 'odom', m), 10)
+        self.create_subscription(PoseStamped, 'goal_pose', lambda m: setattr(self, 'goal', m), 10)
+        self.pub = self.create_publisher(Twist, 'cmd_vel', 10); self.create_timer(0.1, self.tick)
+    def tick(self):
+        if None in (self.scan, self.odom, self.goal): return
+        # TODO: construiți observația exact ca în DiffDriveNav._obs() (12 sectoare, normalizare, unghiuri
+        #       în cadrul robotului), apelați self.model.predict(obs, deterministic=True),
+        #       convertiți acțiunea în v, ω (aceleași limite), aplicați stratul de siguranță, publicați.
+        pass
+
+def main(): rclpy.init(); rclpy.spin(RLDriver())</code></pre>
+</section>
+<section class="card">
+<h2>Sarcini pe niveluri</h2>
+<div class="lb"><span class="badge b">Începător</span><ol>
+<li>Rulați Q-learning pe FrozenLake (alunecos și nealunecos); comparați ratele de succes și politicile.</li>
+<li>Variați γ ∈ {0,5; 0,9; 0,99} și explicați efectul.</li>
+<li>Rulați PPO pe DiffDriveNav (o sămânță) și raportați rata de succes.</li>
+</ol></div>
+<div class="lm"><span class="badge m">Mediu</span><ol>
+<li>PPO pe 3 semințe; curbe de învățare; evaluare pe 200 de medii de test; comparație cu reperul reactiv.</li>
+<li>Modificați recompensa (de ex. eliminați termenul de progres → doar recompensă rară) și comparați viteza de învățare.</li>
+<li>Experimentul de randomizare (Partea D, punctele 1–2).</li>
+</ol></div>
+<div class="la"><span class="badge a">Avansat</span><ol>
+<li>Comparați PPO și SAC (acțiuni continue) la același buget de pași, pe 5 semințe; raportați IQM și intervale de încredere bootstrap.</li>
+<li>Transfer în Gazebo prin nodul <code>RLDriver</code>; analiza decalajului sim-to-sim (simulatorul vostru numpy → Gazebo) și remedii.</li>
+<li>Clonarea comportamentului: colectați demonstrații de la reperul reactiv, antrenați o rețea MLP supervizat, apoi DAgger; comparați cu PPO.</li>
+</ol></div>
+<h3>Ce predați</h3>
+<p>Codul mediului și al antrenării, modelele salvate, curbele, tabelele de evaluare (cu semințe), analiza eșecurilor, declarația „Utilizarea instrumentelor AI”.</p>
+</section>
+</div>
+
+<div class="panel" id="p-quiz">
+<section class="card"><h2>Autoevaluare – Unitatea 7</h2><div class="quiz" id="quiz"></div></section>
+<section class="card"><h2>Întrebări deschise</h2><ol>
+<li class="lb">De ce nu antrenăm RL direct pe robotul real?</li>
+<li class="lm">Descrieți un exemplu de recompensă care ar putea fi „păcălită” de agent și cum ați corecta-o.</li>
+<li class="la">Pentru proiectul vostru, ar avea sens o componentă învățată? Unde anume, și cum ați demonstra că este mai bună decât o soluție clasică?</li></ol></section>
+</div>
+
+<div class="panel" id="p-res">
+<section class="card">
+<h2>AI generativ – utilizare responsabilă</h2>
+<div class="grid2">
+<div class="box ai"><span class="t">Util</span>Schelete de medii Gymnasium, scripturi de evaluare și grafice, explicarea hiperparametrilor PPO/SAC, depanarea erorilor de formă a tensorilor, sugestii de recompense (de verificat!).</div>
+<div class="box warn"><span class="t">Verificați</span>API-ul versiunii instalate (Gym vs Gymnasium: <code>reset</code> întoarce (obs, info), <code>step</code> întoarce 5 valori), corectitudinea mediului (<code>check_env</code>, vizualizare), afirmațiile despre performanță (semințe, medii de test), recompensele „hackabile”.</div>
+</div>
+<h3>Prompt recomandat</h3>
+<pre data-lang="text"><code>Am mediul Gymnasium DiffDriveNav (cod atașat). Analizează critic funcția de recompensă:
+identifică moduri în care un agent ar putea obține recompensă mare fără să rezolve sarcina
+(reward hacking), propune teste automate care să detecteze aceste comportamente și explică
+ce ar trebui să văd în episoadele vizualizate. Nu rescrie mediul.</code></pre>
+<h3>Șablon de declarație</h3>
+<pre data-lang="text"><code>Utilizarea instrumentelor AI
+- Instrument: …
+- Scop: …
+- Contribuție: …
+- Validare: …</code></pre>
+</section>
+<section class="card"><h2>Glosar</h2><table>
+<tr><td><b>MDP</b></td><td>Proces decizional Markov: stări, acțiuni, tranziții, recompense, discount.</td></tr>
+<tr><td><b>Politică π</b></td><td>Regula de alegere a acțiunii în funcție de stare (deterministă sau stocastică).</td></tr>
+<tr><td><b>Q(s, a)</b></td><td>Randamentul așteptat dacă execuți a în s și apoi urmezi politica.</td></tr>
+<tr><td><b>Off-policy / on-policy</b></td><td>Învață despre altă politică decât cea care colectează datele / despre aceeași.</td></tr>
+<tr><td><b>Covariate shift</b></td><td>Diferența dintre distribuția stărilor de antrenare și cea întâlnită la rulare.</td></tr>
+<tr><td><b>Randomizarea domeniului</b></td><td>Antrenarea pe o distribuție de parametri ai simulării pentru robustețe.</td></tr>
+<tr><td><b>Reality gap</b></td><td>Diferențele dintre simulare și lumea reală care afectează transferul.</td></tr></table></section>
+<section class="card"><h2>Bibliografie</h2><ol>
+<li>R. S. Sutton, A. G. Barto – <i>Reinforcement Learning: An Introduction</i>, ed. a 2-a, MIT Press, 2018 (cap. 3, 4, 6, 13).</li>
+<li>S. Russell, P. Norvig – <i>Artificial Intelligence: A Modern Approach</i>, ed. a 4-a, 2020 (cap. 22 – RL; cap. 26 – robotică).</li>
+<li>B. Siciliano, O. Khatib (eds.) – <i>Springer Handbook of Robotics</i>, ed. a 2-a, 2016 (capitolele despre învățare în robotică).</li>
+<li>P. Corke – <i>Robotics, Vision and Control</i>, ed. a 3-a, 2023.</li>
+<li>Documentație: Gymnasium, Stable-Baselines3, <a href="https://docs.ros.org/">ROS 2</a>, <a href="https://gazebosim.org/docs">Gazebo</a>, <a href="https://cyberbotics.com/doc/guide/index">Webots</a>.</li></ol></section>
+</div>
+
+  </main>
+</div>
+<footer>Material didactic pentru disciplina „Sisteme robotice inteligente” (Conf. univ. dr. Nicolaie Popescu-Bodorin). Filtrul de nivel este cumulativ: „Mediu” include conținutul de bază, „Avansat” afișează tot. Bifele din liste se păstrează local în browser.</footer>
+<script>
+/* ===== nucleu comun ===== */
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const store={get(k,d){try{const v=localStorage.getItem(k);return v===null?d:JSON.parse(v)}catch(e){return d}},
+             set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const KEY='sri07_';
+function showPanel(p){
+  $$('.panel').forEach(x=>x.classList.toggle('on',x.id==='p-'+p));
+  $$('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.p===p));
+  store.set(KEY+'tab',p); buildToc(); window.scrollTo({top:0});
+  document.dispatchEvent(new CustomEvent('panel',{detail:p}));
+}
+$$('#tabs button').forEach(b=>b.onclick=()=>showPanel(b.dataset.p));
+function setLvl(l){document.body.classList.remove('f-b','f-m','f-a');document.body.classList.add('f-'+l);
+  $$('#lvl button').forEach(b=>b.classList.toggle('on',b.dataset.l===l));store.set('sri_lvl',l);buildToc();}
+$$('#lvl button').forEach(b=>b.onclick=()=>setLvl(b.dataset.l));
+$('#dark').onclick=()=>{document.body.classList.toggle('dark');store.set('sri_dark',document.body.classList.contains('dark'))};
+$('#printall').onclick=()=>window.print();
+function visible(e){return e.offsetParent!==null}
+function buildToc(){
+  const p=$('.panel.on'); const t=$('#toc'); if(!p){return}
+  let h='<b>Cuprins</b>'; let i=0;
+  $$('h2,h3',p).forEach(x=>{ if(!visible(x))return; if(!x.id)x.id='h_'+p.id+'_'+(i++);
+    h+=`<a class="${x.tagName.toLowerCase()}" href="#${x.id}">${x.textContent}</a>`;});
+  t.innerHTML=h;
+}
+/* copiere cod */
+$$('pre').forEach(pr=>{const b=document.createElement('button');b.className='cp';b.textContent='copiază';
+  b.onclick=()=>{const txt=pr.querySelector('code')?pr.querySelector('code').innerText:pr.innerText.replace(/copiază$/,'');
+    (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>{b.textContent='copiat ✓';setTimeout(()=>b.textContent='copiază',1200)})
+    .catch(()=>{const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(e){};ta.remove();b.textContent='copiat ✓';setTimeout(()=>b.textContent='copiază',1200)})};
+  pr.appendChild(b); if(pr.dataset.lang){const s=document.createElement('span');s.className='lang';s.textContent=pr.dataset.lang;pr.appendChild(s)}});
+/* checklist persistent */
+$$('ul.check').forEach((ul,ui)=>{$$('input[type=checkbox]',ul).forEach((c,ci)=>{const k=KEY+'ck'+ui+'_'+ci;c.checked=store.get(k,false);c.onchange=()=>store.set(k,c.checked)})});
+/* quiz */
+function renderQuiz(host,qs){
+  host.innerHTML=''; let answered=0, good=0;
+  const sc=document.createElement('div'); sc.className='score';
+  qs.forEach((q,qi)=>{
+    const d=document.createElement('div'); d.className='q '+({b:'lb',m:'lm',a:'la'}[q.l]||'');
+    d.innerHTML=`<p><span class="badge ${q.l}">${{b:'Începător',m:'Mediu',a:'Avansat'}[q.l]}</span>${qi+1}. ${q.q}</p>`;
+    const fb=document.createElement('div'); fb.className='fb';
+    q.o.forEach((o,oi)=>{const s=document.createElement('label');s.className='opt';s.innerHTML=o;
+      s.onclick=()=>{ if(d.dataset.done)return; d.dataset.done=1; answered++;
+        if(oi===q.a){s.classList.add('ok');good++;fb.innerHTML='✅ <b>Corect.</b> '+(q.e||'')}
+        else{s.classList.add('ko');d.querySelectorAll('.opt')[q.a].classList.add('ok');fb.innerHTML='❌ <b>Nu chiar.</b> '+(q.e||'')}
+        fb.style.display='block'; sc.textContent=`Scor: ${good} / ${answered} răspunsuri date (din ${qs.length} întrebări în total)`;};
+      d.appendChild(s)});
+    d.appendChild(fb); host.appendChild(d);});
+  sc.textContent=`Scor: 0 / 0 (din ${qs.length} întrebări)`; host.appendChild(sc);
+  const r=document.createElement('button');r.className='btn sec';r.textContent='Reia testul';r.style.marginTop='8px';
+  r.onclick=()=>renderQuiz(host,qs); host.appendChild(r);
+}
+/* utilitare numerice */
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+let rnd=Math.random;
+function randn(){let u=0,v=0;while(!u)u=rnd();while(!v)v=rnd();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+function clamp(x,a,b){return Math.max(a,Math.min(b,x))}
+function wrapAng(a){while(a>Math.PI)a-=2*Math.PI;while(a<-Math.PI)a+=2*Math.PI;return a}
+function bindRange(id,fmt){const r=document.getElementById(id);const v=document.getElementById(id+'_v');
+  const f=()=>{if(v)v.textContent=fmt?fmt(+r.value):r.value};r.addEventListener('input',f);f();return r}
+function ctx2d(id){const c=document.getElementById(id);return [c,c.getContext('2d')]}
+function plotSeries(ctx,W,H,series,opt={}){ // series:[{y:[],color,lw,dash}]
+  const pad=opt.pad||30; let lo=opt.min, hi=opt.max;
+  if(lo===undefined||hi===undefined){lo=Infinity;hi=-Infinity;series.forEach(s=>s.y.forEach(v=>{if(isFinite(v)){lo=Math.min(lo,v);hi=Math.max(hi,v)}}));
+    const m=(hi-lo)*0.08||1;lo-=m;hi+=m}
+  ctx.clearRect(0,0,W,H);ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='#d9dee8';ctx.lineWidth=1;ctx.font='11px sans-serif';ctx.fillStyle='#667';
+  for(let k=0;k<=4;k++){const y=pad/2+(H-pad)*k/4;ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-6,y);ctx.stroke();
+    ctx.fillText((hi-(hi-lo)*k/4).toFixed(opt.dec??1),2,y+4)}
+  series.forEach(s=>{const n=s.y.length;if(!n)return;ctx.strokeStyle=s.color;ctx.lineWidth=s.lw||1.5;ctx.setLineDash(s.dash||[]);ctx.beginPath();
+    s.y.forEach((v,i)=>{const x=pad+(W-pad-6)*i/Math.max(1,(opt.n||n)-1);const y=pad/2+(H-pad)*(hi-v)/(hi-lo);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.stroke();ctx.setLineDash([])});
+  if(opt.legend){let x=pad+6;opt.legend.forEach((t,i)=>{ctx.fillStyle=series[i].color;ctx.fillRect(x,6,12,4);ctx.fillStyle='#333';ctx.fillText(t,x+16,12);x+=ctx.measureText(t).width+34})}
+}
+</script>
+<script>
+/* ===== cod specific unității ===== */
+/* ---------- clonarea comportamentului vs DAgger ---------- */
+(function(){const [c,g]=ctx2d('bc');bindRange('bc_e0',v=>v.toFixed(2));bindRange('bc_div',v=>v.toFixed(2));
+ const V=1,DT=0.05,T=240;let data=[],iters=0,seed=1,showS0=2;
+ const kap=s=>0.6*Math.sin(0.35*s)+0.3*Math.sin(0.9*s+1);
+ const expert=(e,psi,k)=>clamp(V*k-2.0*e-2.5*psi,-3,3);
+ function feat(e,psi,k){return [e/0.4,psi/0.3,k/0.9]}
+ function learner(e,psi,k){if(!data.length)return 0;const f=feat(e,psi,k);const K=5;const best=[];
+  for(const d of data){const dd=(d.f[0]-f[0])**2+(d.f[1]-f[1])**2+(d.f[2]-f[2])**2;if(best.length<K){best.push([dd,d.a]);best.sort((a,b)=>a[0]-b[0])}else if(dd<best[K-1][0]){best[K-1]=[dd,d.a];best.sort((a,b)=>a[0]-b[0])}}
+  return best.reduce((s,b)=>s+b[1],0)/best.length}
+ function rollout(policy,e0,psi0,s0,record){let e=e0,psi=psi0,s=s0;const tr=[];let crash=false;for(let i=0;i<T;i++){const k=kap(s);const a=policy(e,psi,k);if(record)record.push({f:feat(e,psi,k),a:expert(e,psi,k)});
+   tr.push(e);e+=V*Math.sin(psi)*DT;psi+=(a-V*k)*DT;s+=V*DT;if(Math.abs(e)>1){crash=true;tr.push(Math.sign(e)*1.05);break}}return {tr,crash}}
+ function newDemos(){rnd=mulberry(seed);const div=+$('#bc_div').value;data=[];iters=0;
+  for(let n=0;n<12;n++){let e=randn()*0.25*div,psi=randn()*0.15*div,s=rnd()*20;for(let i=0;i<T;i++){const k=kap(s);const a=expert(e,psi,k);data.push({f:feat(e,psi,k),a});
+   const an=a+randn()*0.3*div;e+=V*Math.sin(psi)*DT;psi+=(an-V*k)*DT;s+=V*DT}}rnd=Math.random;pickS0();draw()}
+ function pickS0(){const e0=+$('#bc_e0').value;showS0=2;for(let s0=0;s0<20;s0+=2)if(rollout(learner,e0,0,s0).crash){showS0=s0;break}}
+ function dagger(){const e0=+$('#bc_e0').value;const rec=[];for(const sg of [1,-1])for(let s0=0;s0<12;s0+=4)rollout(learner,sg*e0,0,s0,rec);for(let i=0;i<rec.length;i+=2)data.push(rec[i]);iters++;draw()}
+ function draw(){const e0=+$('#bc_e0').value;g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);const X=i=>30+(c.width-40)*i/T,Y=e=>c.height/2-e*(c.height/2-20)/1.05;
+  g.fillStyle='rgba(176,58,72,.08)';g.fillRect(30,0,c.width,Y(1));g.fillRect(30,Y(-1),c.width,c.height);g.strokeStyle='#b03a48';[1,-1].forEach(b=>{g.beginPath();g.moveTo(30,Y(b));g.lineTo(c.width-10,Y(b));g.stroke()});
+  g.strokeStyle='#ccc';g.setLineDash([4,4]);g.beginPath();g.moveTo(30,Y(0));g.lineTo(c.width-10,Y(0));g.stroke();g.setLineDash([]);
+  // acoperirea datelor: histograma lui e
+  const hist=new Array(42).fill(0);data.forEach(d=>{const e=d.f[0]*0.4;const b=Math.round((e+1.05)/2.1*41);if(b>=0&&b<42)hist[b]++});const hm=Math.max(...hist,1);
+  hist.forEach((h,b)=>{const e=-1.05+2.1*b/41;g.fillStyle=`rgba(15,157,138,${0.1+0.8*h/hm})`;g.fillRect(4,Y(e)-4,Math.max(1,20*h/hm),8)});
+  const ex=rollout(expert,e0,0,showS0),le=rollout(learner,e0,0,showS0);
+  const line=(tr,col,w)=>{g.strokeStyle=col;g.lineWidth=w;g.beginPath();tr.forEach((e,i)=>i?g.lineTo(X(i),Y(e)):g.moveTo(X(i),Y(e)));g.stroke();g.lineWidth=1};line(ex.tr,'#0f9d8a',2);line(le.tr,iters?'#2f5bd3':'#d02828',2.5);
+  if(le.crash){const i=le.tr.length-1;g.fillStyle='#d02828';g.font='bold 13px sans-serif';g.fillText('✖ ieșire de pe bandă',X(i)+4,Y(le.tr[i])+(le.tr[i]>0?16:-6))}
+  g.fillStyle='#333';g.font='12px sans-serif';g.fillText('abaterea laterală e(t); verde = expert, '+(iters?'albastru = elev după DAgger':'roșu = elev (clonare)')+'; bara verde din stânga = acoperirea datelor în e',34,c.height-6);
+  let ok=0;for(const sg of [1,-1])for(let s0=0;s0<20;s0+=2)if(!rollout(learner,sg*e0,0,s0).crash)ok++;
+  $('#bc_out').textContent=`Set de date: ${data.length} perechi (stare, acțiune expert)  | iterații DAgger: ${iters}\nTest din abaterea inițială ±${e0} m pe 20 de porțiuni de drum: elevul rămâne pe bandă în ${ok}/20 cazuri.`+(iters===0&&ok<20?'\nElevul nu a văzut niciodată stări atât de departe de centru → nu știe să corecteze (covariate shift). Apăsați „Iterație DAgger”.':'')}
+ $('#bc_reset').onclick=()=>{seed++;newDemos()};$('#bc_dag').onclick=dagger;$('#bc_e0').addEventListener('input',()=>{if(!iters)pickS0();draw()});$('#bc_div').addEventListener('change',newDemos);newDemos()})();
+
+/* ---------- Q-learning gridworld ---------- */
+(function(){const [c,g]=ctx2d('ql');bindRange('ql_a',v=>v.toFixed(2));bindRange('ql_g',v=>v.toFixed(2));bindRange('ql_e',v=>v.toFixed(2));bindRange('ql_s');
+ const W=12,H=6,CS=50,ST=[0,5],GO=[11,5];const wall=new Set(['3,2','3,3','3,4','3,5','7,0','7,1','7,2','7,3']);const pit=new Set(['5,5','6,5','8,5','9,5','10,5','5,0','9,2']);
+ const A=[[1,0],[-1,0],[0,1],[0,-1]];let Q,ep,s,epRet,rets,run=true,demo=null,steps;
+ function reset(){Q=Array.from({length:W*H},()=>[0,0,0,0]);ep=0;s=ST.slice();epRet=0;rets=[];steps=0;demo=null}reset();
+ const key=p=>p[0]+','+p[1],idx=p=>p[1]*W+p[0];
+ function move(p,a){const sl=+$('#ql_s').value/100;let aa=a;if(rnd()<sl)aa=[[2,3],[2,3],[0,1],[0,1]][a][rnd()<0.5?0:1];const n=[p[0]+A[aa][0],p[1]+A[aa][1]];if(n[0]<0||n[1]<0||n[0]>=W||n[1]>=H||wall.has(key(n)))return p.slice();return n}
+ function stepQ(){const al=+$('#ql_a').value,ga=+$('#ql_g').value,e0=+$('#ql_e').value;const eps=Math.max(0.02,e0*Math.pow(0.99,ep));
+  const q=Q[idx(s)];const a=rnd()<eps?Math.floor(rnd()*4):q.indexOf(Math.max(...q));const n=move(s,a);let r=-0.1,term=false;if(key(n)===key(GO)){r=10;term=true}else if(pit.has(key(n))){r=-10;term=true}
+  steps++;if(steps>200)term=true;const target=r+(term?0:ga*Math.max(...Q[idx(n)]));q[a]+=al*(target-q[a]);epRet+=r;s=n;
+  if(term){rets.push(epRet);if(rets.length>400)rets.shift();ep++;epRet=0;s=ST.slice();steps=0}return eps}
+ function draw(eps){g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);let vmax=1e-6,vmin=0;Q.forEach(q=>{const m=Math.max(...q);vmax=Math.max(vmax,m);vmin=Math.min(vmin,m)});
+  const ox=(c.width-W*CS)/2;
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const k=x+','+y;const X=ox+x*CS,Y=y*CS;let col;
+   if(wall.has(k))col='#2b3346';else if(pit.has(k))col='#e5a3a3';else if(k===key(GO))col='#8fd6b4';else{const m=Math.max(...Q[idx([x,y])]);const t=m>=0?m/vmax:-m/Math.min(-1e-6,vmin)*-1;col=m>=0?`rgba(47,91,211,${0.08+0.6*t})`:`rgba(208,135,0,${0.08+0.5*Math.abs(t)})`}
+   g.fillStyle=col;g.fillRect(X,Y,CS,CS);g.strokeStyle='#fff';g.strokeRect(X,Y,CS,CS);
+   if(!wall.has(k)&&!pit.has(k)&&k!==key(GO)){const q=Q[idx([x,y])];if(q.some(v=>v!==0)){const a=q.indexOf(Math.max(...q));g.strokeStyle='#1b2333';g.lineWidth=2;const cx=X+CS/2,cy=Y+CS/2;g.beginPath();g.moveTo(cx-A[a][0]*12,cy-A[a][1]*12);g.lineTo(cx+A[a][0]*14,cy+A[a][1]*14);g.stroke();
+    g.beginPath();g.arc(cx+A[a][0]*14,cy+A[a][1]*14,3,0,7);g.fillStyle='#1b2333';g.fill();g.lineWidth=1}}}
+  g.fillStyle='#333';g.font='bold 12px sans-serif';g.fillText('S',ox+ST[0]*CS+4,ST[1]*CS+14);g.fillText('+10',ox+GO[0]*CS+12,GO[1]*CS+30);
+  const p=demo?demo.p:s;g.fillStyle='#1f3c88';g.beginPath();g.arc(ox+(p[0]+.5)*CS,(p[1]+.5)*CS,12,0,7);g.fill();
+  const last=rets.slice(-50);const avg=last.length?last.reduce((a,b)=>a+b,0)/last.length:0;const succ=last.filter(r=>r>0).length;
+  $('#ql_out').textContent=`Episoade: ${ep} | ε curent: ${(eps??0).toFixed(3)} | randament mediu (ultimele 50): ${avg.toFixed(2)} | succes în ultimele 50: ${succ}/${last.length}`+(demo?`\nPolitica greedy: pas ${demo.k}`+(demo.msg?' – '+demo.msg:''):'')+'\nAlbastru = valoare pozitivă, portocaliu = negativă; săgețile = acțiunea greedy.'}
+ let lastEps=+$('#ql_e').value;function loop(){if(document.getElementById('p-curs').classList.contains('on')){if(demo){if(demo.t++%8===0&&!demo.msg){const q=Q[idx(demo.p)];const a=q.indexOf(Math.max(...q));demo.p=move(demo.p,a);demo.k++;if(key(demo.p)===key(GO))demo.msg='ținta atinsă ✓';else if(pit.has(key(demo.p)))demo.msg='a căzut în groapă ✗';else if(demo.k>60)demo.msg='nu ajunge la țintă (politica încă neînvățată?)'}}
+  else if(run){const n=+$('#ql_sp').value;for(let i=0;i<n;i++)lastEps=stepQ()}draw(lastEps)}requestAnimationFrame(loop)}loop();
+ $('#ql_run').onclick=()=>{demo=null;run=!run};$('#ql_rst').onclick=reset;$('#ql_demo').onclick=()=>{demo={p:ST.slice(),k:0,t:0,msg:''}}})();
+
+/* ---------- randomizarea domeniului ---------- */
+(function(){const [c,g]=ctx2d('dr');bindRange('dr_m',v=>v.toFixed(2));bindRange('dr_c',v=>v.toFixed(2));bindRange('dr_d');bindRange('dr_w',v=>v.toFixed(2));
+ const DT=0.05,N=140;
+ function sim(Kp,Kd,m,cf,d,traj){let x=0,v=0;const buf=new Array(d+1).fill(0);let cost=0;for(let i=0;i<N;i++){const u=clamp(Kp*(1-x)-Kd*v,-6,6);buf.push(u);const ua=buf.shift();const a=(ua-cf*v)/m;v+=a*DT;x+=v*DT;cost+=((1-x)**2+0.002*u*u)*DT;if(traj)traj.push(x);if(Math.abs(x)>6){cost+=1e3;break}}return cost}
+ function search(envs){let best=null;for(let i=0;i<24;i++)for(let j=0;j<24;j++){const Kp=0.5+i*1.25,Kd=j*0.45;let cst=0;for(const e of envs)cst+=sim(Kp,Kd,...e);cst/=envs.length;if(!best||cst<best.c)best={Kp,Kd,c:cst}}return best}
+ function run(){const w=+$('#dr_w').value;rnd=mulberry(17);const nom=[[1,0.5,0]];const envs=[];for(let k=0;k<24;k++)envs.push([1-0.5*w+rnd()*1.6*w,Math.max(0.05,0.5-0.4*w+rnd()*1.5*w),Math.round(rnd()*7*w)]);rnd=Math.random;
+  const bn=search(nom),br=search(envs);const real=[+$('#dr_m').value,+$('#dr_c').value,+$('#dr_d').value];const tn=[],tr=[];const cn=sim(bn.Kp,bn.Kd,...real,tn),cr=sim(br.Kp,br.Kd,...real,tr);
+  const tns=[],trs=[];sim(bn.Kp,bn.Kd,1,0.5,0,tns);
+  const pad=a=>{const o=a.slice();while(o.length<N)o.push(NaN);return o};
+  plotSeries(g,c.width,c.height,[{y:new Array(N).fill(1),color:'#aaa',dash:[4,4]},{y:pad(tns),color:'#9fb3e8',dash:[3,3]},{y:pad(tn).map(v=>clamp(v,-1,3)),color:'#d02828',lw:2.2},{y:pad(tr).map(v=>clamp(v,-1,3)),color:'#0f9d8a',lw:2.2}],{min:-0.5,max:2.5,legend:['țintă','nominal în simulator','nominal pe „robotul real”','randomizat pe „robotul real”'],n:N});
+  $('#dr_out').textContent=`Antrenat pe simulatorul nominal (m=1, c=0,5, fără întârziere): Kp=${bn.Kp.toFixed(2)}, Kd=${bn.Kd.toFixed(2)} → cost pe robotul real ${cn>=1e3?'INSTABIL':cn.toFixed(3)}\nAntrenat cu randomizare (24 de variante, lățime ${w}): Kp=${br.Kp.toFixed(2)}, Kd=${br.Kd.toFixed(2)} → cost pe robotul real ${cr>=1e3?'INSTABIL':cr.toFixed(3)}\nPolitica nominală e „optimă” în simulator, dar agresivă; cea randomizată e mai prudentă și rezistă la masă/întârziere necunoscute. Cu lățime 0, cele două coincid.`}
+ $('#dr_go').onclick=run;['dr_m','dr_c','dr_d','dr_w'].forEach(i=>$('#'+i).addEventListener('change',run));run()})();
+
+/* ---------- quiz ---------- */
+renderQuiz($('#quiz'),[
+ {l:'b',q:'Ce primește un agent de învățare prin consolidare în locul „răspunsului corect”?',o:['Etichete','O recompensă','O hartă','Nimic'],a:1},
+ {l:'b',q:'Factorul de discount γ apropiat de 0 face agentul:',o:['Să planifice pe termen lung','Miop – interesat doar de recompensele imediate','Mai rapid','Determinist'],a:1},
+ {l:'b',q:'Clonarea comportamentului este un exemplu de:',o:['Învățare nesupervizată','Învățare supervizată din demonstrații','RL fără recompensă','Planificare A*'],a:1},
+ {l:'b',q:'De ce se antrenează politicile RL mai ales în simulare?',o:['Simularea este mai realistă','Sunt necesare foarte multe încercări, nesigure și lente pe un robot real','ROS cere asta','Nu există roboți reali'],a:1},
+ {l:'m',q:'Q(s,a)=1, α=0,5, r=0, γ=0,9, max Q(s′,·)=2. Noul Q(s,a) este:',o:['1,4','1,9','2,0','0,9'],a:0,e:'Țintă 0 + 0,9·2 = 1,8; Q = 1 + 0,5·(1,8 − 1) = 1,4.'},
+ {l:'m',q:'Problema principală a clonării comportamentului este:',o:['Necesită GPU','Deriva distribuției (covariate shift) – erorile se acumulează în stări nevăzute','Nu poate folosi rețele neuronale','Recompensa rară'],a:1},
+ {l:'m',q:'PPO este:',o:['Un algoritm de planificare','Un algoritm actor-critic on-policy cu actualizări „tăiate” ale politicii','Un filtru de particule','Un detector de obiecte'],a:1},
+ {l:'m',q:'Randomizarea domeniului înseamnă:',o:['Alegerea aleatoare a algoritmului','Antrenarea pe o distribuție de parametri ai simulării pentru robustețe la diferențele față de realitate','Inițializarea aleatoare a rețelei','Explorarea ε-greedy'],a:1},
+ {l:'a',q:'Ce tip de modelare a recompensei păstrează garantat politica optimă?',o:['Orice bonus pozitiv','Bazată pe potențial: F = γΦ(s′) − Φ(s)','Recompensa rară','Penalizarea constantă de timp'],a:1},
+ {l:'a',q:'SAC este adesea preferat pe roboți reali față de PPO pentru că:',o:['Este on-policy','Este off-policy (reutilizează datele din replay buffer) → mai eficient la date','Nu are hiperparametri','Funcționează doar cu acțiuni discrete'],a:1},
+ {l:'a',q:'O raportare corectă a performanței unui algoritm RL include:',o:['Cea mai bună rulare','Mai multe semințe, medii de test separate, intervale de încredere','Doar curba de antrenare','Doar recompensa finală'],a:1}
+]);
+
+</script>
+<script>
+document.body.classList.toggle('dark',store.get('sri_dark',false));
+setLvl(store.get('sri_lvl','a'));
+showPanel(store.get(KEY+'tab','intro'));
+</script>
+</body>
+</html>
