@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IAA 06 – Algoritmi genetici pentru optimizare cu restricții</title>
+<style>:root{
+  --bg:#f7f6f2; --panel:#ffffff; --ink:#1d2433; --muted:#5c6577; --line:#e3e0d8;
+  --accent:#2f5d8a; --accent-soft:#e6eef7; --code-bg:#1f2430; --code-ink:#e6e6e6;
+  --b:#2e7d4f; --b-soft:#e5f3ea; --m:#b26a00; --m-soft:#fbf0de; --a:#9b2c4f; --a-soft:#f8e4ea;
+  --ok:#2e7d4f; --bad:#b3261e; --shadow:0 1px 2px rgba(0,0,0,.05),0 4px 14px rgba(0,0,0,.05);
+  --radius:10px; --sans:"Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --serif:Georgia,"Times New Roman",serif; --mono:"JetBrains Mono","Cascadia Code",Consolas,"Liberation Mono",monospace;
+}
+html.dark{
+  --bg:#14171d; --panel:#1c2029; --ink:#e4e6eb; --muted:#9aa3b2; --line:#2c3240;
+  --accent:#7fb0e0; --accent-soft:#1f2b3a; --code-bg:#0f1218;
+  --b:#6cc48f; --b-soft:#17291f; --m:#e0a24a; --m-soft:#2d2415; --a:#e57a9c; --a-soft:#2e1a22;
+  --shadow:none;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.62 var(--sans)}
+a{color:var(--accent)}
+header.top{position:sticky;top:0;z-index:20;background:var(--panel);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:8px 18px;flex-wrap:wrap}
+header.top .brand{font-weight:700;letter-spacing:.2px;white-space:nowrap}
+header.top .brand small{font-weight:400;color:var(--muted);margin-left:6px}
+.lvl-filter{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+.lvl-filter button,.tbtn{border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:5px 11px;border-radius:999px;cursor:pointer;font:inherit;font-size:13.5px}
+.lvl-filter button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+html.dark .lvl-filter button.on{color:#10141a}
+.progress{height:4px;background:var(--line);width:100%;position:absolute;left:0;bottom:-1px}
+.progress i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:28px;max-width:1320px;margin:0 auto;padding:24px 18px 80px}
+nav.toc{position:sticky;top:70px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px;border-right:1px solid var(--line);padding-right:12px}
+nav.toc a{display:block;text-decoration:none;color:var(--muted);padding:3px 8px;border-radius:6px;line-height:1.35}
+nav.toc a.h3{padding-left:20px;font-size:13px}
+nav.toc a:hover,nav.toc a.act{color:var(--ink);background:var(--accent-soft)}
+nav.toc .tocprog{font-size:12.5px;color:var(--muted);margin:12px 8px}
+main{min-width:0}
+.hero{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:26px 28px;box-shadow:var(--shadow);margin-bottom:22px}
+.hero .kicker{text-transform:uppercase;letter-spacing:1.4px;font-size:12px;color:var(--accent);font-weight:700}
+.hero h1{font-family:var(--serif);font-size:34px;line-height:1.2;margin:6px 0 10px}
+.hero .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chip{display:inline-block;font-size:12.5px;padding:3px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent);border:1px solid transparent}
+section.part{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:8px 28px 22px;margin-bottom:22px;box-shadow:var(--shadow)}
+h2{font-family:var(--serif);font-size:27px;margin:26px 0 8px;padding-bottom:6px;border-bottom:2px solid var(--line)}
+h2 .tag{font-family:var(--sans);font-size:12px;vertical-align:middle;margin-left:8px;padding:2px 8px;border-radius:6px;background:var(--accent);color:#fff;letter-spacing:.5px}
+html.dark h2 .tag{color:#10141a}
+h3{font-size:20px;margin:26px 0 8px}
+h4{font-size:16.5px;margin:18px 0 6px}
+p,li{max-width:80ch}
+.lvl{border-left:4px solid var(--line);padding:10px 16px 6px;margin:14px 0;border-radius:0 8px 8px 0;position:relative}
+.lvl[data-lvl=b]{border-color:var(--b);background:var(--b-soft)}
+.lvl[data-lvl=m]{border-color:var(--m);background:var(--m-soft)}
+.lvl[data-lvl=a]{border-color:var(--a);background:var(--a-soft)}
+.badge{display:inline-block;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;padding:2px 8px;border-radius:5px;color:#fff;margin-bottom:4px}
+.badge.b{background:var(--b)}.badge.m{background:var(--m)}.badge.a{background:var(--a)}
+html.dark .badge{color:#10141a}
+.hide-lvl{display:none!important}
+.note,.tip,.warn,.ai,.def{border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin:14px 0;background:var(--panel)}
+.note::before,.tip::before,.warn::before,.ai::before,.def::before{display:block;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px}
+.note::before{content:"Observație";color:var(--accent)}
+.tip::before{content:"Sfat";color:var(--b)}
+.warn::before{content:"Atenție";color:var(--bad)}
+.ai{border-color:#7b61c9;background:rgba(123,97,201,.07)}.ai::before{content:"AI generativ – utilizare responsabilă";color:#7b61c9}
+.def{border-left:4px solid var(--accent)}.def::before{content:"Definiție";color:var(--accent)}
+.formula{font-family:var(--serif);font-size:17px;background:var(--accent-soft);padding:10px 14px;border-radius:8px;margin:10px 0;overflow-x:auto;white-space:nowrap}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14.5px}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}
+th{background:var(--accent-soft)}
+.tablewrap{overflow-x:auto}
+pre.code{position:relative;background:var(--code-bg);color:var(--code-ink);padding:14px 16px;border-radius:8px;overflow:auto;font:13.5px/1.5 var(--mono);max-height:560px}
+pre.code .copy{position:absolute;top:6px;right:6px;font:12px var(--sans);background:#394050;color:#fff;border:0;border-radius:5px;padding:3px 8px;cursor:pointer;opacity:.8}
+pre.code .copy:hover{opacity:1}
+.k{color:#c792ea}.s{color:#c3e88d}.c{color:#7f8aa3;font-style:italic}.n{color:#f78c6c}.f{color:#82aaff}.bi{color:#ffcb6b}
+code{font-family:var(--mono);font-size:.92em;background:var(--accent-soft);padding:1px 5px;border-radius:4px}
+pre code{background:none;padding:0}
+details{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:10px 0;background:var(--panel)}
+details>summary{cursor:pointer;font-weight:600;color:var(--accent)}
+details[open]>summary{margin-bottom:8px}
+.ex{border:1px dashed var(--line);border-radius:8px;padding:10px 16px;margin:14px 0}
+.ex .exh{font-weight:700}
+.widget{border:1px solid var(--line);border-radius:10px;padding:14px;margin:16px 0;background:var(--bg)}
+.widget .wtitle{font-weight:700;margin-bottom:8px}
+.widget .ctrl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0;font-size:14px}
+.widget button,.btn{border:1px solid var(--accent);background:var(--accent);color:#fff;padding:5px 12px;border-radius:6px;cursor:pointer;font:inherit;font-size:14px}
+html.dark .widget button,html.dark .btn{color:#10141a}
+.widget button.sec,.btn.sec{background:transparent;color:var(--accent)}
+.widget select,.widget input[type=number],.widget input[type=text],.widget textarea{font:inherit;font-size:14px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
+.widget canvas{max-width:100%;background:var(--panel);border:1px solid var(--line);border-radius:6px;display:block}
+.widget .out{font:13px/1.45 var(--mono);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 10px;white-space:pre-wrap;max-height:260px;overflow:auto;margin-top:8px}
+.stats{display:flex;gap:14px;flex-wrap:wrap;font-size:14px;margin-top:6px}
+.stats b{font-variant-numeric:tabular-nums}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.quiz .qq{border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:12px 0;background:var(--panel)}
+.quiz .qq .qt{font-weight:600;margin-bottom:6px}
+.quiz label{display:block;padding:5px 8px;border-radius:6px;cursor:pointer;margin:2px 0}
+.quiz label:hover{background:var(--accent-soft)}
+.quiz label.right{background:var(--b-soft);outline:1px solid var(--ok)}
+.quiz label.wrong{background:var(--a-soft);outline:1px solid var(--bad)}
+.quiz .expl{font-size:14px;color:var(--muted);margin-top:6px;display:none}
+.quiz .qq.done .expl{display:block}
+.quiz .score{font-weight:700;font-size:17px;margin-top:8px}
+ul.check{list-style:none;padding-left:0}
+ul.check li{padding:4px 0}
+ul.check input{margin-right:8px;transform:scale(1.15)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin:12px 0}
+.card{perspective:800px;height:150px;cursor:pointer}
+.card .in{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
+.card.flip .in{transform:rotateY(180deg)}
+.card .fr,.card .bk{position:absolute;inset:0;backface-visibility:hidden;border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:14px;overflow:auto}
+.card .fr{background:var(--panel);font-weight:700;font-size:15.5px}
+.card .bk{background:var(--accent-soft);transform:rotateY(180deg)}
+.agenda td:first-child{white-space:nowrap;font-variant-numeric:tabular-nums}
+.drag-item{display:inline-block;padding:4px 10px;margin:3px;border:1px solid var(--line);border-radius:6px;background:var(--panel);cursor:grab;font-size:14px}
+.ok{color:var(--ok);font-weight:700}.bad{color:var(--bad);font-weight:700}
+footer{max-width:1320px;margin:0 auto;padding:0 18px 40px;color:var(--muted);font-size:13px}
+.pager{display:flex;justify-content:space-between;gap:10px;margin:12px 0}
+@media (max-width:900px){.layout{grid-template-columns:1fr}nav.toc{display:none}.grid2{grid-template-columns:1fr}.hero h1{font-size:27px}section.part{padding:6px 16px 16px}}
+@media print{header.top,nav.toc,.widget button,.lvl-filter{display:none!important}.layout{display:block}details{display:block}details>*{display:block!important}section.part{box-shadow:none;break-inside:auto}body{background:#fff}}
+</style>
+</head>
+<body data-session="06">
+<header class="top">
+  <div class="brand">IAA · Inteligență artificială aplicată<small>Ședința 6/7 · Curs + Seminar + Laborator</small></div>
+  <div class="lvl-filter" role="group" aria-label="Filtru nivel">
+    <button data-f="all" class="on">Toate nivelele</button>
+    <button data-f="b">Începător</button>
+    <button data-f="m">Mediu</button>
+    <button data-f="a">Avansat</button>
+    <button class="tbtn" id="themeBtn" title="Temă luminoasă / întunecată">Temă</button>
+    <button class="tbtn" id="printBtn" title="Tipărește (deschide toate soluțiile)">Tipărire</button>
+  </div>
+  <div class="progress"><i></i></div>
+</header>
+<div class="layout">
+<nav class="toc"><div class="tocprog"></div><div class="links"></div></nav>
+<main>
+<div class="hero">
+  <div class="kicker">Ședința 6 din 7 · Orele de curs 11–12 din 14 · Capitolul 3 din fișa disciplinei (orele 4–5 din 5)</div>
+  <h1>Algoritmi genetici pentru probleme de optimizare cu restricții</h1>
+  <p>Aplicații ale algoritmilor genetici în probleme de optimizare cu restricții: funcții de penalizare, algoritmi de reparare, decodificatori și operatori care păstrează fezabilitatea, regulile de fezabilitate ale lui Deb. Studii de caz: problema rucsacului și problema orarului.</p>
+  <div class="meta">
+    <span class="chip">Curs: 2 ore</span><span class="chip">Laborator asociat: 2 ore (L3, final)</span>
+    <span class="chip">Python 3 · DEAP</span><span class="chip">Nivele: începător · mediu · avansat</span>
+  </div>
+</div>
+
+<section class="part">
+<h2>0. Organizarea ședinței</h2>
+<div class="tablewrap"><table class="agenda">
+<tr><th>Interval</th><th>Activitate</th><th>Metodă</th></tr>
+<tr><td>Săpt. 11 · 0–10 min</td><td>Problematizare: „Încrucișăm două orare valide și obținem un profesor în două săli deodată. Ce facem cu copilul?”</td><td>Problematizare</td></tr>
+<tr><td>10–50 min</td><td>§6.1–§6.3: optimizare cu restricții; penalizare, reparare, decodificatori, reguli de fezabilitate</td><td>Predare interactivă</td></tr>
+<tr><td>Lab · 50 min</td><td>Rucsacul 0/1: cinci metode de tratare a restricției, comparate cu optimul exact</td><td>Exercițiul, cooperare</td></tr>
+<tr><td>Săpt. 12 · 0–50 min</td><td>§6.4–§6.5: problema orarului; hibridizare cu căutare locală; alte aplicații</td><td>Studiu de caz, conversație</td></tr>
+<tr><td>Lab · 50 min</td><td>Orar universitar cu DEAP; evaluarea critică a unei funcții de fitness generate de AI</td><td>Exercițiul, prompt engineering</td></tr>
+</table></div>
+<h3>Obiective</h3>
+<ul class="check">
+<li><label><input type="checkbox">Pot formula o problemă de optimizare cu restricții tari și slabe.</label></li>
+<li><label><input type="checkbox">Pot compara cele cinci familii de metode de tratare a restricțiilor în AG.</label></li>
+<li><label><input type="checkbox">Pot proiecta o funcție de penalizare și pot explica efectul coeficientului.</label></li>
+<li><label><input type="checkbox">Pot implementa un operator de reparare și un decodificator pentru rucsac.</label></li>
+<li><label><input type="checkbox">Pot modela o problemă de orar ca problemă de optimizare rezolvabilă cu AG.</label></li>
+</ul>
+</section>
+
+<section class="part">
+<h2>1. Curs<span class="tag">CURS</span></h2>
+
+<h3>6.1 Optimizare cu restricții</h3>
+<div class="lvl" data-lvl="b">
+<div class="formula">minimizează f(x) &nbsp; astfel încât &nbsp; g<sub>i</sub>(x) ≤ 0 (i = 1..m), &nbsp; h<sub>j</sub>(x) = 0 (j = 1..p), &nbsp; x ∈ S</div>
+<p><b>Regiunea fezabilă</b> F ⊆ S conține punctele care satisfac toate restricțiile. În problemele reale, F poate fi o parte foarte mică din S, poate fi neconvexă sau chiar formată din mai multe componente separate.</p>
+<ul>
+<li><b>Restricții tari</b> (hard): trebuie respectate, altfel soluția e inutilizabilă – un profesor nu poate preda în două săli deodată; rucsacul nu poate depăși capacitatea.</li>
+<li><b>Restricții slabe</b> (soft): preferințe, încălcarea lor scade calitatea – studenții preferă să nu aibă cursuri la ora 18; un profesor preferă zilele de marți.</li>
+</ul>
+<p>Operatorii genetici „orbi” (încrucișare, mutație) produc ușor soluții nefezabile, chiar din părinți fezabili. Trebuie decis ce facem cu ele.</p>
+</div>
+
+<h3>6.2 Metode de tratare a restricțiilor (taxonomia lui Michalewicz)</h3>
+<div class="lvl" data-lvl="b">
+<div class="tablewrap"><table>
+<tr><th>Metodă</th><th>Ideea</th><th>Avantaje</th><th>Dezavantaje</th></tr>
+<tr><td>1. Respingere („pedeapsa cu moartea”)</td><td>soluțiile nefezabile primesc fitness minim sau sunt eliminate</td><td>simplă</td><td>inutilizabilă când F e mic: populația inițială e aproape toată nefezabilă</td></tr>
+<tr><td>2. Penalizare</td><td>f'(x) = f(x) + penalizare(încălcare)</td><td>generală, ușor de implementat</td><td>coeficienții sunt greu de reglat</td></tr>
+<tr><td>3. Reparare</td><td>un algoritm transformă soluția nefezabilă într-una fezabilă apropiată</td><td>foarte eficientă când există o reparare naturală</td><td>specifică problemei; poate reduce diversitatea</td></tr>
+<tr><td>4. Reprezentări/operatori speciali, decodificatori</td><td>orice cromozom e decodificat într-o soluție fezabilă</td><td>niciodată nefezabil</td><td>proiectare dificilă; localitate slabă</td></tr>
+<tr><td>5. Separarea restricțiilor de obiectiv</td><td>regulile lui Deb, ranguri stocastice, abordare multi-obiectiv</td><td>fără coeficienți de reglat</td><td>presiune slabă spre optim pe frontiera F</td></tr>
+</table></div>
+</div>
+
+<h4>Funcții de penalizare</h4>
+<div class="lvl" data-lvl="m">
+<p>Gradul de încălcare: v<sub>i</sub>(x) = max(0, g<sub>i</sub>(x)) pentru inegalități, |h<sub>j</sub>(x)| − ε pentru egalități (cu toleranța ε). Variante:</p>
+<ul>
+<li><b>Statică</b>: f'(x) = f(x) + r · Σ v<sub>i</sub>(x)<sup>β</sup>, β ∈ {1, 2}. Un r prea mic → optimul funcției penalizate e nefezabil; un r prea mare → AG nu mai explorează zona din apropierea frontierei, unde se află de obicei optimul.</li>
+<li><b>Dinamică</b> (Joines &amp; Houck, 1994): f'(x) = f(x) + (C·t)<sup>α</sup> · Σ v<sub>i</sub>(x)<sup>β</sup>. Penalizarea crește cu generația t: întâi explorăm liber, apoi forțăm fezabilitatea.</li>
+<li><b>Adaptivă</b> (Bean &amp; Hadj-Alouane): r se mărește dacă cel mai bun individ a fost nefezabil în ultimele k generații și se micșorează dacă a fost mereu fezabil.</li>
+<li><b>Restricții tari vs. slabe</b> într-o singură funcție: f'(x) = M · (nr. restricții tari încălcate) + (cost slab), cu M mare (de ex. 1000 – laboratorul de orar).</li>
+</ul>
+</div>
+
+<div class="widget" id="penw">
+  <div class="wtitle">Efectul coeficientului de penalizare</div>
+  <p style="font-size:14px;margin:0 0 6px">Minimizăm f(x) = (x − 3)² cu restricția x ≤ 1,5. Optimul real: x* = 1,5, f = 2,25. Funcția penalizată: F(x) = f(x) + r · max(0, x − 1,5)<sup>β</sup>.</p>
+  <div class="ctrl">r: <input type="range" id="penR" min="0" max="100" step="0.5" value="2" style="width:260px"> <b id="penRv">2</b>
+    β: <select id="penB"><option value="2">2 (pătratică)</option><option value="1">1 (liniară)</option></select></div>
+  <canvas id="penCv" width="880" height="260"></canvas>
+  <div class="stats"><span>Minimul lui F: x = <b id="penX">–</b></span><span>încălcare: <b id="penV">–</b></span><span id="penMsg"></span></div>
+</div>
+
+<h4>Repararea</h4>
+<div class="lvl" data-lvl="m">
+<p>Pentru rucsac: cât timp greutatea depășește capacitatea, scoatem obiectul cu cel mai mic raport valoare/greutate (reparare lacomă) sau un obiect aleator (reparare aleatoare). Întrebare de proiectare: <b>scriem soluția reparată înapoi în cromozom?</b></p>
+<ul>
+<li><b>Baldwinian</b>: folosim doar fitness-ul soluției reparate; cromozomul rămâne neschimbat (păstrează diversitatea).</li>
+<li><b>Lamarckian</b>: cromozomul este înlocuit cu varianta reparată (convergență mai rapidă).</li>
+<li><b>Regula de 5%</b> (Orvosh &amp; Davis, 1993): înlocuirea cromozomului în ~5% din cazuri dă adesea cele mai bune rezultate.</li>
+</ul>
+</div>
+
+<h4>Decodificatori</h4>
+<div class="lvl" data-lvl="m">
+<p>Cromozomul este o „rețetă”. Rucsac: cromozomul este o <b>permutare</b> a obiectelor; decodificatorul le parcurge în ordine și adaugă fiecare obiect care mai încape. Orice permutare → soluție fezabilă. Aceeași idee: permutarea sarcinilor + schema serială de programare (ședința 4); permutarea activităților + plasare lacomă în orar.</p>
+</div>
+
+<h4>Separarea restricțiilor de obiectiv</h4>
+<div class="lvl" data-lvl="a">
+<p><b>Regulile de fezabilitate ale lui Deb</b> (2000), aplicate în turnir: (1) o soluție fezabilă bate una nefezabilă; (2) dintre două fezabile, câștigă cea cu f mai bun; (3) dintre două nefezabile, câștigă cea cu încălcare totală mai mică. Nu are niciun parametru de penalizare de reglat.</p>
+<p><b>Ranguri stocastice</b> (Runarsson &amp; Yao, 2000): un „bubble sort” în care, cu probabilitatea p<sub>f</sub> ≈ 0,45, comparăm după f chiar și indivizi nefezabili – echilibrează obiectivul și fezabilitatea. <b>Metoda ε-constrângerilor</b>: tratăm ca fezabile soluțiile cu încălcare ≤ ε, cu ε → 0 în timp. <b>Abordarea multi-obiectiv</b>: minimizăm (f, încălcare) cu NSGA-II.</p>
+<p>Benchmark-uri: setul CEC 2006/2017 pentru optimizare cu restricții; problemele G01–G24 (Michalewicz &amp; Schoenauer; Liang et al.).</p>
+</div>
+
+<h3>6.3 Studiu de caz: problema rucsacului 0/1</h3>
+<div class="lvl" data-lvl="b">
+<div class="formula">maximizează Σ v<sub>i</sub> x<sub>i</sub> &nbsp; astfel încât &nbsp; Σ w<sub>i</sub> x<sub>i</sub> ≤ C, &nbsp; x<sub>i</sub> ∈ {0, 1}</div>
+<p>Reprezentare naturală: șir binar de n biți (x<sub>i</sub> = 1 dacă luăm obiectul i). Problema e NP-grea, dar are un algoritm pseudo-polinomial (programare dinamică, O(n·C)) – util ca <b>referință exactă</b> pentru a evalua AG-ul. Aceasta este o practică bună pentru proiect: dacă aveți o metodă exactă pe instanțe mici, raportați distanța față de optim.</p>
+</div>
+
+<div class="widget" id="kpw">
+  <div class="wtitle">Cursa metodelor: rucsac cu 40 de obiecte (valoare ≈ greutate + 10)</div>
+  <div class="ctrl"><button id="kpRun">Pornește (120 de generații)</button><button class="sec" id="kpNew">Instanță nouă</button><span id="kpInfo" style="font-size:14px"></span></div>
+  <canvas id="kpCv" width="880" height="280"></canvas>
+  <div class="out" id="kpOut"></div>
+</div>
+
+<h3>6.4 Studiu de caz: problema orarului</h3>
+<div class="lvl" data-lvl="b">
+<p>Date: activități (cursuri, laboratoare) cu profesor, grupă de studenți și număr de participanți; săli cu capacități; intervale orare. Trebuie atribuit fiecărei activități un interval și o sală.</p>
+<div class="grid2">
+<div><b>Restricții tari</b><ul><li>o sală găzduiește cel mult o activitate într-un interval;</li><li>un profesor/o grupă nu poate fi în două locuri simultan (atenție la subgrupe: M1 include M1a și M1b);</li><li>capacitatea sălii ≥ numărul de studenți;</li><li>indisponibilitățile profesorilor.</li></ul></div>
+<div><b>Restricții slabe</b><ul><li>cel mult 2 activități pe zi pentru o grupă;</li><li>evitarea intervalului târziu;</li><li>evitarea sălilor mult prea mari;</li><li>fără „ferestre” în programul studenților.</li></ul></div>
+</div>
+</div>
+<div class="lvl" data-lvl="m">
+<h4>Reprezentări posibile</h4>
+<ul>
+<li><b>Directă</b>: genă = (interval, sală) pentru fiecare activitate – încrucișarea uniformă funcționează bine (laborator).</li>
+<li><b>Indirectă</b>: permutare a activităților + decodificator lacom care plasează fiecare activitate în primul loc fezabil (fezabilitate parțial garantată).</li>
+<li><b>Hibridă / memetică</b>: AG + căutare locală (mutația „inteligentă” care mută o activitate în cea mai bună poziție dintr-un eșantion). Toate soluțiile câștigătoare ale competițiilor ITC (2002, 2007, 2019) sunt hibride sau pur de căutare locală (simulated annealing, tabu).</li>
+</ul>
+<p>Funcția de fitness: <b>1000 · (restricții tari încălcate) + (cost slab)</b>. Ponderea mare garantează că un orar fezabil, oricât de incomod, bate unul nefezabil.</p>
+</div>
+<div class="lvl" data-lvl="a">
+<h4>Complexitate și modele</h4>
+<p>Orarul de bază este o <b>colorare de graf</b>: activitățile sunt noduri, conflictele (profesor/grupă comună) sunt muchii, intervalele sunt culori – NP-completă. Sălile adaugă o problemă de atribuire (matching bipartit) pe fiecare interval. Abordări exacte: ILP/CP (OR-Tools CP-SAT), care rezolvă bine instanțe medii; abordările evolutive/locale domină pe instanțe mari cu multe restricții slabe. Platforme reale: UniTime (open source), FET.</p>
+</div>
+
+<div class="widget" id="ttw">
+  <div class="wtitle">Orar evolutiv: 16 activități, 3 săli, 4 zile × 3 intervale</div>
+  <div class="ctrl"><label><input type="checkbox" id="ttSmart" checked> mutație inteligentă (căutare locală)</label><button id="ttRun">Evoluează</button><button class="sec" id="ttReset">Populație nouă</button></div>
+  <div class="stats"><span>Generația: <b id="ttGen">0</b></span><span>Restricții tari încălcate: <b id="ttHard">–</b></span><span>Cost slab: <b id="ttSoft">–</b></span><span>Evaluări: <b id="ttEv">0</b></span></div>
+  <div class="tablewrap" id="ttGrid"></div>
+  <p style="font-size:13px;margin:4px 0 0">Roșu = activitate implicată într-o restricție tare încălcată. Popescu nu poate luni; Stan nu poate joi.</p>
+</div>
+
+<h3>6.5 Alte aplicații ale AG cu restricții</h3>
+<div class="lvl" data-lvl="b m">
+<ul>
+<li><b>Programarea producției</b> (job-shop, RCPSP): permutare + schemă de generare (ședința 4).</li>
+<li><b>Rutarea vehiculelor</b> (VRP) cu capacități și ferestre de timp: permutare + împărțire în rute (algoritmul „split” al lui Prins).</li>
+<li><b>Proiectare inginerească</b> (grinzi, recipiente sub presiune): variabile continue + penalizare sau regulile lui Deb.</li>
+<li><b>Medii virtuale</b>: plasarea obiectelor într-o scenă 3D fără coliziuni, generare procedurală de niveluri jucabile (restricții: drum de la start la ieșire), echilibrarea încărcării serverelor într-un mediu virtual distribuit.</li>
+</ul>
+</div>
+</section>
+
+<section class="part">
+<h2>2. Seminar<span class="tag">SEMINAR</span></h2>
+
+<div class="ex lvl" data-lvl="b">
+<div class="exh">S6.1 – Fezabil sau nu?</div>
+<p>Rucsac cu C = 10; obiecte (w, v): A (5, 10), B (4, 40), C (6, 30), D (3, 50). Evaluați soluțiile 1111, 0101, 0111, 1011 cu: (a) pedeapsa cu moartea; (b) penalizare liniară cu ρ = max v/w; (c) repararea lacomă.</p>
+<details><summary>Soluție</summary>
+<p>Rapoarte v/w: A 2, B 10, C 5, D 16,7 → ρ = 16,7. Ordinea scoaterii la reparare: A, C, B, D.</p>
+<div class="tablewrap"><table>
+<tr><th>x</th><th>w</th><th>v</th><th>(a) moarte</th><th>(b) penalizare</th><th>(c) reparată</th></tr>
+<tr><td>1111</td><td>18</td><td>130</td><td>0</td><td>130 − 16,7·8 ≈ −3,3</td><td>scoatem A (13), apoi C (7): 0101, v = 90</td></tr>
+<tr><td>0101</td><td>7</td><td>90</td><td>90</td><td>90</td><td>90</td></tr>
+<tr><td>0111</td><td>13</td><td>120</td><td>0</td><td>120 − 50 = 70</td><td>scoatem C: 0101, v = 90</td></tr>
+<tr><td>1011</td><td>14</td><td>90</td><td>0</td><td>90 − 66,7 = 23,3</td><td>scoatem A (9): 0011, v = 80</td></tr>
+</table></div>
+<p>Verificăm toate perechile fezabile: B + D = 90 (w = 7), C + D = 80 (w = 9), B + C = 70 (w = 10), A + D = 60 (w = 8), A + B = 50 (w = 9) → <b>optim 90 (0101)</b>.</p></details>
+</div>
+
+<div class="ex lvl" data-lvl="m">
+<div class="exh">S6.2 – Cât de mare trebuie să fie r?</div>
+<p>Pentru f(x) = (x − 3)², restricția x ≤ 1,5 și penalizarea pătratică r · max(0, x − 1,5)², calculați analitic minimul funcției penalizate în funcție de r. Pentru ce r încălcarea scade sub 0,01? Ce se schimbă cu penalizarea liniară?</p>
+<details><summary>Soluție</summary>
+<p>Pentru x &gt; 1,5: F'(x) = 2(x − 3) + 2r(x − 1,5) = 0 ⇒ <b>x* = (3 + 1,5r)/(1 + r)</b>. Încălcarea: x* − 1,5 = 1,5/(1 + r) &lt; 0,01 ⇒ r &gt; 149. Penalizarea pătratică dă mereu un minim ușor nefezabil (pentru orice r finit).</p>
+<p>Liniară (β = 1): F'(x) = 2(x − 3) + r pentru x &gt; 1,5; minimul e în x = 3 − r/2 dacă r &lt; 3, altfel exact x = 1,5. Penalizarea liniară e <b>exactă</b> de la un prag finit (r ≥ |f'(x*)| = 3) – dar nediferențiabilă în x*. Verificați în simulator.</p></details>
+</div>
+
+<div class="ex lvl" data-lvl="m">
+<div class="exh">S6.3 – Decodificatorul pentru rucsac</div>
+<p>Cu datele din S6.1, decodificați permutările (D, B, C, A), (A, C, B, D), (C, A, D, B). Pot fi atinse toate soluțiile fezabile? Dar optimul?</p>
+<details><summary>Soluție</summary>
+<p>(D, B, C, A): D (3), B (7), C nu încape, A nu încape → {B, D}, v = 90. (A, C, B, D): A (5), C nu (11), B (9), D nu (12) → {A, B}, v = 50. (C, A, D, B): C (6), A nu, D (9), B nu → {C, D}, v = 80.</p>
+<p>Decodificatorul produce doar soluții <b>maximale</b> (în care nu mai încape niciun obiect), dar optimul e mereu maximal, deci e accesibil. Mai multe permutări dau aceeași soluție (redundanță).</p></details>
+</div>
+
+<div class="ex lvl" data-lvl="m">
+<div class="exh">S6.4 – Orarul ca graf</div>
+<p>Activități: IA-curs (Popescu, M1), IA-lab-a (Popescu, M1a), MVD-curs (Ionescu, M1), MVD-lab-b (Georgescu, M1b), VR-curs (Ionescu, M2). Desenați graful conflictelor. Care e numărul minim de intervale orare?</p>
+<details><summary>Soluție</summary>
+<p>Muchii: IA-curs–IA-lab-a (profesor + grupă), IA-curs–MVD-curs (M1), IA-curs–MVD-lab-b (M1 ⊃ M1b), IA-lab-a–MVD-curs (M1a ⊂ M1), MVD-curs–MVD-lab-b (M1), MVD-curs–VR-curs (Ionescu). Clica {IA-curs, IA-lab-a, MVD-curs} are 3 noduri → cel puțin 3 culori. O colorare cu 3: {IA-curs, VR-curs}, {IA-lab-a, MVD-lab-b}, {MVD-curs} → <b>3 intervale</b>.</p></details>
+</div>
+
+<div class="ex lvl" data-lvl="a">
+<div class="exh">S6.5 – Regulile lui Deb vs. penalizare</div>
+<p>Dați un exemplu în care turnirul cu regulile lui Deb și turnirul pe f + r·v (r fixat) aleg câștigători diferiți. Ce implicație are asta pentru căutarea în apropierea frontierei regiunii fezabile?</p>
+<details><summary>Soluție</summary><p>Minimizare. a: fezabil, f = 10. b: nefezabil, v = 0,1, f = 5. Deb: câștigă a (regula 1). Penalizare cu r = 10: f'(b) = 6 &lt; 10 → câștigă b. Penalizarea permite indivizilor „aproape fezabili, foarte buni” să supraviețuiască – utili pentru a traversa zone nefezabile și a aborda optimul de pe frontieră din ambele părți. Regulile lui Deb sunt mai conservatoare; de aceea sunt combinate cu mecanisme de diversitate (niching) sau ε-relaxare.</p></details>
+</div>
+</section>
+
+<section class="part">
+<h2>3. Laborator<span class="tag">LABORATOR</span></h2>
+<p>Corespunde punctului 3 din secțiunea 8.2: <i>rezolvarea unor probleme de optimizare cu restricții (de exemplu, problema rucsacului, problema orarului)</i>.</p>
+
+<div class="lvl" data-lvl="b m">
+<h4>L6.1 – Rucsacul 0/1: cinci metode</h4>
+<pre class="code" data-lang="python">
+"""Problema rucsacului 0/1 cu AG: cinci metode de tratare a restricției de capacitate.
+Comparație cu optimul exact (programare dinamică).   Rulare: python s06_knapsack.py"""
+import random, statistics
+
+def instance(n=50, seed=7):
+    """Instanță „corelată” (mai grea): valoarea ≈ greutatea + 10 (Michalewicz, cap. 4)."""
+    r = random.Random(seed)
+    w = [r.randint(1, 50) for _ in range(n)]
+    v = [wi + 10 for wi in w]
+    return w, v, sum(w) // 2                # capacitate = jumătate din greutatea totală
+W, V, CAP = instance()
+N = len(W)
+
+def dp_optimum(w, v, cap):
+    best = [0] * (cap + 1)
+    for wi, vi in zip(w, v):
+        for c in range(cap, wi - 1, -1):
+            best[c] = max(best[c], best[c - wi] + vi)
+    return best[cap]
+
+def weight(x): return sum(wi for wi, xi in zip(W, x) if xi)
+def value(x):  return sum(vi for vi, xi in zip(V, x) if xi)
+
+# ---------- metode de tratare a restricției (maximizare) ----------
+RHO = max(v / w for v, w in zip(V, W))     # raportul maxim valoare/greutate
+
+def fit_death(x):                           # „pedeapsa cu moartea”: soluțiile nefezabile primesc 0
+    return value(x) if weight(x) &lt;= CAP else 0
+
+def fit_penalty_lin(x):                     # penalizare liniară (Michalewicz): ρ · exces
+    return value(x) - RHO * max(0, weight(x) - CAP)
+
+def fit_penalty_sq(x):                      # penalizare pătratică
+    return value(x) - (RHO * max(0, weight(x) - CAP)) ** 2
+
+ORDER = sorted(range(N), key=lambda i: V[i] / W[i])     # de la cel mai slab raport la cel mai bun
+def repair(x):
+    """Reparare lacomă: scoatem obiectele cu cel mai mic raport v/w până devine fezabil."""
+    x, wt = x[:], weight(x)
+    for i in ORDER:
+        if wt &lt;= CAP: break
+        if x[i]: x[i] = 0; wt -= W[i]
+    return x
+
+def decode_perm(p):
+    """Decodificator: permutarea dă ordinea în care încercăm să adăugăm obiectele (mereu fezabil)."""
+    x, wt = [0] * N, 0
+    for i in p:
+        if wt + W[i] &lt;= CAP: x[i] = 1; wt += W[i]
+    return x
+
+# ---------- AG generic (turnir, elitism) ----------
+def ga(kind, pop_size=60, gens=150, seed=0, lamarck_p=0.05):
+    rng = random.Random(seed)
+    if kind == "decoder":
+        new = lambda: rng.sample(range(N), N)
+        def cross(a, b):                     # OX pe permutări
+            i, j = sorted(rng.sample(range(N + 1), 2)); seg = a[i:j]
+            rest = [g for g in b if g not in seg]; return rest[:i] + seg + rest[i:]
+        def mut(a):
+            a = a[:]; i, j = rng.sample(range(N), 2); a[i], a[j] = a[j], a[i]; return a
+        evaluate = lambda p: value(decode_perm(p))
+    else:
+        new = lambda: [1 if rng.random() &lt; 0.5 else 0 for _ in range(N)]
+        def cross(a, b):
+            c = rng.randint(1, N - 1); return a[:c] + b[c:]
+        mut = lambda a: [1 - g if rng.random() &lt; 1 / N else g for g in a]
+        evaluate = {"death": fit_death, "pen_lin": fit_penalty_lin, "pen_sq": fit_penalty_sq,
+                    "repair": lambda x: value(repair(x))}[kind]
+    pop = [new() for _ in range(pop_size)]
+    best_feasible = 0
+    for _ in range(gens):
+        fits = [evaluate(x) for x in pop]
+        for x in pop:                        # urmărim cea mai bună soluție FEZABILĂ întâlnită
+            sol = decode_perm(x) if kind == "decoder" else (repair(x) if kind == "repair" else x)
+            if weight(sol) &lt;= CAP: best_feasible = max(best_feasible, value(sol))
+        elite = pop[max(range(pop_size), key=fits.__getitem__)]
+        nxt = [elite]
+        while len(nxt) &lt; pop_size:
+            p1 = max(rng.sample(range(pop_size), 2), key=fits.__getitem__)
+            p2 = max(rng.sample(range(pop_size), 2), key=fits.__getitem__)
+            c = mut(cross(pop[p1], pop[p2]) if rng.random() &lt; 0.9 else pop[p1][:])
+            if kind == "repair" and rng.random() &lt; lamarck_p:
+                c = repair(c)                # regula 5% (Orvosh &amp; Davis): uneori scriem reparația înapoi
+            nxt.append(c)
+        pop = nxt
+    feas = sum(1 for x in pop if kind in ("decoder", "repair") or weight(x) &lt;= CAP) / pop_size
+    return best_feasible, feas
+
+if __name__ == "__main__":
+    opt = dp_optimum(W, V, CAP)
+    print(f"{N} obiecte, capacitate {CAP}, optim (programare dinamică) = {opt}")
+    names = {"death": "pedeapsa cu moartea", "pen_lin": "penalizare liniară", "pen_sq": "penalizare pătratică",
+             "repair": "reparare lacomă (5% Lamarck)", "decoder": "decodificator (permutare)"}
+    for k, label in names.items():
+        res = [ga(k, seed=s) for s in range(10)]
+        vals = [r[0] for r in res]
+        print(f"  {label:30s} medie={statistics.mean(vals):7.1f} ({100*statistics.mean(vals)/opt:5.1f}% din optim)"
+              f"  max={max(vals)}  fezabili în pop. finală={100*statistics.mean(r[1] for r in res):5.1f}%")</pre>
+<pre class="code" data-lang="text">
+50 obiecte, capacitate 533, optim (programare dinamică) = 893
+  pedeapsa cu moartea            medie=  874.3 ( 97.9% din optim)  max=883  fezabili în pop. finală= 80.5%
+  penalizare liniară             medie=  883.4 ( 98.9% din optim)  max=892  fezabili în pop. finală= 64.2%
+  penalizare pătratică           medie=  875.5 ( 98.0% din optim)  max=883  fezabili în pop. finală= 74.3%
+  reparare lacomă (5% Lamarck)   medie=  893.0 (100.0% din optim)  max=893  fezabili în pop. finală=100.0%
+  decodificator (permutare)      medie=  893.0 (100.0% din optim)  max=893  fezabili în pop. finală=100.0%
+</pre>
+<ul class="check">
+<li><label><input type="checkbox">(Începător) Schimbați capacitatea la 10% din greutatea totală. Ce se întâmplă cu „pedeapsa cu moartea”? De ce?</label></li>
+<li><label><input type="checkbox">(Începător) Comparați reparare 0% (Baldwin), 5%, 100% (Lamarck).</label></li>
+<li><label><input type="checkbox">(Mediu) Implementați penalizarea dinamică (C·t)<sup>α</sup>·v<sup>β</sup> cu C = 0,5, α = β = 2 și comparați-o cu cea statică.</label></li>
+<li><label><input type="checkbox">(Mediu) Implementați turnirul cu regulile lui Deb în locul penalizării.</label></li>
+<li><label><input type="checkbox">(Avansat) Rucsac multidimensional (m restricții de greutate, instanțele OR-Library de la Chu &amp; Beasley). Proiectați o reparare bazată pe pseudo-utilități.</label></li>
+</ul>
+</div>
+
+<div class="lvl" data-lvl="m a">
+<h4>L6.2 – Orar universitar cu DEAP</h4>
+<pre class="code" data-lang="python">
+"""Orar universitar cu AG în DEAP: restricții tari (penalizate puternic) și slabe (de calitate).
+Cromozom: pentru fiecare activitate, un întreg = (interval orar, sală).   Rulare: python s06_timetable.py"""
+import random, statistics
+from collections import Counter
+from deap import base, creator, tools, algorithms
+
+DAYS, PER_DAY = 4, 3                         # 4 zile × 3 intervale (8–10, 10–12, 12–14)
+SLOTS = DAYS * PER_DAY
+ROOMS = {"S1": 30, "S2": 60, "Amf": 120}
+ROOM_LIST = list(ROOMS)
+# activitate: (nume, profesor, grupă, nr. studenți)
+EVENTS = [
+    ("IA-curs", "Popescu", "M1", 55), ("IA-lab-a", "Popescu", "M1a", 28), ("IA-lab-b", "Popescu", "M1b", 27),
+    ("MVD-curs", "Ionescu", "M1", 55), ("MVD-lab-a", "Ionescu", "M1a", 28), ("MVD-lab-b", "Georgescu", "M1b", 27),
+    ("Grafica-curs", "Marin", "M1", 55), ("Grafica-lab-a", "Marin", "M1a", 28), ("Grafica-lab-b", "Marin", "M1b", 27),
+    ("Retele-curs", "Dobre", "M2", 50), ("Retele-lab", "Dobre", "M2", 50), ("VR-curs", "Ionescu", "M2", 50),
+    ("VR-lab", "Georgescu", "M2", 50), ("Etica-curs", "Stan", "M1+M2", 105), ("Seminar-cerc", "Stan", "M2", 50),
+    ("Proiect-M1", "Popescu", "M1", 55),
+]
+UNAVAILABLE = {"Popescu": {0, 1, 2}, "Stan": {9, 10, 11}}   # Popescu nu poate luni; Stan nu poate joi
+
+def groups_of(g):                            # M1 include M1a și M1b; M1+M2 include tot
+    return {"M1": {"M1", "M1a", "M1b"}, "M1a": {"M1", "M1a"}, "M1b": {"M1", "M1b"},
+            "M2": {"M2"}, "M1+M2": {"M1", "M1a", "M1b", "M2"}}[g]
+
+def decode(ind):
+    return [(gene // len(ROOMS), ROOM_LIST[gene % len(ROOMS)]) for gene in ind]
+
+def violations(ind):
+    """Întoarce (restricții tari încălcate, cost slab)."""
+    sched, hard, soft = decode(ind), 0, 0
+    room_use = Counter(sched)
+    hard += sum(c - 1 for c in room_use.values() if c &gt; 1)                         # H1: sală dublu ocupată
+    for i in range(len(EVENTS)):
+        s, r = sched[i]; name, prof, grp, size = EVENTS[i]
+        if size &gt; ROOMS[r]: hard += 1                                              # H2: capacitate
+        if s in UNAVAILABLE.get(prof, ()): hard += 1                               # H3: indisponibilitate
+        if size &lt; ROOMS[r] / 3: soft += 1                                          # S3: sală mult prea mare
+        for j in range(i + 1, len(EVENTS)):
+            if sched[j][0] != s: continue
+            if EVENTS[j][1] == prof: hard += 1                                     # H4: profesor în două locuri
+            if groups_of(grp) &amp; groups_of(EVENTS[j][2]): hard += 1                 # H5: grupă în două locuri
+    for g in ("M1a", "M1b", "M2"):                                                 # restricții slabe, pe grupe
+        days = Counter(sched[i][0] // PER_DAY for i in range(len(EVENTS)) if g in groups_of(EVENTS[i][2]))
+        soft += sum(max(0, c - 2) for c in days.values())                          # S1: peste 2 activități/zi
+        soft += sum(1 for i in range(len(EVENTS))
+                    if g in groups_of(EVENTS[i][2]) and sched[i][0] % PER_DAY == 2)  # S2: interval târziu
+    return hard, soft
+
+def fitness(ind):
+    h, s = violations(ind)
+    return (1000 * h + s,)                    # penalizare: o restricție tare „costă” cât 1000 de restricții slabe
+
+creator.create("FitTT", base.Fitness, weights=(-1.0,))
+creator.create("Timetable", list, fitness=creator.FitTT)
+
+def smart_mutation(ind, p_smart=0.5):
+    """Mutație „inteligentă” (hibrid cu căutare locală): mută o activitate în poziția care minimizează costul."""
+    i = random.randrange(len(ind))
+    if random.random() &lt; p_smart:
+        best, best_f = ind[i], fitness(ind)[0]
+        for gene in random.sample(range(SLOTS * len(ROOMS)), 15):
+            old = ind[i]; ind[i] = gene; f = fitness(ind)[0]
+            if f &lt; best_f: best, best_f = gene, f
+            ind[i] = old
+        ind[i] = best
+    else:
+        ind[i] = random.randrange(SLOTS * len(ROOMS))
+    return (ind,)
+
+def run(seed=0, smart=True, mu=80, ngen=150):
+    random.seed(seed)
+    tb = base.Toolbox()
+    tb.register("gene", random.randrange, SLOTS * len(ROOMS))
+    tb.register("individual", tools.initRepeat, creator.Timetable, tb.gene, len(EVENTS))
+    tb.register("population", tools.initRepeat, list, tb.individual)
+    tb.register("evaluate", fitness)
+    tb.register("mate", tools.cxUniform, indpb=0.5)
+    tb.register("mutate", smart_mutation if smart else (lambda ind: smart_mutation(ind, 0.0)))
+    tb.register("select", tools.selTournament, tournsize=3)
+    pop, hof = tb.population(n=mu), tools.HallOfFame(1)
+    algorithms.eaSimple(pop, tb, cxpb=0.7, mutpb=0.4, ngen=ngen, halloffame=hof, verbose=False)
+    return hof[0]
+
+def show(ind):
+    grid = {}
+    for (s, r), e in zip(decode(ind), EVENTS):
+        grid.setdefault((s, r), []).append(e[0])
+    zile = ["Lu", "Ma", "Mi", "Jo"]
+    print("        " + "".join(f"{r:&gt;16s}" for r in ROOM_LIST))
+    for s in range(SLOTS):
+        print(f"{zile[s // PER_DAY]} {8 + 2 * (s % PER_DAY):2d}-{10 + 2 * (s % PER_DAY):2d}" +
+              "".join(f"{','.join(grid.get((s, r), ['·'])):&gt;16s}" for r in ROOM_LIST))
+
+if __name__ == "__main__":
+    for smart in (False, True):
+        res = [violations(run(seed=s, smart=smart)) for s in range(5)]
+        print(f"{'mutație inteligentă' if smart else 'mutație aleatoare  '}: "
+              f"restricții tari încălcate (5 rulări) = {[h for h, _ in res]}, cost slab = {[s for _, s in res]}")
+    best = run(seed=0, smart=True)
+    print("\nCel mai bun orar (seed 0): tari =", violations(best)[0], " slabe =", violations(best)[1])
+    show(best)</pre>
+<pre class="code" data-lang="text">
+mutație aleatoare  : restricții tari încălcate (5 rulări) = [0, 0, 0, 0, 0], cost slab = [4, 3, 5, 3, 5]
+mutație inteligentă: restricții tari încălcate (5 rulări) = [0, 0, 0, 0, 0], cost slab = [3, 3, 6, 4, 4]
+
+Cel mai bun orar (seed 0): tari = 0  slabe = 3
+                      S1              S2             Amf
+Lu  8-10       MVD-lab-a          VR-lab               ·
+Lu 10-12               ·               ·      Etica-curs
+...
+</pre>
+<div class="warn">Atenție la interpretare: la același număr de <b>generații</b>, mutația inteligentă pare să nu ajute (media 4,0 în ambele cazuri). Dar ea face de ~15 ori mai multe evaluări per mutație! Comparația corectă se face la același număr de <b>evaluări</b> sau la același <b>timp</b> de rulare. Refaceți experimentul corect.</div>
+<ul class="check">
+<li><label><input type="checkbox">Adăugați un contor de evaluări și comparați cele două variante la buget egal (de ex. 50 000 de evaluări), 20 de rulări.</label></li>
+<li><label><input type="checkbox">Adăugați restricția slabă „fără ferestre”: o grupă nu are un interval liber între două activități în aceeași zi.</label></li>
+<li><label><input type="checkbox">Reduceți la 3 zile. Mai găsește AG orare fezabile? Cum vă dați seama că problema poate fi infezabilă? (Indiciu: S6.4.)</label></li>
+<li><label><input type="checkbox">(Avansat) Rezolvați aceeași instanță cu OR-Tools CP-SAT și comparați calitatea și timpul. Discutați când e preferabil fiecare.</label></li>
+</ul>
+</div>
+
+<h3>Evaluarea critică: funcție de fitness generată de AI</h3>
+<div class="ai">Prompt: „Scrie funcția de fitness pentru orar: restricții tari și slabe”. Răspunsul LLM-ului: <code>fitness = hard_violations + soft_violations</code> și „AG va minimiza ambele”.</div>
+<div class="lvl" data-lvl="m a">
+<details><summary>Analiză</summary>
+<ol>
+<li>Cu ponderi egale, un orar cu 1 conflict tare și 0 slabe (inutilizabil) e la egalitate cu unul fezabil cu 1 slabă. AG poate întoarce un orar invalid. Soluții: pondere M ≫ costul slab maxim posibil, comparație lexicografică (tari, apoi slabe) sau regulile lui Deb.</li>
+<li>Verificați și <b>cum</b> sunt numărate conflictele: dacă trei activități ale aceluiași profesor sunt în același interval, sunt 3 perechi în conflict, nu 1. Contează pentru „gradientul” spre fezabilitate.</li>
+<li>Includerea subgrupelor (M1 ⊃ M1a) e o capcană frecventă – LLM-ul nu o cunoaște dacă nu e precizată în prompt.</li>
+</ol>
+<p><b>Prompt mai bun:</b> „Funcția întoarce tuplul (tari, slabe); explică ponderarea; tratează subgrupele conform dicționarului <code>groups_of</code>; scrie 4 teste: orar vid, conflict de profesor, conflict subgrupă–grupă, sală prea mică.”</p></details>
+</div>
+</section>
+
+<section class="part">
+<h2>4. Autoevaluare<span class="tag">QUIZ</span></h2>
+<div class="cards">
+  <div class="card"><div class="in"><div class="fr">Restricție tare</div><div class="bk">Trebuie satisfăcută; altfel soluția e inutilizabilă.</div></div></div>
+  <div class="card"><div class="in"><div class="fr">Penalizare dinamică</div><div class="bk">Coeficientul crește cu generația: (C·t)<sup>α</sup>.</div></div></div>
+  <div class="card"><div class="in"><div class="fr">Lamarckian vs. Baldwinian</div><div class="bk">Lamarck: scriem soluția reparată în cromozom. Baldwin: doar îi folosim fitness-ul.</div></div></div>
+  <div class="card"><div class="in"><div class="fr">Decodificator</div><div class="bk">Cromozomul e o rețetă (ex. permutare) transformată mereu într-o soluție fezabilă.</div></div></div>
+  <div class="card"><div class="in"><div class="fr">Regulile lui Deb</div><div class="bk">Fezabil &gt; nefezabil; între fezabile – f; între nefezabile – încălcarea totală.</div></div></div>
+  <div class="card"><div class="in"><div class="fr">Orar ca graf</div><div class="bk">Activități = noduri, conflicte = muchii, intervale = culori.</div></div></div>
+</div>
+<script type="application/json" class="quiz-data">
+[
+{"lvl":"b","q":"„Pedeapsa cu moartea” funcționează prost când:","o":["regiunea fezabilă e foarte mică","toate soluțiile sunt fezabile","problema are o singură restricție","populația e mare"],"a":0,"e":"Aproape toată populația primește fitness minim; selecția nu mai are informație."},
+{"lvl":"b","q":"Care este o restricție SLABĂ într-un orar?","o":["un profesor nu poate fi în două săli deodată","sala trebuie să încapă studenții","studenții preferă să nu aibă cursuri la 18:00","o sală găzduiește o singură activitate"],"a":2,"e":"Preferințele sunt restricții slabe."},
+{"lvl":"b","q":"Decodificatorul pentru rucsac primește ca cromozom:","o":["un șir de biți","o permutare a obiectelor","greutățile","capacitatea"],"a":1,"e":"Obiectele sunt încercate în ordinea permutării."},
+{"lvl":"m","q":"Cu penalizarea pătratică r·max(0, x − 1,5)² pentru min (x−3)², minimul funcției penalizate este:","o":["exact 1,5 pentru r ≥ 3","(3 + 1,5r)/(1 + r), ușor nefezabil pentru orice r finit","3, indiferent de r","nefezabil doar pentru r < 1"],"a":1,"e":"Vezi S6.2."},
+{"lvl":"m","q":"Regula de 5% (Orvosh & Davis) se referă la:","o":["probabilitatea de mutație","fracția de soluții reparate scrise înapoi în cromozom","fracția de elite","rata de migrare"],"a":1,"e":"Un compromis între Baldwin (0%) și Lamarck (100%)."},
+{"lvl":"m","q":"De ce folosim fitness = 1000·tari + slabe?","o":["Pentru a grăbi calculul","Pentru ca orice orar fezabil să fie mai bun decât orice orar nefezabil (dacă slabe < 1000)","Pentru a ignora restricțiile slabe","Pentru că DEAP cere"],"a":1,"e":"Ponderea mare impune o ordine aproape lexicografică."},
+{"lvl":"m","q":"Comparația corectă între mutația aleatoare și cea „inteligentă” trebuie făcută la același:","o":["număr de generații","număr de evaluări ale funcției de fitness (sau timp)","seed","număr de mutații"],"a":1,"e":"Mutația inteligentă consumă multe evaluări suplimentare."},
+{"lvl":"a","q":"În regulile lui Deb, dintre două soluții nefezabile câștigă:","o":["cea cu f mai bun","cea cu încălcarea totală mai mică","una aleatoare","cea mai veche"],"a":1,"e":"Regula 3."},
+{"lvl":"a","q":"Penalizarea liniară r·v(x) este exactă (optimul penalizat = optimul real) când:","o":["r → ∞","r depășește un prag finit legat de multiplicatorul Lagrange","niciodată","doar pentru restricții de egalitate"],"a":1,"e":"Funcții de penalizare exacte: r > |λ*|."}
+]
+</script>
+</section>
+
+<section class="part">
+<h2>5. Temă și legătura cu proiectul</h2>
+<div class="lvl" data-lvl="b"><p><b>T1:</b> Pentru problema proiectului vostru, listați restricțiile tari și slabe și propuneți o funcție de fitness. Justificați ponderile.</p></div>
+<div class="lvl" data-lvl="m"><p><b>T2:</b> Pe 5 instanțe de rucsac (n = 100, 200, 500), comparați penalizarea statică, penalizarea dinamică, repararea și decodificatorul la buget egal de evaluări; raportați distanța față de optimul DP și timpul.</p></div>
+<div class="lvl" data-lvl="a"><p><b>T3:</b> Construiți un generator de orare pentru un an de studiu real (cu datele publice ale facultății, anonimizate) și comparați AG memetic cu CP-SAT. Prezentați orarul obținut.</p></div>
+<div class="note">Proiectul: aproape orice problemă reală are restricții. Raportul trebuie să explice ce metodă de tratare ați ales și de ce, cu un experiment care o compară cu cel puțin o alternativă.</div>
+</section>
+
+<section class="part">
+<h2>6. Bibliografie</h2>
+<ol>
+<li>Z. Michalewicz – <i>Genetic Algorithms + Data Structures = Evolution Programs</i>, ed. a 3-a, Springer, 1996 – cap. 4 (rucsacul și tratarea restricțiilor), cap. 7 (optimizare numerică cu restricții), cap. 11 (orar, programare).</li>
+<li>A. Konar – <i>Artificial Intelligence and Soft Computing</i>, CRC Press, 1999.</li>
+<li>K. Deb – „An efficient constraint handling method for genetic algorithms”, <i>Computer Methods in Applied Mechanics and Engineering</i> 186, 2000.</li>
+<li>C. A. Coello Coello – „Theoretical and numerical constraint-handling techniques used with evolutionary algorithms: a survey”, <i>Computer Methods in Applied Mechanics and Engineering</i> 191, 2002.</li>
+<li>DEAP – <a href="https://deap.readthedocs.io/" target="_blank" rel="noopener">deap.readthedocs.io</a> (tutorialul „Constraint Handling”: <code>tools.DeltaPenalty</code>, <code>tools.ClosestValidPenalty</code>).</li>
+</ol>
+</section>
+
+<div class="pager"><a href="IAA_05_Curs_Sem_Lab.html">← Ședința 5</a><a href="IAA_07_Curs_Sem_Lab.html">Ședința 7 →</a></div>
+</main>
+</div>
+<footer>Material didactic pentru disciplina <b>Inteligență artificială aplicată</b> (MVMOD.1.1.10), Master „Medii virtuale multi-modale distribuite”, Facultatea de Matematică și Informatică, Universitatea „Ovidius” din Constanța, anul universitar 2026–2027. Conținutul urmează fișa disciplinei (secțiunile 8.1 și 8.2). Material elaborat cu asistența unui instrument AI generativ (Claude, Anthropic) – a se verifica și adapta de titularul disciplinei.</footer>
+<script>(function(){
+"use strict";
+var KEY = "IAA_" + (document.body.getAttribute("data-session") || "x") + "_";
+function store(k, v){ try{ if(v===undefined) return localStorage.getItem(KEY+k); localStorage.setItem(KEY+k, v); }catch(e){ return null; } }
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+/* ---------- temă ---------- */
+var themeBtn = document.getElementById("themeBtn");
+if(store("theme")==="dark") document.documentElement.classList.add("dark");
+if(themeBtn) themeBtn.onclick = function(){ var d=document.documentElement.classList.toggle("dark"); store("theme", d?"dark":"light"); document.dispatchEvent(new Event("themechange")); };
+var printBtn = document.getElementById("printBtn");
+if(printBtn) printBtn.onclick = function(){ document.querySelectorAll("details").forEach(function(d){d.open=true;}); window.print(); };
+
+/* ---------- insigne de nivel ---------- */
+var LBL = {b:"Începător", m:"Mediu", a:"Avansat"};
+document.querySelectorAll(".lvl").forEach(function(el){
+  var l = el.getAttribute("data-lvl"); var b = document.createElement("span");
+  b.className = "badge "+l; b.textContent = LBL[l]||l; el.insertBefore(b, el.firstChild);
+});
+
+/* ---------- filtru pe nivele ---------- */
+function applyFilter(f){
+  document.querySelectorAll(".lvl-filter button").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-f")===f); });
+  document.querySelectorAll("[data-lvl]").forEach(function(el){
+    var l = el.getAttribute("data-lvl");
+    el.classList.toggle("hide-lvl", f!=="all" && l.indexOf(f)<0);
+  });
+  store("filter", f); buildToc();
+}
+document.querySelectorAll(".lvl-filter button").forEach(function(b){ b.onclick=function(){ applyFilter(b.getAttribute("data-f")); }; });
+
+/* ---------- evidențiere sintaxă Python ---------- */
+var KW = "False None True and as assert async await break class continue def del elif else except finally for from global if import in is lambda nonlocal not or pass raise return try while with yield match case".split(" ");
+var BI = "print range len int float str list dict set tuple min max sum abs sorted enumerate zip map filter isinstance any all open round reversed super self heapq random math deque defaultdict itertools np".split(" ");
+function hlPython(src){
+  var re = /(#[^\n]*)|("""[\s\S]*?"""|'''[\s\S]*?'''|f?"(?:\\.|[^"\\\n])*"|f?'(?:\\.|[^'\\\n])*')|(\b\d+(?:\.\d+)?(?:e[-+]?\d+)?\b)|([A-Za-z_][A-Za-z0-9_]*)(\s*\()?/g;
+  var out = "", last = 0, m;
+  while((m = re.exec(src))){
+    out += esc(src.slice(last, m.index)); last = re.lastIndex;
+    if(m[1]) out += '<span class="c">'+esc(m[1])+'</span>';
+    else if(m[2]) out += '<span class="s">'+esc(m[2])+'</span>';
+    else if(m[3]) out += '<span class="n">'+m[3]+'</span>';
+    else if(m[4]){
+      var w = m[4], tail = m[5]||"";
+      if(KW.indexOf(w)>=0) out += '<span class="k">'+w+'</span>'+esc(tail);
+      else if(BI.indexOf(w)>=0) out += '<span class="bi">'+w+'</span>'+esc(tail);
+      else if(tail) out += '<span class="f">'+w+'</span>'+esc(tail);
+      else out += w;
+    }
+  }
+  return out + esc(src.slice(last));
+}
+function hlPddl(src){
+  return esc(src).replace(/(;[^\n]*)/g,'<span class="c">$1</span>')
+    .replace(/(\(\s*)(define|domain|problem|:requirements|:types|:predicates|:action|:parameters|:precondition|:effect|:objects|:init|:goal|:domain|and|not|or|forall|when)/g,'$1<span class="k">$2</span>')
+    .replace(/(\?[a-z0-9_-]+)/gi,'<span class="n">$1</span>')
+    .replace(/(:[a-z-]+)/gi,'<span class="f">$1</span>');
+}
+document.querySelectorAll("pre.code").forEach(function(pre){
+  var lang = pre.getAttribute("data-lang")||"python";
+  var src = pre.textContent.replace(/^\n/,"").replace(/\s+$/,"");
+  pre.innerHTML = lang==="python" ? hlPython(src) : (lang==="pddl" ? hlPddl(src) : esc(src));
+  var b = document.createElement("button"); b.className="copy"; b.textContent="Copiază";
+  b.onclick = function(){
+    var done=function(){ b.textContent="Copiat ✓"; setTimeout(function(){b.textContent="Copiază";},1500); };
+    if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(src).then(done, function(){ fallback(); }); } else fallback();
+    function fallback(){ var t=document.createElement("textarea"); t.value=src; document.body.appendChild(t); t.select(); try{document.execCommand("copy");}catch(e){} document.body.removeChild(t); done(); }
+  };
+  pre.appendChild(b);
+});
+
+/* ---------- flashcards ---------- */
+document.querySelectorAll(".card").forEach(function(c){ c.onclick=function(){ c.classList.toggle("flip"); }; });
+
+/* ---------- quiz ---------- */
+var answered = {};
+document.querySelectorAll("script.quiz-data").forEach(function(sc, qi){
+  var data = JSON.parse(sc.textContent); var host = document.createElement("div"); host.className="quiz";
+  sc.parentNode.insertBefore(host, sc);
+  var score = document.createElement("div"); score.className="score";
+  data.forEach(function(q, i){
+    var box = document.createElement("div"); box.className="qq"; if(q.lvl) box.setAttribute("data-lvl", q.lvl);
+    var html = '<div class="qt">'+(i+1)+'. '+(q.lvl?'<span class="badge '+q.lvl+'">'+LBL[q.lvl]+'</span> ':'')+q.q+'</div>';
+    q.o.forEach(function(o, j){ html += '<label><input type="radio" name="q'+qi+'_'+i+'" value="'+j+'"> '+o+'</label>'; });
+    html += '<div class="expl">'+(q.e||"")+'</div>';
+    box.innerHTML = html; host.appendChild(box);
+    box.querySelectorAll("input").forEach(function(inp){
+      inp.onchange = function(){
+        if(box.classList.contains("done")) return;
+        box.classList.add("done");
+        var j = +inp.value; var labels = box.querySelectorAll("label");
+        labels[q.a].classList.add("right"); if(j!==q.a) labels[j].classList.add("wrong");
+        box.querySelectorAll("input").forEach(function(x){ x.disabled=true; });
+        answered[qi+"_"+i] = (j===q.a); upd();
+      };
+    });
+  });
+  var reset = document.createElement("button"); reset.className="btn sec"; reset.textContent="Reia testul";
+  reset.onclick = function(){ host.querySelectorAll(".qq").forEach(function(b,i){ b.classList.remove("done"); b.querySelectorAll("label").forEach(function(l){l.className="";}); b.querySelectorAll("input").forEach(function(x){x.disabled=false;x.checked=false;}); delete answered[qi+"_"+i]; }); upd(); };
+  host.appendChild(score); host.appendChild(reset);
+  function upd(){ var n=0,ok=0; for(var k in answered){ if(k.indexOf(qi+"_")===0){ n++; if(answered[k]) ok++; } } score.textContent = "Scor: "+ok+" / "+n+" răspunsuri ("+data.length+" întrebări în total)"; progress(); }
+  upd();
+});
+
+/* ---------- liste de verificare + progres ---------- */
+var checks = document.querySelectorAll("ul.check input[type=checkbox]");
+checks.forEach(function(c, i){ if(store("chk"+i)==="1") c.checked=true; c.onchange=function(){ store("chk"+i, c.checked?"1":"0"); progress(); }; });
+function progress(){
+  var cks = document.querySelectorAll("ul.check input[type=checkbox]");
+  var tot = cks.length + document.querySelectorAll(".quiz .qq").length;
+  var done = 0; cks.forEach(function(c){ if(c.checked) done++; });
+  done += document.querySelectorAll(".quiz .qq.done").length;
+  var p = tot? Math.round(100*done/tot):0;
+  var bar = document.querySelector(".progress i"); if(bar) bar.style.width = p+"%";
+  var t = document.querySelector(".tocprog"); if(t) t.textContent = "Progres ședință: "+p+"% ("+done+"/"+tot+" sarcini + întrebări)";
+}
+
+/* ---------- cuprins ---------- */
+function buildToc(){
+  var toc = document.querySelector("nav.toc .links"); if(!toc) return; toc.innerHTML="";
+  document.querySelectorAll("main h2, main h3").forEach(function(h, i){
+    if(h.closest(".hide-lvl")) return;
+    if(!h.id) h.id = "s"+i;
+    var a = document.createElement("a"); a.href="#"+h.id; var hc = h.cloneNode(true); hc.querySelectorAll(".tag,.badge").forEach(function(x){x.remove();}); a.textContent = hc.textContent.trim();
+    a.className = h.tagName.toLowerCase(); toc.appendChild(a);
+  });
+}
+var spyLinks = [];
+window.addEventListener("scroll", function(){
+  var hs = document.querySelectorAll("main h2, main h3"), cur=null;
+  hs.forEach(function(h){ if(h.getBoundingClientRect().top < 120 && !h.closest(".hide-lvl")) cur = h.id; });
+  document.querySelectorAll("nav.toc a").forEach(function(a){ a.classList.toggle("act", a.getAttribute("href")==="#"+cur); });
+}, {passive:true});
+
+applyFilter(store("filter")||"all");
+progress();
+
+/* ---------- utilitare pentru simulări ---------- */
+window.IAA = {
+  rng: function(seed){ var s = seed>>>0 || 1; return function(){ s ^= s<<13; s>>>=0; s ^= s>>>17; s ^= s<<5; s>>>=0; return s/4294967296; }; },
+  css: function(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); },
+  fit: function(cv){ var r = window.devicePixelRatio||1; if(!cv._w){ cv._w = +cv.getAttribute("width"); cv._h = +cv.getAttribute("height"); cv.style.width = cv._w+"px"; cv.style.aspectRatio = cv._w+"/"+cv._h; cv.width = cv._w*r; cv.height = cv._h*r; } var g = cv.getContext("2d"); g.setTransform(r,0,0,r,0,0); g.W = cv._w; g.H = cv._h; return g; },
+  pos: function(cv, ev){ var b = cv.getBoundingClientRect(); return {x:(ev.clientX-b.left)*cv._w/b.width, y:(ev.clientY-b.top)*cv._h/b.height}; },
+  esc: esc
+};
+})();
+</script>
+<script>(function(){
+/* ===== penalizare 1D ===== */
+function penDraw(){
+  var r=+document.getElementById("penR").value, b=+document.getElementById("penB").value; document.getElementById("penRv").textContent=r;
+  function f(x){ return (x-3)*(x-3); } function F(x){ return f(x)+r*Math.pow(Math.max(0,x-1.5),b); }
+  var cv=document.getElementById("penCv"), g=IAA.fit(cv), W=g.W, H=g.H, x0=0, x1=4.5, y1=10;
+  function X(x){ return 40+(x-x0)/(x1-x0)*(W-60); } function Y(y){ return H-30-(Math.min(y,y1)/y1)*(H-50); }
+  g.clearRect(0,0,W,H);
+  g.fillStyle="rgba(46,125,79,.12)"; g.fillRect(X(0),10,X(1.5)-X(0),H-40); g.fillStyle="rgba(179,38,30,.08)"; g.fillRect(X(1.5),10,X(x1)-X(1.5),H-40);
+  g.fillStyle=IAA.css("--muted"); g.font="12px sans-serif"; g.fillText("regiune fezabilă (x ≤ 1,5)", X(0.1), 24); g.fillText("nefezabil", X(1.6), 24);
+  g.strokeStyle=IAA.css("--line"); g.beginPath(); g.moveTo(X(0),Y(0)); g.lineTo(X(x1),Y(0)); g.stroke();
+  for(var t=0;t<=4.5;t+=0.5){ g.fillText(t.toFixed(1).replace(".",","), X(t)-8, H-12); }
+  [[f,"#2f5d8a",1.5],[F,"#d9534f",2.5]].forEach(function(s){ g.strokeStyle=s[1]; g.lineWidth=s[2]; g.beginPath(); for(var i=0;i<=400;i++){ var x=x0+(x1-x0)*i/400, y=s[0](x); if(i) g.lineTo(X(x),Y(y)); else g.moveTo(X(x),Y(y)); } g.stroke(); });
+  g.lineWidth=1; var best=0, bv=1e9; for(var i=0;i<=45000;i++){ var x=x1*i/45000, v=F(x); if(v<bv){ bv=v; best=x; } }
+  g.fillStyle="#d9534f"; g.beginPath(); g.arc(X(best),Y(F(best)),6,0,7); g.fill(); g.fillStyle="#2e7d4f"; g.beginPath(); g.arc(X(1.5),Y(f(1.5)),5,0,7); g.fill();
+  var lx=X(0.08), ly=H-78; g.fillStyle="#2f5d8a"; g.fillRect(lx,ly,10,10); g.fillStyle="#d9534f"; g.fillRect(lx,ly+18,10,10); g.fillStyle=IAA.css("--ink"); g.fillText("f(x) = (x − 3)²", lx+16, ly+9); g.fillText("F(x) = f(x) + penalizare", lx+16, ly+27);
+  document.getElementById("penX").textContent=best.toFixed(4).replace(".",","); var v=Math.max(0,best-1.5); document.getElementById("penV").textContent=v.toFixed(4).replace(".",",");
+  document.getElementById("penMsg").innerHTML = v<1e-3 ? '<span class="ok">minimul penalizat este fezabil</span>' : '<span class="bad">minimul penalizat este NEFEZABIL</span>';
+}
+document.getElementById("penR").oninput=penDraw; document.getElementById("penB").onchange=penDraw; document.addEventListener("themechange", penDraw); penDraw();
+
+/* ===== cursa pe rucsac ===== */
+var KS, seedK=11;
+function newInst(){ var r=IAA.rng(seedK++), n=40, w=[], v=[]; for(var i=0;i<n;i++){ w.push(1+Math.floor(r()*50)); v.push(w[i]+10); } var cap=Math.floor(w.reduce(function(a,b){return a+b;},0)*0.35);
+  var best=new Array(cap+1).fill(0); for(i=0;i<n;i++) for(var c=cap;c>=w[i];c--) best[c]=Math.max(best[c], best[c-w[i]]+v[i]);
+  var order=[]; for(i=0;i<n;i++) order.push(i); order.sort(function(a,b){ return v[a]/w[a]-v[b]/w[b]; });
+  KS={n:n,w:w,v:v,cap:cap,opt:best[cap],order:order,rho:Math.max.apply(null,v.map(function(x,i){return x/w[i];}))};
+  document.getElementById("kpInfo").textContent="  n = "+n+", capacitate = "+cap+" (35% din total), optim DP = "+KS.opt; kpDraw({}); document.getElementById("kpOut").textContent=""; }
+function wt(x){ var s=0; for(var i=0;i<KS.n;i++) if(x[i]) s+=KS.w[i]; return s; } function val(x){ var s=0; for(var i=0;i<KS.n;i++) if(x[i]) s+=KS.v[i]; return s; }
+function repair(x){ x=x.slice(); var s=wt(x); for(var k=0;k<KS.n && s>KS.cap;k++){ var i=KS.order[k]; if(x[i]){ x[i]=0; s-=KS.w[i]; } } return x; }
+function decode(p){ var x=new Array(KS.n).fill(0), s=0; p.forEach(function(i){ if(s+KS.w[i]<=KS.cap){ x[i]=1; s+=KS.w[i]; } }); return x; }
+var METHODS=[["death","pedeapsa cu moartea","#5c6577"],["pen","penalizare liniară","#b26a00"],["dyn","penalizare dinamică","#7b61c9"],["rep","reparare lacomă","#2e7d4f"],["dec","decodificator","#2f5d8a"]];
+function makeGA(kind, rng){
+  var N=50, perm = kind==="dec", n=KS.n, gen=0;
+  function rnd(){ if(perm){ var a=[]; for(var i=0;i<n;i++) a.push(i); for(var j=n-1;j>0;j--){ var k=Math.floor(rng()*(j+1)); var t=a[j]; a[j]=a[k]; a[k]=t; } return a; } var x=[]; for(var i2=0;i2<n;i2++) x.push(rng()<0.5?1:0); return x; }
+  function sol(x){ return perm?decode(x):(kind==="rep"?repair(x):x); }
+  function fit(x){ if(perm) return val(decode(x)); if(kind==="rep") return val(repair(x)); var ex=Math.max(0,wt(x)-KS.cap), v=val(x);
+    if(kind==="death") return ex>0?0:v; if(kind==="pen") return v-KS.rho*ex; return v-Math.pow(0.5*(gen+1),2)*ex; }
+  var pop=[]; for(var i=0;i<N;i++) pop.push(rnd()); var bestF=0, hist=[];
+  return {step:function(){ var f=pop.map(fit); pop.forEach(function(x){ var s=sol(x); if(wt(s)<=KS.cap) bestF=Math.max(bestF,val(s)); }); hist.push(bestF);
+    var e=0; for(var i=1;i<N;i++) if(f[i]>f[e]) e=i; var nx=[pop[e].slice()];
+    function tour(){ var a=Math.floor(rng()*N), b=Math.floor(rng()*N); return f[a]>f[b]?pop[a]:pop[b]; }
+    while(nx.length<N){ var p1=tour(), p2=tour(), c;
+      if(perm){ var i1=Math.floor(rng()*n), i2=i1+Math.floor(rng()*(n-i1)); var seg=p1.slice(i1,i2), rest=p2.filter(function(g){ return seg.indexOf(g)<0; }); c=rest.slice(0,i1).concat(seg, rest.slice(i1)); if(rng()<0.5){ var a=Math.floor(rng()*n), b=Math.floor(rng()*n), t=c[a]; c[a]=c[b]; c[b]=t; } }
+      else { var cp=1+Math.floor(rng()*(n-1)); c=p1.slice(0,cp).concat(p2.slice(cp)); for(var k=0;k<n;k++) if(rng()<1/n) c[k]=1-c[k]; if(kind==="rep" && rng()<0.05) c=repair(c); }
+      nx.push(c); }
+    pop=nx; gen++; return hist; }, hist:function(){ return hist; }};
+}
+var kpTimer=null;
+function kpRun(){ if(kpTimer) clearInterval(kpTimer); var gas={}; METHODS.forEach(function(m,i){ gas[m[0]]=makeGA(m[0], IAA.rng(100+i)); }); var g=0;
+  kpTimer=setInterval(function(){ var H={}; METHODS.forEach(function(m){ H[m[0]]=gas[m[0]].step(); }); kpDraw(H); g++;
+    document.getElementById("kpOut").textContent="Generația "+g+" · cea mai bună soluție FEZABILĂ găsită:\n"+METHODS.map(function(m){ var v=H[m[0]][H[m[0]].length-1]; return m[1].padEnd(22)+String(v).padStart(5)+"  ("+(100*v/KS.opt).toFixed(1)+"% din optim)"; }).join("\n");
+    if(g>=120){ clearInterval(kpTimer); kpTimer=null; } }, 40); }
+function kpDraw(H){ var cv=document.getElementById("kpCv"), g=IAA.fit(cv), W=g.W, Hh=g.H; g.clearRect(0,0,W,Hh);
+  var lo=KS.opt*0.8, x0=50, w=W-230, h=Hh-40; function Y(v){ return 10+h*(1-(Math.max(v,lo)-lo)/(KS.opt-lo)); }
+  g.strokeStyle=IAA.css("--line"); g.fillStyle=IAA.css("--muted"); g.font="11px sans-serif";
+  [0.8,0.9,1].forEach(function(q){ var y=Y(KS.opt*q); g.beginPath(); g.moveTo(x0,y); g.lineTo(x0+w,y); g.stroke(); g.fillText(Math.round(q*100)+"%", 8, y+4); });
+  g.fillText("generația (0–120); axa Y: % din optimul DP", x0, Hh-6);
+  METHODS.forEach(function(m,k){ var hs=H[m[0]]||[]; g.strokeStyle=m[2]; g.lineWidth=2; g.beginPath(); hs.forEach(function(v,i){ var x=x0+i/120*w; if(i) g.lineTo(x,Y(v)); else g.moveTo(x,Y(v)); }); g.stroke(); g.lineWidth=1;
+    g.fillStyle=m[2]; g.fillRect(x0+w+16, 14+k*20, 10, 10); g.fillStyle=IAA.css("--ink"); g.fillText(m[1], x0+w+30, 23+k*20); });
+}
+document.getElementById("kpRun").onclick=kpRun; document.getElementById("kpNew").onclick=function(){ if(kpTimer){ clearInterval(kpTimer); kpTimer=null; } newInst(); };
+newInst();
+
+/* ===== orar evolutiv ===== */
+var DAYS=4, PD=3, SL=DAYS*PD, ROOMS=[["S1",30],["S2",60],["Amf",120]], NR=3;
+var EV=[["IA-curs","Popescu","M1",55],["IA-lab-a","Popescu","M1a",28],["IA-lab-b","Popescu","M1b",27],["MVD-curs","Ionescu","M1",55],["MVD-lab-a","Ionescu","M1a",28],["MVD-lab-b","Georgescu","M1b",27],
+  ["Grafica-curs","Marin","M1",55],["Grafica-lab-a","Marin","M1a",28],["Grafica-lab-b","Marin","M1b",27],["Retele-curs","Dobre","M2",50],["Retele-lab","Dobre","M2",50],["VR-curs","Ionescu","M2",50],
+  ["VR-lab","Georgescu","M2",50],["Etica-curs","Stan","M1+M2",105],["Seminar-cerc","Stan","M2",50],["Proiect-M1","Popescu","M1",55]];
+var UNAV={Popescu:[0,1,2], Stan:[9,10,11]}, GR={M1:["M1","M1a","M1b"],M1a:["M1","M1a"],M1b:["M1","M1b"],M2:["M2"],"M1+M2":["M1","M1a","M1b","M2"]};
+function inter(a,b){ return GR[a].some(function(x){ return GR[b].indexOf(x)>=0; }); }
+var ttEv=0;
+function viol(ind, mark){ ttEv++; var hard=0, soft=0, bad={}, used={};
+  for(var i=0;i<EV.length;i++){ var s=Math.floor(ind[i]/NR), r=ind[i]%NR, e=EV[i]; var key=s+"_"+r; if(used[key]!==undefined){ hard++; bad[i]=1; bad[used[key]]=1; } else used[key]=i;
+    if(e[3]>ROOMS[r][1]){ hard++; bad[i]=1; } if((UNAV[e[1]]||[]).indexOf(s)>=0){ hard++; bad[i]=1; } if(e[3]<ROOMS[r][1]/3) soft++;
+    for(var j=i+1;j<EV.length;j++){ if(Math.floor(ind[j]/NR)!==s) continue; if(EV[j][1]===e[1]){ hard++; bad[i]=bad[j]=1; } if(inter(e[2],EV[j][2])){ hard++; bad[i]=bad[j]=1; } } }
+  ["M1a","M1b","M2"].forEach(function(g){ var cnt={};
+    EV.forEach(function(e,i){ if(GR[e[2]].indexOf(g)>=0){ var sl=Math.floor(ind[i]/NR), d=Math.floor(sl/PD); cnt[d]=(cnt[d]||0)+1; if(sl%PD===2) soft++; } });
+    for(var d in cnt) soft+=Math.max(0,cnt[d]-2); });
+  if(mark) return {hard:hard, soft:soft, bad:bad}; return 1000*hard+soft; }
+var rngT=IAA.rng(99), tpop, tgen, ttTimer=null;
+function ttReset(){ if(ttTimer){ clearInterval(ttTimer); ttTimer=null; } tpop=[]; for(var i=0;i<60;i++){ var x=[]; for(var k=0;k<EV.length;k++) x.push(Math.floor(rngT()*SL*NR)); tpop.push(x); } tgen=0; ttEv=0; ttShow(); }
+function ttStep(){ var smart=document.getElementById("ttSmart").checked, f=tpop.map(function(x){ return viol(x); }), N=tpop.length;
+  var e=0; for(var i=1;i<N;i++) if(f[i]<f[e]) e=i; var nx=[tpop[e].slice()];
+  function tour(){ var b=null, bf=0; for(var k=0;k<3;k++){ var j=Math.floor(rngT()*N); if(b===null||f[j]<bf){ b=j; bf=f[j]; } } return tpop[b]; }
+  while(nx.length<N){ var a=tour(), b=tour(), c=a.map(function(g,k){ return rngT()<0.5?g:b[k]; });
+    if(rngT()<0.4){ var p=Math.floor(rngT()*c.length); if(smart && rngT()<0.5){ var bestG=c[p], bf2=viol(c); for(var t=0;t<15;t++){ var old=c[p]; c[p]=Math.floor(rngT()*SL*NR); var v=viol(c); if(v<bf2){ bf2=v; bestG=c[p]; } c[p]=old; } c[p]=bestG; } else c[p]=Math.floor(rngT()*SL*NR); }
+    nx.push(c); }
+  tpop=nx; tgen++; ttShow(); }
+function ttShow(){ var f=tpop.map(function(x){ return viol(x); }), e=0; for(var i=1;i<f.length;i++) if(f[i]<f[e]) e=i; var best=tpop[e], v=viol(best,true);
+  document.getElementById("ttGen").textContent=tgen; document.getElementById("ttHard").textContent=v.hard; document.getElementById("ttSoft").textContent=v.soft; document.getElementById("ttEv").textContent=ttEv;
+  var zile=["Luni","Marți","Miercuri","Joi"], html='<table><tr><th>Interval</th>'+ROOMS.map(function(r){ return '<th>'+r[0]+' ('+r[1]+' locuri)</th>'; }).join("")+'</tr>';
+  for(var s=0;s<SL;s++){ html+='<tr><td>'+zile[Math.floor(s/PD)]+' '+(8+2*(s%PD))+'–'+(10+2*(s%PD))+'</td>';
+    for(var r=0;r<NR;r++){ var cell=[]; best.forEach(function(g,k){ if(g===s*NR+r) cell.push('<span style="display:inline-block;padding:1px 6px;margin:1px;border-radius:4px;font-size:12px;background:'+(v.bad[k]?'#d9534f':'#2f5d8a')+';color:#fff" title="'+EV[k][1]+', '+EV[k][2]+', '+EV[k][3]+' stud.">'+EV[k][0]+'</span>'); }); html+='<td>'+(cell.join("")||'<span style="color:var(--muted)">·</span>')+'</td>'; }
+    html+='</tr>'; }
+  document.getElementById("ttGrid").innerHTML=html+'</table>'; }
+document.getElementById("ttRun").onclick=function(){ if(ttTimer){ clearInterval(ttTimer); ttTimer=null; return; } var k=0; ttTimer=setInterval(function(){ ttStep(); if(++k>=150){ clearInterval(ttTimer); ttTimer=null; } }, 30); };
+document.getElementById("ttReset").onclick=ttReset;
+ttReset();
+})();
+</script>
+</body>
+</html>
