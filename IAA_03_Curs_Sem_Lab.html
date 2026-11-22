@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IAA 03 – Planificare (II): grafuri de planificare (GraphPlan) și planificare ca satisfiabilitate (SATPlan)</title>
+<style>:root{
+  --bg:#f7f6f2; --panel:#ffffff; --ink:#1d2433; --muted:#5c6577; --line:#e3e0d8;
+  --accent:#2f5d8a; --accent-soft:#e6eef7; --code-bg:#1f2430; --code-ink:#e6e6e6;
+  --b:#2e7d4f; --b-soft:#e5f3ea; --m:#b26a00; --m-soft:#fbf0de; --a:#9b2c4f; --a-soft:#f8e4ea;
+  --ok:#2e7d4f; --bad:#b3261e; --shadow:0 1px 2px rgba(0,0,0,.05),0 4px 14px rgba(0,0,0,.05);
+  --radius:10px; --sans:"Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --serif:Georgia,"Times New Roman",serif; --mono:"JetBrains Mono","Cascadia Code",Consolas,"Liberation Mono",monospace;
+}
+html.dark{
+  --bg:#14171d; --panel:#1c2029; --ink:#e4e6eb; --muted:#9aa3b2; --line:#2c3240;
+  --accent:#7fb0e0; --accent-soft:#1f2b3a; --code-bg:#0f1218;
+  --b:#6cc48f; --b-soft:#17291f; --m:#e0a24a; --m-soft:#2d2415; --a:#e57a9c; --a-soft:#2e1a22;
+  --shadow:none;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.62 var(--sans)}
+a{color:var(--accent)}
+header.top{position:sticky;top:0;z-index:20;background:var(--panel);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:8px 18px;flex-wrap:wrap}
+header.top .brand{font-weight:700;letter-spacing:.2px;white-space:nowrap}
+header.top .brand small{font-weight:400;color:var(--muted);margin-left:6px}
+.lvl-filter{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+.lvl-filter button,.tbtn{border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:5px 11px;border-radius:999px;cursor:pointer;font:inherit;font-size:13.5px}
+.lvl-filter button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+html.dark .lvl-filter button.on{color:#10141a}
+.progress{height:4px;background:var(--line);width:100%;position:absolute;left:0;bottom:-1px}
+.progress i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:28px;max-width:1320px;margin:0 auto;padding:24px 18px 80px}
+nav.toc{position:sticky;top:70px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px;border-right:1px solid var(--line);padding-right:12px}
+nav.toc a{display:block;text-decoration:none;color:var(--muted);padding:3px 8px;border-radius:6px;line-height:1.35}
+nav.toc a.h3{padding-left:20px;font-size:13px}
+nav.toc a:hover,nav.toc a.act{color:var(--ink);background:var(--accent-soft)}
+nav.toc .tocprog{font-size:12.5px;color:var(--muted);margin:12px 8px}
+main{min-width:0}
+.hero{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:26px 28px;box-shadow:var(--shadow);margin-bottom:22px}
+.hero .kicker{text-transform:uppercase;letter-spacing:1.4px;font-size:12px;color:var(--accent);font-weight:700}
+.hero h1{font-family:var(--serif);font-size:34px;line-height:1.2;margin:6px 0 10px}
+.hero .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chip{display:inline-block;font-size:12.5px;padding:3px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent);border:1px solid transparent}
+section.part{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:8px 28px 22px;margin-bottom:22px;box-shadow:var(--shadow)}
+h2{font-family:var(--serif);font-size:27px;margin:26px 0 8px;padding-bottom:6px;border-bottom:2px solid var(--line)}
+h2 .tag{font-family:var(--sans);font-size:12px;vertical-align:middle;margin-left:8px;padding:2px 8px;border-radius:6px;background:var(--accent);color:#fff;letter-spacing:.5px}
+html.dark h2 .tag{color:#10141a}
+h3{font-size:20px;margin:26px 0 8px}
+h4{font-size:16.5px;margin:18px 0 6px}
+p,li{max-width:80ch}
+.lvl{border-left:4px solid var(--line);padding:10px 16px 6px;margin:14px 0;border-radius:0 8px 8px 0;position:relative}
+.lvl[data-lvl=b]{border-color:var(--b);background:var(--b-soft)}
+.lvl[data-lvl=m]{border-color:var(--m);background:var(--m-soft)}
+.lvl[data-lvl=a]{border-color:var(--a);background:var(--a-soft)}
+.badge{display:inline-block;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;padding:2px 8px;border-radius:5px;color:#fff;margin-bottom:4px}
+.badge.b{background:var(--b)}.badge.m{background:var(--m)}.badge.a{background:var(--a)}
+html.dark .badge{color:#10141a}
+.hide-lvl{display:none!important}
+.note,.tip,.warn,.ai,.def{border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin:14px 0;background:var(--panel)}
+.note::before,.tip::before,.warn::before,.ai::before,.def::before{display:block;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px}
+.note::before{content:"Observație";color:var(--accent)}
+.tip::before{content:"Sfat";color:var(--b)}
+.warn::before{content:"Atenție";color:var(--bad)}
+.ai{border-color:#7b61c9;background:rgba(123,97,201,.07)}.ai::before{content:"AI generativ – utilizare responsabilă";color:#7b61c9}
+.def{border-left:4px solid var(--accent)}.def::before{content:"Definiție";color:var(--accent)}
+.formula{font-family:var(--serif);font-size:17px;background:var(--accent-soft);padding:10px 14px;border-radius:8px;margin:10px 0;overflow-x:auto;white-space:nowrap}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14.5px}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}
+th{background:var(--accent-soft)}
+.tablewrap{overflow-x:auto}
+pre.code{position:relative;background:var(--code-bg);color:var(--code-ink);padding:14px 16px;border-radius:8px;overflow:auto;font:13.5px/1.5 var(--mono);max-height:560px}
+pre.code .copy{position:absolute;top:6px;right:6px;font:12px var(--sans);background:#394050;color:#fff;border:0;border-radius:5px;padding:3px 8px;cursor:pointer;opacity:.8}
+pre.code .copy:hover{opacity:1}
+.k{color:#c792ea}.s{color:#c3e88d}.c{color:#7f8aa3;font-style:italic}.n{color:#f78c6c}.f{color:#82aaff}.bi{color:#ffcb6b}
+code{font-family:var(--mono);font-size:.92em;background:var(--accent-soft);padding:1px 5px;border-radius:4px}
+pre code{background:none;padding:0}
+details{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:10px 0;background:var(--panel)}
+details>summary{cursor:pointer;font-weight:600;color:var(--accent)}
+details[open]>summary{margin-bottom:8px}
+.ex{border:1px dashed var(--line);border-radius:8px;padding:10px 16px;margin:14px 0}
+.ex .exh{font-weight:700}
+.widget{border:1px solid var(--line);border-radius:10px;padding:14px;margin:16px 0;background:var(--bg)}
+.widget .wtitle{font-weight:700;margin-bottom:8px}
+.widget .ctrl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0;font-size:14px}
+.widget button,.btn{border:1px solid var(--accent);background:var(--accent);color:#fff;padding:5px 12px;border-radius:6px;cursor:pointer;font:inherit;font-size:14px}
+html.dark .widget button,html.dark .btn{color:#10141a}
+.widget button.sec,.btn.sec{background:transparent;color:var(--accent)}
+.widget select,.widget input[type=number],.widget input[type=text],.widget textarea{font:inherit;font-size:14px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
+.widget canvas{max-width:100%;background:var(--panel);border:1px solid var(--line);border-radius:6px;display:block}
+.widget .out{font:13px/1.45 var(--mono);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 10px;white-space:pre-wrap;max-height:260px;overflow:auto;margin-top:8px}
+.stats{display:flex;gap:14px;flex-wrap:wrap;font-size:14px;margin-top:6px}
+.stats b{font-variant-numeric:tabular-nums}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.quiz .qq{border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:12px 0;background:var(--panel)}
+.quiz .qq .qt{font-weight:600;margin-bottom:6px}
+.quiz label{display:block;padding:5px 8px;border-radius:6px;cursor:pointer;margin:2px 0}
+.quiz label:hover{background:var(--accent-soft)}
+.quiz label.right{background:var(--b-soft);outline:1px solid var(--ok)}
+.quiz label.wrong{background:var(--a-soft);outline:1px solid var(--bad)}
+.quiz .expl{font-size:14px;color:var(--muted);margin-top:6px;display:none}
+.quiz .qq.done .expl{display:block}
+.quiz .score{font-weight:700;font-size:17px;margin-top:8px}
+ul.check{list-style:none;padding-left:0}
+ul.check li{padding:4px 0}
+ul.check input{margin-right:8px;transform:scale(1.15)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin:12px 0}
+.card{perspective:800px;height:150px;cursor:pointer}
+.card .in{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
+.card.flip .in{transform:rotateY(180deg)}
+.card .fr,.card .bk{position:absolute;inset:0;backface-visibility:hidden;border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:14px;overflow:auto}
+.card .fr{background:var(--panel);font-weight:700;font-size:15.5px}
+.card .bk{background:var(--accent-soft);transform:rotateY(180deg)}
+.agenda td:first-child{white-space:nowrap;font-variant-numeric:tabular-nums}
+.drag-item{display:inline-block;padding:4px 10px;margin:3px;border:1px solid var(--line);border-radius:6px;background:var(--panel);cursor:grab;font-size:14px}
+.ok{color:var(--ok);font-weight:700}.bad{color:var(--bad);font-weight:700}
+footer{max-width:1320px;margin:0 auto;padding:0 18px 40px;color:var(--muted);font-size:13px}
+.pager{display:flex;justify-content:space-between;gap:10px;margin:12px 0}
+@media (max-width:900px){.layout{grid-template-columns:1fr}nav.toc{display:none}.grid2{grid-template-columns:1fr}.hero h1{font-size:27px}section.part{padding:6px 16px 16px}}
+@media print{header.top,nav.toc,.widget button,.lvl-filter{display:none!important}.layout{display:block}details{display:block}details>*{display:block!important}section.part{box-shadow:none;break-inside:auto}body{background:#fff}}
+</style>
+</head>
+<body data-session="03">
+<header class="top">
+  <div class="brand">IAA · Inteligență artificială aplicată<small>Ședința 3/7 · Curs + Seminar + Laborator</small></div>
+  <div class="lvl-filter" role="group" aria-label="Filtru nivel">
+    <button data-f="all" class="on">Toate nivelele</button>
+    <button data-f="b">Începător</button>
+    <button data-f="m">Mediu</button>
+    <button data-f="a">Avansat</button>
+    <button class="tbtn" id="themeBtn" title="Temă luminoasă / întunecată">Temă</button>
+    <button class="tbtn" id="printBtn" title="Tipărește (deschide toate soluțiile)">Tipărire</button>
+  </div>
+  <div class="progress"><i></i></div>
+</header>
+<div class="layout">
+<nav class="toc"><div class="tocprog"></div><div class="links"></div></nav>
+<main>
+<div class="hero">
+  <div class="kicker">Ședința 3 din 7 · Orele de curs 5–6 din 14 · Capitolul 2 din fișa disciplinei (orele 3–4 din 5)</div>
+  <h1>Planificare (II): grafuri de planificare și planificare în logica propozițională</h1>
+  <p>Planificarea bazată pe reprezentarea prin grafuri (graful de planificare, relații mutex, euristici, algoritmul GraphPlan) și pe reprezentarea în logica propozițională (SATPlan).</p>
+  <div class="meta">
+    <span class="chip">Curs: 2 ore</span><span class="chip">Laborator asociat: 2 ore (L2, partea a II-a)</span>
+    <span class="chip">Python 3 · python-sat</span><span class="chip">Nivele: începător · mediu · avansat</span>
+  </div>
+</div>
+
+<section class="part">
+<h2>0. Organizarea ședinței</h2>
+<div class="tablewrap"><table class="agenda">
+<tr><th>Interval</th><th>Activitate</th><th>Metodă</th></tr>
+<tr><td>Săpt. 5 · 0–10 min</td><td>Întrebare de pornire: „Cum aflăm rapid că un scop e <i>imposibil</i> în 2 pași, fără să căutăm?”</td><td>Problematizare</td></tr>
+<tr><td>10–50 min</td><td>§3.1–§3.3: graful de planificare, mutex, euristici, GraphPlan</td><td>Predare interactivă, demonstrație în simulator</td></tr>
+<tr><td>Lab · 50 min</td><td>Construirea grafului pentru „tort” și „roata de rezervă”; implementarea GraphPlan</td><td>Exercițiul</td></tr>
+<tr><td>Săpt. 6 · 0–50 min</td><td>§3.4–§3.5: logica propozițională, codificarea SAT a planificării, comparație</td><td>Predare, conversație</td></tr>
+<tr><td>Lab · 50 min</td><td>SATPlan cu python-sat; comparație A* / GraphPlan / SATPlan; verificarea unei codificări generate de AI</td><td>Exercițiul, evaluare critică</td></tr>
+</table></div>
+<h3>Obiective</h3>
+<ul class="check">
+<li><label><input type="checkbox">Pot construi manual primele niveluri ale unui graf de planificare, cu relațiile mutex.</label></li>
+<li><label><input type="checkbox">Pot calcula euristicile max-level, level-sum și set-level.</label></li>
+<li><label><input type="checkbox">Pot descrie GraphPlan: extinderea grafului, extragerea soluției, condiția de terminare.</label></li>
+<li><label><input type="checkbox">Pot scrie axiomele SATPlan (inițial, scop, precondiții, efecte, cadru, excludere).</label></li>
+<li><label><input type="checkbox">Pot compara cele trei abordări de planificare din fișa disciplinei.</label></li>
+</ul>
+</section>
+
+<section class="part">
+<h2>1. Curs<span class="tag">CURS</span></h2>
+
+<h3>3.1 Graful de planificare</h3>
+<div class="lvl" data-lvl="b">
+<p>Un <b>graf de planificare</b> este o structură pe niveluri care aproximează, în timp polinomial, ce se <i>poate</i> întâmpla după 0, 1, 2, … pași. Nivelurile alternează:</p>
+<div class="formula">S<sub>0</sub> → A<sub>0</sub> → S<sub>1</sub> → A<sub>1</sub> → S<sub>2</sub> → …</div>
+<ul>
+<li><b>S<sub>i</sub></b> conține toți literalii care <i>ar putea</i> fi adevărați după i pași (S<sub>0</sub> = starea inițială, cu literalii negativi conform lumii închise).</li>
+<li><b>A<sub>i</sub></b> conține toate acțiunile ale căror precondiții apar în S<sub>i</sub> (și nu sunt mutex), plus câte o <b>acțiune de persistență</b> (no-op) pentru fiecare literal: un literal poate rămâne adevărat dacă nu facem nimic cu el.</li>
+<li>Muchii: de la precondiții la acțiuni și de la acțiuni la efecte.</li>
+</ul>
+<p>Graful nu reține stări individuale, ci „tot ce s-ar putea”. De aceea e o <b>supra-aproximare</b>: dacă un literal nu apare în S<sub>i</sub>, sigur nu poate fi realizat în i pași; dacă apare, poate că da.</p>
+</div>
+<div class="lvl" data-lvl="m">
+<h4>Relațiile de excludere mutuală (mutex)</h4>
+<p>Pentru a face aproximarea mai precisă, graful marchează perechile care nu pot coexista. Între <b>acțiuni</b> la nivelul A<sub>i</sub>:</p>
+<ol>
+<li><b>Efecte inconsistente</b>: o acțiune neagă un efect al celeilalte (Eat(Cake) produce ¬Have(Cake), no-op-ul lui Have(Cake) produce Have(Cake)).</li>
+<li><b>Interferență</b>: un efect al uneia neagă o precondiție a celeilalte.</li>
+<li><b>Nevoi concurente</b>: o precondiție a uneia este mutex cu o precondiție a celeilalte la nivelul S<sub>i</sub>.</li>
+</ol>
+<p>Între <b>literali</b> la nivelul S<sub>i+1</sub>:</p>
+<ol>
+<li><b>Negație</b>: p și ¬p.</li>
+<li><b>Suport inconsistent</b>: orice pereche de acțiuni care i-ar realiza este mutex.</li>
+</ol>
+<h4>Proprietăți</h4>
+<ul>
+<li>Literalii și acțiunile cresc monoton de la un nivel la altul; mutex-urile scad monoton.</li>
+<li>Numărul de literali și acțiuni este finit, deci graful se <b>stabilizează</b> (<i>levels off</i>): două niveluri consecutive identice, inclusiv mutex-urile.</li>
+<li>Dimensiune polinomială: pentru l literali și a acțiuni, fiecare nivel are O(l + a) noduri și O((l + a)<sup>2</sup>) mutex-uri; construcția pe n niveluri costă O(n(a + l)<sup>2</sup>).</li>
+</ul>
+</div>
+
+<div class="widget" id="pgw">
+  <div class="wtitle">Vizualizator: graful de planificare și GraphPlan</div>
+  <div class="ctrl">
+    Problemă: <select id="pgProb"><option value="cake">Tortul (AIMA)</option><option value="tire">Roata de rezervă (AIMA)</option></select>
+    <button id="pgExp">Extinde un nivel</button><button id="pgSolve">Rulează GraphPlan</button><button class="sec" id="pgReset">Reset</button>
+    <label><input type="checkbox" id="pgNoop"> arată no-op-urile</label>
+  </div>
+  <canvas id="pgCv" width="900" height="420"></canvas>
+  <div class="out" id="pgOut">Click pe un nod: se evidențiază în roșu nodurile cu care este mutex.</div>
+</div>
+
+<h3>3.2 Euristici extrase din graful de planificare</h3>
+<div class="lvl" data-lvl="m">
+<p><b>Costul de nivel</b> al unui literal g = indexul primului nivel S<sub>i</sub> în care apare. Pentru un scop conjunctiv:</p>
+<ul>
+<li><b>max-level</b> = maximul costurilor de nivel ale subscopurilor – admisibilă (echivalentă cu h<sub>max</sub> pe costuri unitare, dacă ignorăm mutex-urile).</li>
+<li><b>level-sum</b> = suma costurilor de nivel – neadmisibilă, dar bună în practică pentru probleme descompozabile (analogul lui h<sub>add</sub>).</li>
+<li><b>set-level</b> = primul nivel în care <i>toate</i> subscopurile apar și sunt <i>neperechi-mutex</i> – admisibilă și dominantă față de max-level.</li>
+</ul>
+<p>Exemplu „tortul”: Have(Cake) apare în S<sub>0</sub>, Eaten(Cake) în S<sub>1</sub>, dar sunt mutex în S<sub>1</sub>: max-level = 1, level-sum = 1, <b>set-level = 2</b> = h*.</p>
+</div>
+
+<h3>3.3 Algoritmul GraphPlan</h3>
+<div class="lvl" data-lvl="m">
+<pre class="code" data-lang="text">
+function GRAPHPLAN(problem):
+    graph ← INITIAL-PLANNING-GRAPH(problem);  nogoods ← ∅
+    for t = 0, 1, 2, ...:
+        if toate scopurile apar în S_t și nicio pereche nu e mutex:
+            soluție ← EXTRACT-SOLUTION(graph, scopuri, t, nogoods)
+            if soluție ≠ eșec: return soluție
+        if graph și nogoods s-au stabilizat: return eșec
+        graph ← EXPAND-GRAPH(graph)
+</pre>
+<p><b>EXTRACT-SOLUTION</b> este o căutare înapoi (de fapt, rezolvarea unui CSP pe niveluri): la nivelul S<sub>t</sub> alegem, pentru fiecare subscop, o acțiune din A<sub>t−1</sub> care îl realizează (eventual un no-op), astfel încât acțiunile alese să nu fie două câte două mutex. Precondițiile lor devin subscopurile de la nivelul t − 1. Combinațiile (nivel, mulțime de scopuri) eșuate se memorează ca <b>nogoods</b>.</p>
+<p>Planul rezultat este un <b>plan paralel</b>: o secvență de mulțimi de acțiuni care pot fi executate în orice ordine în cadrul aceluiași pas. Exemplu „roata de rezervă”: {Remove(Spare,Trunk), Remove(Flat,Axle)} apoi {PutOn(Spare,Axle)}.</p>
+<div class="tip">Euristica preferinței pentru no-op-uri (încercăm întâi să „nu facem nimic” pentru un subscop deja adevărat) reduce mult căutarea la extragere.</div>
+</div>
+<div class="lvl" data-lvl="a">
+<h4>Proprietăți teoretice</h4>
+<ul>
+<li><b>Corectitudine</b>: orice plan extras este valid (mutex-urile garantează că acțiunile din același pas sunt neinterferente).</li>
+<li><b>Optimalitate în număr de pași</b> (nu în număr de acțiuni!): GraphPlan găsește cel mai mic t pentru care există un plan paralel. Un plan cu mai puțini pași poate avea mai multe acțiuni.</li>
+<li><b>Terminare</b> (Blum &amp; Furst, 1997): dacă graful s-a stabilizat la nivelul n și mulțimea de nogoods de la nivelul de stabilizare nu se mai schimbă între două iterații succesive, problema nu are soluție.</li>
+<li>Graful nu captează mutex-uri de ordin mai mare (triplete imposibile), deci extragerea poate eșua deși scopurile sunt neperechi-mutex.</li>
+<li><b>Graful relaxat</b> (fără liste de ștergere, fără mutex-uri) stă la baza h<sub>FF</sub>: un plan relaxat extras din el, în timp polinomial.</li>
+</ul>
+</div>
+
+<h3>3.4 Planificare în logica propozițională (SATPlan)</h3>
+<div class="lvl" data-lvl="b">
+<p>Recapitulare: o formulă propozițională în <b>formă normală conjunctivă (CNF)</b> este o conjuncție de clauze, fiecare clauză fiind o disjuncție de literali, de ex. (¬a ∨ b) ∧ (a ∨ c). Problema <b>SAT</b>: există o atribuire de valori de adevăr care face formula adevărată? SAT este NP-completă, dar rezolvitoarele moderne (CDCL: MiniSat, Glucose, CaDiCaL) rezolvă formule cu milioane de clauze.</p>
+<p>Ideea SATPlan (Kautz &amp; Selman, 1992): <b>„Există un plan de lungime T?”</b> se traduce într-o formulă. Dacă formula e satisfiabilă, planul se citește din model; altfel încercăm T + 1.</p>
+<p>Fiecare fluent f primește câte o variabilă pentru fiecare moment: <code>f@0, f@1, …, f@T</code>. Fiecare acțiune a primește câte o variabilă pentru fiecare pas: <code>a@0, …, a@T−1</code>.</p>
+</div>
+<div class="lvl" data-lvl="m">
+<h4>Axiomele codificării</h4>
+<div class="tablewrap"><table>
+<tr><th>Tip</th><th>Formulă</th><th>Clauze CNF</th></tr>
+<tr><td>Starea inițială</td><td>f@0 pentru f ∈ s<sub>0</sub>; ¬f@0 altfel</td><td>clauze unitare</td></tr>
+<tr><td>Scopul</td><td>g@T pentru g ∈ scop</td><td>clauze unitare</td></tr>
+<tr><td>Precondiții</td><td>a@t ⇒ p@t</td><td>(¬a@t ∨ p@t)</td></tr>
+<tr><td>Efecte</td><td>a@t ⇒ e@t+1, a@t ⇒ ¬d@t+1</td><td>(¬a@t ∨ e@t+1), (¬a@t ∨ ¬d@t+1)</td></tr>
+<tr><td>Axiome-cadru explicative</td><td>(¬f@t ∧ f@t+1) ⇒ ∨<sub>a adaugă f</sub> a@t<br>(f@t ∧ ¬f@t+1) ⇒ ∨<sub>a șterge f</sub> a@t</td><td>(f@t ∨ ¬f@t+1 ∨ a₁@t ∨ …)</td></tr>
+<tr><td>Excludere</td><td>acțiunile conflictuale nu au loc în același pas</td><td>(¬a@t ∨ ¬b@t)</td></tr>
+</table></div>
+<p>Axiomele-cadru spun că <b>nimic nu se schimbă fără o cauză</b> – fără ele, solverul ar putea „teleporta” blocurile. Alternativ, AIMA folosește <b>axiome de stare-succesor</b>: f@t+1 ⇔ (∨ acțiuni care îl adaugă) ∨ (f@t ∧ ¬ ∨ acțiuni care îl șterg).</p>
+<p>Excluderea: în varianta <b>secvențială</b> excludem orice două acțiuni (un singur pas = o acțiune); în varianta <b>paralelă</b> („∀-step”) excludem doar perechile conflictuale – mai puține pași T, deci formule mai mici.</p>
+</div>
+<div class="lvl" data-lvl="a">
+<h4>Rafinări și legături</h4>
+<ul>
+<li><b>Mărimea formulei</b>: O(T · (|A| · max|PRE ∪ EFF| + |F| + |A|<sup>2</sup>)). Termenul pătratic al excluderii se reduce cu codificări bazate pe conflicte sau pe ordonări (∃-step: acțiuni paralele, dacă există <i>o</i> ordonare validă).</li>
+<li><b>Blackbox</b> (Kautz &amp; Selman, 1999): construiește graful de planificare, apoi traduce în SAT doar ce a rămas (mutex-urile devin clauze binare suplimentare) – formule mult mai mici.</li>
+<li><b>Madagascar</b> (Rintanen, 2012): codificări compacte, evaluarea mai multor orizonturi T în paralel; competitiv cu planificatoarele bazate pe căutare.</li>
+<li><b>Planning as SMT / OMT</b>: fluenți numerici și timp continuu (pentru resurse – ședința 4).</li>
+<li>Bounded PlanSAT este NP-completă (pentru T polinomial) – de aceea reducerea la SAT e naturală.</li>
+</ul>
+</div>
+
+<div class="widget" id="satw">
+  <div class="wtitle">Explorator SATPlan pentru „tortul”</div>
+  <div class="ctrl">Orizont T: <select id="satT"><option>1</option><option selected>2</option><option>3</option></select>
+    <label><input type="checkbox" id="satFrame" checked> axiome-cadru</label>
+    <label><input type="checkbox" id="satExcl" checked> excludere</label>
+    <button id="satRun">Codifică și rezolvă (DPLL)</button></div>
+  <div class="out" id="satOut" style="max-height:340px"></div>
+  <p style="font-size:13px;margin:6px 0 0">Experiment: debifați „axiome-cadru” cu T = 1. Ce „plan” găsește solverul? De ce este greșit?</p>
+</div>
+
+<h3>3.5 Comparație între cele trei abordări</h3>
+<div class="lvl" data-lvl="m">
+<div class="tablewrap"><table>
+<tr><th></th><th>Căutare în spațiul stărilor (ședința 2)</th><th>GraphPlan</th><th>SATPlan</th></tr>
+<tr><td>Reprezentare</td><td>stări explicite, una câte una</td><td>graf pe niveluri, mutex</td><td>formulă CNF pe T pași</td></tr>
+<tr><td>Optimalitate</td><td>în cost (A* cu h admisibilă)</td><td>în număr de pași paraleli</td><td>în T (pași); cost doar cu MaxSAT</td></tr>
+<tr><td>Puncte tari</td><td>euristici foarte bune, memorie mică cu GBFS</td><td>euristici, detectarea imposibilității</td><td>profită de rezolvitoare SAT moderne; bun pe probleme „strânse”</td></tr>
+<tr><td>Puncte slabe</td><td>factor de ramificare mare</td><td>extragerea poate fi exponențială</td><td>formule mari pentru T mare; instanțierea completă</td></tr>
+<tr><td>Azi</td><td>dominantă (Fast Downward, LAMA)</td><td>mai ales ca sursă de euristici (h<sub>FF</sub>)</td><td>Madagascar; util pentru planificare cu restricții</td></tr>
+</table></div>
+</div>
+</section>
+
+<section class="part">
+<h2>2. Seminar<span class="tag">SEMINAR</span></h2>
+
+<div class="ex lvl" data-lvl="b">
+<div class="exh">S3.1 – Graful de planificare pentru „tortul”, de mână</div>
+<p>Init: Have(Cake). Scop: Have(Cake) ∧ Eaten(Cake). Eat(Cake): PRE Have(Cake); EFF ¬Have(Cake), Eaten(Cake). Bake(Cake): PRE ¬Have(Cake); EFF Have(Cake). Construiți S<sub>0</sub>, A<sub>0</sub>, S<sub>1</sub> cu toate mutex-urile. Pot fi atinse scopurile în S<sub>1</sub>?</p>
+<details><summary>Soluție</summary>
+<p>S<sub>0</sub> = {Have(Cake), ¬Eaten(Cake)}. A<sub>0</sub> = {Eat(Cake), noop(Have), noop(¬Eaten)} (Bake nu e aplicabilă: ¬Have ∉ S<sub>0</sub>).</p>
+<p>Mutex în A<sub>0</sub>: Eat – noop(Have) (efecte inconsistente: ¬Have vs Have; și interferență); Eat – noop(¬Eaten) (efecte inconsistente: Eaten vs ¬Eaten).</p>
+<p>S<sub>1</sub> = {Have, ¬Have, Eaten, ¬Eaten}. Mutex în S<sub>1</sub>: Have–¬Have, Eaten–¬Eaten (negație); <b>Have–Eaten</b> (singurii realizatori, noop(Have) și Eat, sunt mutex); ¬Have–¬Eaten (Eat și noop(¬Eaten) sunt mutex).</p>
+<p>Scopurile apar în S<sub>1</sub>, dar sunt mutex → nu există plan de 1 pas. În S<sub>2</sub> Have și Eaten nu mai sunt mutex (Bake în A<sub>1</sub> poate restabili Have(Cake)); planul este [Eat(Cake)], [Bake(Cake)].</p></details>
+</div>
+
+<div class="ex lvl" data-lvl="m">
+<div class="exh">S3.2 – Roata de rezervă</div>
+<p>(a) De ce este LeaveOvernight mutex cu toate celelalte acțiuni din A<sub>0</sub>? (b) Calculați max-level, level-sum și set-level pentru scopul At(Spare,Axle). (c) De ce planul are 2 niveluri, dar 3 acțiuni?</p>
+<details><summary>Soluție</summary>
+<p>(a) LeaveOvernight neagă toți fluenții At, deci are efecte inconsistente cu efectele lui Remove(…) (At(Spare,Ground)) și cu no-op-urile literalilor pozitivi. (b) At(Spare,Axle) apare prima dată în S<sub>2</sub>: toate trei valorile sunt 2 (un singur subscop). (c) Remove(Spare,Trunk) și Remove(Flat,Axle) nu sunt mutex: se execută în paralel în primul pas, apoi PutOn(Spare,Axle). GraphPlan e optim în pași, nu în acțiuni.</p></details>
+</div>
+
+<div class="ex lvl" data-lvl="m">
+<div class="exh">S3.3 – Codificarea SAT pentru „tortul”, T = 1</div>
+<p>Scrieți toate clauzele și arătați, prin propagare unitară, că formula e nesatisfiabilă.</p>
+<details><summary>Soluție</summary>
+<p>Variabile: H0, E0, H1, E1, Eat0, Bake0. Clauze: H0; ¬E0 (inițial); H1; E1 (scop); ¬Eat0 ∨ H0; ¬Bake0 ∨ ¬H0 (precondiții); ¬Eat0 ∨ ¬H1; ¬Eat0 ∨ E1; ¬Bake0 ∨ H1 (efecte); cadru: H0 ∨ ¬H1 ∨ Bake0; ¬H0 ∨ H1 ∨ Eat0; E0 ∨ ¬E1 ∨ Eat0; ¬E0 ∨ E1; excludere: ¬Eat0 ∨ ¬Bake0.</p>
+<p>Propagare: din ¬E0, E1 și (E0 ∨ ¬E1 ∨ Eat0) rezultă <b>Eat0</b>. Din Eat0 și (¬Eat0 ∨ ¬H1) rezultă ¬H1 – contradicție cu clauza unitară H1. Formula e nesatisfiabilă: nu există plan de 1 pas. Verificați în exploratorul de mai sus.</p></details>
+</div>
+
+<div class="ex lvl" data-lvl="a">
+<div class="exh">S3.4 – Monotonia mutex-urilor</div>
+<p>Demonstrați prin inducție: dacă literalii p, q nu sunt mutex în S<sub>i</sub>, atunci nu sunt mutex nici în S<sub>i+1</sub>.</p>
+<details><summary>Schiță</summary><p>Ipoteza de inducție pe mutex-urile de acțiuni și literali. Dacă p, q ∈ S<sub>i</sub> nu sunt mutex, atunci noop(p), noop(q) ∈ A<sub>i</sub>. Nu au efecte inconsistente (p ≠ ¬q) și nu interferează. Precondițiile lor (p și q) nu sunt mutex în S<sub>i</sub>, deci nu au nevoi concurente. Prin urmare noop(p) și noop(q) nu sunt mutex, iar p, q au suport consistent în S<sub>i+1</sub>. Pentru acțiuni se arată analog că o pereche non-mutex în A<sub>i</sub> rămâne non-mutex în A<sub>i+1</sub>, folosind monotonia literalilor.</p></details>
+</div>
+
+<div class="ex lvl" data-lvl="a">
+<div class="exh">S3.5 – Pași vs. acțiuni</div>
+<p>Dați un exemplu în care planul optim în număr de pași paraleli (GraphPlan) are strict mai multe acțiuni decât planul optim secvențial.</p>
+<details><summary>Soluție</summary>
+<p>Scop {g}, stare inițială vidă. Două moduri de a realiza g:</p>
+<ul>
+<li><b>Lanț</b>: a<sub>1</sub> (PRE ∅, ADD p<sub>1</sub>), a<sub>2</sub> (PRE p<sub>1</sub>, ADD p<sub>2</sub>), a<sub>3</sub> (PRE p<sub>2</sub>, ADD g) – 3 acțiuni, 3 pași.</li>
+<li><b>Evantai</b>: b<sub>1</sub>, …, b<sub>4</sub> (PRE ∅, ADD q<sub>i</sub>, independente), c (PRE q<sub>1</sub>, …, q<sub>4</sub>, ADD g) – 5 acțiuni, 2 pași.</li>
+</ul>
+<p>La nivelul S<sub>2</sub>, g este realizabil doar prin evantai, deci GraphPlan întoarce {b<sub>1</sub>, …, b<sub>4</sub>}, {c}: <b>2 pași, 5 acțiuni</b>. Planul optim secvențial (A* cu cost unitar) este lanțul: <b>3 acțiuni</b>. Concluzie: criteriul de optimalitate trebuie ales explicit (durată totală – <i>makespan</i> – vs. număr de acțiuni vs. cost) – idee centrală în planificarea cu timp și resurse din ședința 4.</p></details>
+</div>
+</section>
+
+<section class="part">
+<h2>3. Laborator<span class="tag">LABORATOR</span></h2>
+<p>Corespunde punctului 2 din secțiunea 8.2: <i>planificarea cu reprezentare prin grafuri și în logica propozițională</i>. Instalare: <code>pip install python-sat</code>. Fișierele se pun în același director cu <code>s02_strips.py</code> din ședința 2.</p>
+
+<div class="lvl" data-lvl="b m">
+<h4>L3.1 – Graful de planificare și GraphPlan</h4>
+<pre class="code" data-lang="python">
+"""Graful de planificare și algoritmul GraphPlan (Blum &amp; Furst, 1997), cu euristici extrase din graf.
+Literali: 'p' sau '¬p'. Acțiunile pot avea precondiții negative (ca în exemplele din AIMA).
+Rulare: python s03_graphplan.py"""
+from itertools import combinations
+
+def neg(l):
+    return l[1:] if l.startswith("¬") else "¬" + l
+
+class Act:
+    def __init__(self, name, pre, eff, noop=False):
+        self.name, self.pre, self.eff, self.noop = name, frozenset(pre), frozenset(eff), noop
+    def __repr__(self):
+        return self.name
+
+def closed_world(init, fluents):
+    """Ipoteza lumii închise: fluenții care nu apar în starea inițială sunt falși."""
+    return frozenset(init) | {neg(f) for f in fluents if f not in init}
+
+class PlanningGraph:
+    def __init__(self, init, actions):
+        self.S = [frozenset(init)]          # niveluri de literali S0, S1, ...
+        self.A = []                         # niveluri de acțiuni A0, A1, ...
+        self.mS = [set()]                   # mutex între literali (perechi frozenset)
+        self.mA = []
+        self.actions = actions
+
+    def expand(self):
+        S, mS = self.S[-1], self.mS[-1]
+        acts = [a for a in self.actions
+                if a.pre &lt;= S and not any(frozenset(p) in mS for p in combinations(a.pre, 2))]
+        acts += [Act(f"noop[{l}]", {l}, {l}, noop=True) for l in sorted(S)]   # acțiuni de persistență
+        mA = set()
+        for a, b in combinations(acts, 2):
+            if (any(neg(e) in b.eff for e in a.eff) or                           # efecte inconsistente
+                any(neg(e) in b.pre for e in a.eff) or any(neg(e) in a.pre for e in b.eff) or  # interferență
+                any(frozenset((p, q)) in mS for p in a.pre for q in b.pre)):    # nevoi concurente
+                mA.add(frozenset((a, b)))
+        S2 = frozenset(e for a in acts for e in a.eff)
+        achievers = {l: [a for a in acts if l in a.eff] for l in S2}
+        mS2 = set()
+        for p, q in combinations(S2, 2):
+            if p == neg(q) or all(frozenset((a, b)) in mA                         # negație sau suport inconsistent
+                                  for a in achievers[p] for b in achievers[q] if a is not b) \
+                    and not set(achievers[p]) &amp; set(achievers[q]):
+                mS2.add(frozenset((p, q)))
+        self.A.append(acts); self.mA.append(mA); self.S.append(S2); self.mS.append(mS2)
+
+    def leveled_off(self):
+        return len(self.S) &gt; 1 and self.S[-1] == self.S[-2] and self.mS[-1] == self.mS[-2]
+
+    def goals_ok(self, goals, i):
+        return goals &lt;= self.S[i] and not any(frozenset(p) in self.mS[i] for p in combinations(goals, 2))
+
+    # ---------- euristici din graful de planificare ----------
+    def level(self, l):
+        return next((i for i, S in enumerate(self.S) if l in S), float("inf"))
+
+def build_until_level_off(init, actions):
+    pg = PlanningGraph(init, actions)
+    while not pg.leveled_off():
+        pg.expand()
+    return pg
+
+def heuristics(init, goals, actions):
+    pg = build_until_level_off(init, actions)
+    lv = [pg.level(g) for g in goals]
+    set_level = next((i for i in range(len(pg.S)) if pg.goals_ok(goals, i)), float("inf"))
+    return {"max-level": max(lv), "level-sum": sum(lv), "set-level": set_level}
+
+# ---------- GraphPlan: extinde graful, apoi extrage soluția înapoi ----------
+def graphplan(init, goals, actions, max_levels=50):
+    goals = frozenset(goals)
+    pg, nogoods, prev_ng = PlanningGraph(init, actions), set(), None
+    for n in range(max_levels):
+        if pg.goals_ok(goals, n):
+            plan = extract(pg, goals, n, nogoods)
+            if plan is not None:
+                return plan, pg
+            # Terminare (Blum &amp; Furst): graful s-a stabilizat și nu au apărut nogood-uri noi
+            ng_last = frozenset(g for (i, g) in nogoods if i == n)
+            if pg.leveled_off() and ng_last == prev_ng:
+                return None, pg
+            prev_ng = ng_last
+        elif pg.leveled_off():
+            return None, pg                   # scopurile nu apar (sau rămân mutex) nici după stabilizare
+        pg.expand()
+    return None, pg
+
+def extract(pg, goals, i, nogoods):
+    if i == 0:
+        return [] if goals &lt;= pg.S[0] else None
+    if (i, goals) in nogoods:
+        return None
+    acts, mA = pg.A[i - 1], pg.mA[i - 1]
+    goal_list = sorted(goals)
+
+    def choose(k, chosen, covered):        # căutare cu revenire: alegem acțiuni non-mutex care acoperă scopurile
+        if k == len(goal_list):
+            sub = frozenset(p for a in chosen for p in a.pre)
+            rest = extract(pg, sub, i - 1, nogoods)
+            return None if rest is None else rest + [[a for a in chosen if not a.noop]]
+        g = goal_list[k]
+        if g in covered:
+            return choose(k + 1, chosen, covered)
+        cands = sorted((a for a in acts if g in a.eff), key=lambda a: not a.noop)  # preferăm no-op-urile
+        for a in cands:
+            if all(frozenset((a, b)) not in mA for b in chosen):
+                r = choose(k + 1, chosen + [a], covered | a.eff)
+                if r is not None:
+                    return r
+        return None
+
+    r = choose(0, [], frozenset())
+    if r is None:
+        nogoods.add((i, goals))
+    return r
+
+# ---------- exemple din Russell &amp; Norvig ----------
+def cake():
+    acts = [Act("Eat(Cake)", {"Have(Cake)"}, {"¬Have(Cake)", "Eaten(Cake)"}),
+            Act("Bake(Cake)", {"¬Have(Cake)"}, {"Have(Cake)"})]
+    init = closed_world({"Have(Cake)"}, ["Have(Cake)", "Eaten(Cake)"])
+    return init, {"Have(Cake)", "Eaten(Cake)"}, acts
+
+def spare_tire():
+    F = ["At(Spare,Trunk)", "At(Spare,Axle)", "At(Spare,Ground)", "At(Flat,Axle)", "At(Flat,Ground)", "At(Flat,Trunk)"]
+    acts = []
+    for obj in ("Spare", "Flat"):
+        for loc in ("Trunk", "Axle"):
+            acts.append(Act(f"Remove({obj},{loc})", {f"At({obj},{loc})"}, {f"¬At({obj},{loc})", f"At({obj},Ground)"}))
+        acts.append(Act(f"PutOn({obj},Axle)", {f"At({obj},Ground)", "¬At(Flat,Axle)", "¬At(Spare,Axle)"},
+                        {f"¬At({obj},Ground)", f"At({obj},Axle)"}))
+    acts.append(Act("LeaveOvernight", set(), {neg(f) for f in F}))
+    init = closed_world({"At(Spare,Trunk)", "At(Flat,Axle)"}, F)
+    return init, {"At(Spare,Axle)"}, acts
+
+if __name__ == "__main__":
+    for name, (init, goals, acts) in [("Tortul", cake()), ("Roata de rezervă", spare_tire())]:
+        plan, pg = graphplan(init, goals, acts)
+        print(f"== {name}: plan pe {len(plan)} niveluri -&gt;", plan)
+        print("   euristici în s0:", heuristics(init, frozenset(goals), acts))
+        for i in range(len(pg.A)):
+            real = [a for a in pg.A[i] if not a.noop]
+            print(f"   A{i}: {real}   |S{i+1}|={len(pg.S[i+1])}  mutex literali={len(pg.mS[i+1])}")
+
+def from_strips(p):
+    """Conversie din reprezentarea din s02_strips.py (ADD/DEL) în literali pozitivi/negativi."""
+    fluents = set(p.init) | set(p.goal) | {f for a in p.actions for f in a.pre | a.add | a.dele}
+    acts = [Act(a.name, a.pre, set(a.add) | {neg(d) for d in a.dele - a.add}) for a in p.actions]
+    return closed_world(set(p.init), fluents), frozenset(p.goal), acts</pre>
+<pre class="code" data-lang="text">
+== Tortul: plan pe 2 niveluri -> [[Eat(Cake)], [Bake(Cake)]]
+   euristici în s0: {'max-level': 1, 'level-sum': 1, 'set-level': 2}
+   A0: [Eat(Cake)]   |S1|=4  mutex literali=4
+   A1: [Eat(Cake), Bake(Cake)]   |S2|=4  mutex literali=3
+== Roata de rezervă: plan pe 2 niveluri -> [[Remove(Spare,Trunk), Remove(Flat,Axle)], [PutOn(Spare,Axle)]]
+   euristici în s0: {'max-level': 2, 'level-sum': 2, 'set-level': 2}
+   A0: [Remove(Spare,Trunk), Remove(Flat,Axle), LeaveOvernight]   |S1|=10  mutex literali=6
+   A1: [Remove(Spare,Trunk), PutOn(Spare,Axle), Remove(Flat,Axle), PutOn(Flat,Axle), LeaveOvernight]   |S2|=11  mutex literali=10
+</pre>
+<ul class="check">
+<li><label><input type="checkbox">(Începător) Comparați ieșirea cu graful construit de mână în S3.1 și cu simulatorul.</label></li>
+<li><label><input type="checkbox">(Începător) Scoateți precondiția ¬At(Spare,Axle) din PutOn. Se schimbă planul? Ce plan „ciudat” devine posibil?</label></li>
+<li><label><input type="checkbox">(Mediu) Folosiți <code>from_strips</code> pentru lumea blocurilor (din s02) și verificați că set-level ≤ lungimea planului optim pentru 5 configurații.</label></li>
+<li><label><input type="checkbox">(Mediu) Adăugați un contor de noduri vizitate în <code>extract</code> și măsurați efectul memorării nogood-urilor (comentați linia <code>nogoods.add</code>).</label></li>
+</ul>
+</div>
+
+<div class="lvl" data-lvl="m a">
+<h4>L3.2 – SATPlan cu python-sat</h4>
+<pre class="code" data-lang="python">
+"""SATPlan: planificare ca satisfiabilitate în logica propozițională (Kautz &amp; Selman).
+Pentru T = 0, 1, 2, ... codificăm „există un plan de T pași” ca formulă CNF și o dăm unui rezolvitor SAT.
+Necesită: pip install python-sat      Rulare: python s03_satplan.py"""
+from itertools import combinations
+from pysat.solvers import Glucose3
+from s02_strips import blocks_world, towers
+
+class Encoder:
+    def __init__(self):
+        self.ids, self.names = {}, {}
+    def var(self, name):                    # simbol propozițional -&gt; întreg (format DIMACS)
+        if name not in self.ids:
+            self.ids[name] = len(self.ids) + 1
+            self.names[self.ids[name]] = name
+        return self.ids[name]
+
+def conflict(a, b):
+    """a și b nu pot fi executate în același pas (paralel): una șterge o precondiție sau un efect al celeilalte."""
+    return bool(a.dele &amp; (b.pre | b.add)) or bool(b.dele &amp; (a.pre | a.add))
+
+def encode(p, T):
+    E, cnf = Encoder(), []
+    fluents = sorted(set(p.init) | set(p.goal) | {f for a in p.actions for f in a.pre | a.add | a.dele})
+    F = lambda f, t: E.var(f"{f}@{t}")
+    def A(a, t):
+        v = E.var(f"{a.name}@{t}"); E.action_vars[v] = (a.name, t); return v
+    E.action_vars = {}
+    for f in fluents:                       # 1. starea inițială (lumea închisă)
+        cnf.append([F(f, 0)] if f in p.init else [-F(f, 0)])
+    for g in p.goal:                        # 2. scopul la momentul T
+        cnf.append([F(g, T)])
+    for t in range(T):
+        for a in p.actions:                 # 3. precondiții și efecte
+            for q in a.pre:  cnf.append([-A(a, t), F(q, t)])
+            for q in a.add:  cnf.append([-A(a, t), F(q, t + 1)])
+            for q in a.dele - a.add: cnf.append([-A(a, t), -F(q, t + 1)])
+        for f in fluents:                   # 4. axiome-cadru explicative: o schimbare cere o cauză
+            adders = [A(a, t) for a in p.actions if f in a.add]
+            deleters = [A(a, t) for a in p.actions if f in a.dele]
+            cnf.append([F(f, t), -F(f, t + 1)] + adders)      # f fals -&gt; adevărat  =&gt; o acțiune îl adaugă
+            cnf.append([-F(f, t), F(f, t + 1)] + deleters)    # f adevărat -&gt; fals =&gt; o acțiune îl șterge
+        for a, b in combinations(p.actions, 2):  # 5. excluderea acțiunilor conflictuale
+            if conflict(a, b):
+                cnf.append([-A(a, t), -A(b, t)])
+    return E, cnf
+
+def satplan(p, T_max=20):
+    for T in range(T_max + 1):
+        E, cnf = encode(p, T)
+        with Glucose3(bootstrap_with=cnf) as s:
+            if s.solve():
+                model = {v for v in s.get_model() if v &gt; 0}
+                steps = [[] for _ in range(T)]
+                for v in model:
+                    if v in E.action_vars:           # citim din model doar variabilele-acțiune adevărate
+                        act, t = E.action_vars[v]; steps[t].append(act)
+                return T, steps, len(E.ids), len(cnf)
+        print(f"  T={T:2d}: nesatisfiabil  ({len(E.ids)} variabile, {len(cnf)} clauze)")
+    return None
+
+if __name__ == "__main__":
+    sussman = blocks_world(towers([["A", "C"], ["B"]]), {"on(A,B)", "on(B,C)"}, "ABC")
+    T, steps, nv, nc = satplan(sussman)
+    print(f"Sussman: plan găsit la T={T} ({nv} variabile, {nc} clauze)")
+    for t, st in enumerate(steps):
+        print(f"  pas {t}: {st}")</pre>
+<pre class="code" data-lang="text">
+  T= 0: nesatisfiabil  (16 variabile, 18 clauze)
+  ...
+  T= 5: nesatisfiabil  (186 variabile, 1528 clauze)
+Sussman: plan găsit la T=6 (220 variabile, 1830 clauze)
+  pas 0: ['unstack(C,A)']   pas 1: ['putdown(C)']   pas 2: ['pickup(B)']
+  pas 3: ['stack(B,C)']     pas 4: ['pickup(A)']    pas 5: ['stack(A,B)']
+</pre>
+<h4>L3.3 – Comparație experimentală</h4>
+<pre class="code" data-lang="python">
+"""Comparație: A* (h_add) vs GraphPlan vs SATPlan pe aceleași probleme STRIPS.
+Necesită fișierele s02_strips.py, s03_graphplan.py, s03_satplan.py în același director."""
+import time, io, contextlib
+import s02_strips as S, s03_graphplan as G, s03_satplan as SP
+
+def timed(f):
+    t = time.perf_counter(); r = f(); return r, time.perf_counter() - t
+
+problems = {
+    "Sussman": S.blocks_world(S.towers([["A", "C"], ["B"]]), {"on(A,B)", "on(B,C)"}, "ABC"),
+    "Inversare 5": S.blocks_world(S.towers([list("ABCDE")]), {"on(D,E)", "on(C,D)", "on(B,C)", "on(A,B)"}, "ABCDE"),
+}
+print(f"{'Problemă':12s} | {'A* h_add':&gt;16s} | {'GraphPlan':&gt;16s} | {'SATPlan':&gt;16s}")
+for name, p in problems.items():
+    (plan, _, _), t1 = timed(lambda: S.forward_search(p, S.h_add))
+    init, goal, acts = G.from_strips(p)
+    (gp, _), t2 = timed(lambda: G.graphplan(init, goal, acts))
+    with contextlib.redirect_stdout(io.StringIO()):
+        sp, t3 = timed(lambda: SP.satplan(p))
+    print(f"{name:12s} | {len(plan):3d} acț {t1*1000:7.1f} ms | {len(gp):3d} niv {t2*1000:7.1f} ms | T={sp[0]:3d} {t3*1000:7.1f} ms")</pre>
+<pre class="code" data-lang="text">
+Problemă     |         A* h_add |        GraphPlan |          SATPlan
+Sussman      |   6 acț     0.6 ms |   6 niv    10.4 ms | T=  6    10.0 ms
+Inversare 5  |  10 acț     1.7 ms |  10 niv    50.4 ms | T= 10    88.3 ms
+</pre>
+<ul class="check">
+<li><label><input type="checkbox">(Mediu) Extindeți tabelul cu 6, 7, 8 blocuri. Reprezentați grafic timpul în funcție de numărul de blocuri (scară logaritmică).</label></li>
+<li><label><input type="checkbox">(Avansat) Înlocuiți căutarea liniară pe T cu una binară (după ce găsiți un T satisfiabil prin dublare). Când câștigați?</label></li>
+<li><label><input type="checkbox">(Avansat) Adăugați în CNF mutex-urile de literali din graful de planificare (stil Blackbox). Măsurați efectul asupra timpului solverului.</label></li>
+<li><label><input type="checkbox">(Avansat) Pentru transportul aerian (ședința 2), comparați excluderea „toate perechile” cu excluderea bazată pe conflicte: număr de clauze, T minim, timp.</label></li>
+</ul>
+</div>
+
+<h3>3.4 Codificare SAT generată de AI – verificare</h3>
+<div class="ai">Un asistent AI a propus o codificare SATPlan „mai compactă”: a eliminat axiomele-cadru, motivând că „efectele acțiunilor determină deja starea următoare”. Testați afirmația.</div>
+<div class="lvl" data-lvl="m a">
+<ol>
+<li>În exploratorul SAT de mai sus, debifați „axiome-cadru” și rulați cu T = 1. Notați „planul” obținut.</li>
+<li>În <code>s03_satplan.py</code>, comentați blocul 4 și rulați pe Sussman. Validați planul cu funcția <code>validate</code> din <code>s02_strips.py</code>.</li>
+<li>Scrieți în raport un contraexemplu și explicația. Includeți în declarația AI: promptul, răspunsul și cum l-ați infirmat.</li>
+</ol>
+<details><summary>Ce ar trebui să observați</summary><p>Fără axiome-cadru, fluenții se pot schimba „de la sine”: Have(Cake) poate deveni adevărat la t = 1 fără Bake. Solverul găsește un „plan” de 1 pas (doar Eat) sau chiar de 0 acțiuni pentru T ≥ 1. Pe Sussman, planul extras nu trece validarea. Lecția: o afirmație plauzibilă a unui LLM se verifică prin <b>testare pe cazuri mici cu rezultat cunoscut</b>.</p></details>
+</div>
+</section>
+
+<section class="part">
+<h2>4. Autoevaluare<span class="tag">QUIZ</span></h2>
+<div class="cards">
+  <div class="card"><div class="in"><div class="fr">Acțiune de persistență</div><div class="bk">No-op: un literal rămâne adevărat de la S<sub>i</sub> la S<sub>i+1</sub> dacă nu e modificat.</div></div></div>
+  <div class="card"><div class="in"><div class="fr">Nevoi concurente</div><div class="bk">Două acțiuni sunt mutex dacă au precondiții mutex la nivelul anterior.</div></div></div>
+  <div class="card"><div class="in"><div class="fr">Suport inconsistent</div><div class="bk">Doi literali sunt mutex dacă toate perechile de acțiuni care i-ar realiza sunt mutex.</div></div></div>
+  <div class="card"><div class="in"><div class="fr">Set-level</div><div class="bk">Primul nivel în care toate subscopurile apar, fără perechi mutex. Admisibilă.</div></div></div>
+  <div class="card"><div class="in"><div class="fr">Axiomă-cadru explicativă</div><div class="bk">Dacă un fluent își schimbă valoarea între t și t+1, o acțiune de la t a provocat schimbarea.</div></div></div>
+  <div class="card"><div class="in"><div class="fr">Graf stabilizat</div><div class="bk">Două niveluri consecutive identice (literali și mutex-uri): extinderea nu mai aduce informație nouă.</div></div></div>
+</div>
+<script type="application/json" class="quiz-data">
+[
+{"lvl":"b","q":"Ce conține nivelul S<sub>0</sub> al unui graf de planificare?","o":["Toate acțiunile aplicabile","Literalii stării inițiale","Scopurile","Literalii care pot fi realizați în 1 pas"],"a":1,"e":"S0 = starea inițială (inclusiv literalii negativi, conform lumii închise)."},
+{"lvl":"b","q":"Dacă un literal NU apare în S<sub>3</sub>, atunci:","o":["poate fi realizat în 3 pași","sigur nu poate fi realizat în 3 pași","poate fi realizat în exact 4 pași","graful e greșit"],"a":1,"e":"Graful este o supra-aproximare: absența este o garanție, prezența nu."},
+{"lvl":"b","q":"În SATPlan, variabila Have(Cake)@2 înseamnă:","o":["acțiunea Have la pasul 2","fluentul Have(Cake) este adevărat la momentul 2","al doilea plan găsit","clauza numărul 2"],"a":1,"e":"Fiecare fluent primește o variabilă pentru fiecare moment."},
+{"lvl":"m","q":"Eat(Cake) și noop(Have(Cake)) sunt mutex în A<sub>0</sub> din cauza:","o":["nevoilor concurente","efectelor inconsistente","suportului inconsistent","negației"],"a":1,"e":"Eat produce ¬Have(Cake), no-op-ul produce Have(Cake) (în plus, Eat interferează cu precondiția no-op-ului)."},
+{"lvl":"m","q":"Care euristică din graful de planificare NU este admisibilă?","o":["max-level","set-level","level-sum","toate sunt admisibile"],"a":2,"e":"level-sum presupune independența subscopurilor și poate supraestima."},
+{"lvl":"m","q":"Ce se întâmplă dacă omitem axiomele-cadru din codificarea SATPlan?","o":["Formula devine nesatisfiabilă","Fluenții se pot schimba fără cauză, deci apar planuri invalide","Nu se schimbă nimic","Solverul nu se mai termină"],"a":1,"e":"Vezi exercițiul de evaluare critică din laborator."},
+{"lvl":"m","q":"GraphPlan garantează planuri optime în:","o":["număr de acțiuni","cost total","număr de pași paraleli","timp de calcul"],"a":2,"e":"Primul nivel t de la care extragerea reușește dă numărul minim de pași paraleli."},
+{"lvl":"a","q":"Excluderea bazată pe conflicte (∀-step) față de excluderea totală:","o":["dă formule cu mai mulți pași T","permite acțiuni paralele neinterferente, deci un T mai mic","este incorectă","elimină nevoia axiomelor-cadru"],"a":1,"e":"Mai puțini pași înseamnă formule mai mici, dar planul trebuie liniarizat la final."},
+{"lvl":"a","q":"Bounded PlanSAT, cu orizontul T polinomial în dimensiunea problemei, este:","o":["în P","NP-completă","PSPACE-completă","nedecidabilă"],"a":1,"e":"De aceea se reduce natural la SAT."}
+]
+</script>
+</section>
+
+<section class="part">
+<h2>5. Temă și legătura cu proiectul</h2>
+<div class="lvl" data-lvl="b"><p><b>T1:</b> Construiți manual graful de planificare (S<sub>0</sub>–S<sub>2</sub>) pentru domeniul ghidului virtual din ședința 2, cu 2 săli și o broșură. Marcați mutex-urile.</p></div>
+<div class="lvl" data-lvl="m"><p><b>T2:</b> Implementați h<sub>FF</sub> prin extragerea unui plan relaxat din graful fără ștergeri și integrați-o în A* și GBFS din ședința 2. Raport comparativ pe 20 de instanțe.</p></div>
+<div class="lvl" data-lvl="a"><p><b>T3:</b> Codificați în SAT o problemă de planificare din domeniul proiectului vostru (sau transportul aerian cu 3 avioane, 6 colete) și comparați Glucose cu CaDiCaL (din python-sat) pentru diferite codificări de excludere.</p></div>
+<div class="note">Pentru proiect: dacă problema voastră are puține acțiuni, dar multe restricții „tari”, codificarea SAT/MaxSAT e o alternativă serioasă la căutare. Puneți cele două abordări față în față – este exact comparația cerută de standardul minim de performanță.</div>
+</section>
+
+<section class="part">
+<h2>6. Bibliografie</h2>
+<ol>
+<li>S. Russell, P. Norvig – <i>Artificial Intelligence: A Modern Approach</i>, ed. a 4-a, Pearson, 2020 – §11.2–11.3 (graful de planificare, SATPlan), cap. 7 (logica propozițională, DPLL).</li>
+<li>A. Blum, M. Furst – „Fast Planning Through Planning Graph Analysis”, <i>Artificial Intelligence</i> 90, 1997.</li>
+<li>H. Kautz, B. Selman – „Planning as Satisfiability”, <i>ECAI</i> 1992; „Unifying SAT-based and Graph-based Planning”, <i>IJCAI</i> 1999.</li>
+<li>A. Konar – <i>Artificial Intelligence and Soft Computing</i>, CRC Press, 1999.</li>
+<li>AIMA Python – <code>planning.py</code> (clasele <code>Graph</code>, <code>GraphPlan</code>), <code>logic.py</code> (<code>SAT_plan</code>).</li>
+<li>PySAT – <a href="https://pysathq.github.io/" target="_blank" rel="noopener">pysathq.github.io</a>.</li>
+</ol>
+</section>
+
+<div class="pager"><a href="IAA_02_Curs_Sem_Lab.html">← Ședința 2</a><a href="IAA_04_Curs_Sem_Lab.html">Ședința 4 →</a></div>
+</main>
+</div>
+<footer>Material didactic pentru disciplina <b>Inteligență artificială aplicată</b> (MVMOD.1.1.10), Master „Medii virtuale multi-modale distribuite”, Facultatea de Matematică și Informatică, Universitatea „Ovidius” din Constanța, anul universitar 2026–2027. Conținutul urmează fișa disciplinei (secțiunile 8.1 și 8.2). Material elaborat cu asistența unui instrument AI generativ (Claude, Anthropic) – a se verifica și adapta de titularul disciplinei.</footer>
+<script>(function(){
+"use strict";
+var KEY = "IAA_" + (document.body.getAttribute("data-session") || "x") + "_";
+function store(k, v){ try{ if(v===undefined) return localStorage.getItem(KEY+k); localStorage.setItem(KEY+k, v); }catch(e){ return null; } }
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+/* ---------- temă ---------- */
+var themeBtn = document.getElementById("themeBtn");
+if(store("theme")==="dark") document.documentElement.classList.add("dark");
+if(themeBtn) themeBtn.onclick = function(){ var d=document.documentElement.classList.toggle("dark"); store("theme", d?"dark":"light"); document.dispatchEvent(new Event("themechange")); };
+var printBtn = document.getElementById("printBtn");
+if(printBtn) printBtn.onclick = function(){ document.querySelectorAll("details").forEach(function(d){d.open=true;}); window.print(); };
+
+/* ---------- insigne de nivel ---------- */
+var LBL = {b:"Începător", m:"Mediu", a:"Avansat"};
+document.querySelectorAll(".lvl").forEach(function(el){
+  var l = el.getAttribute("data-lvl"); var b = document.createElement("span");
+  b.className = "badge "+l; b.textContent = LBL[l]||l; el.insertBefore(b, el.firstChild);
+});
+
+/* ---------- filtru pe nivele ---------- */
+function applyFilter(f){
+  document.querySelectorAll(".lvl-filter button").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-f")===f); });
+  document.querySelectorAll("[data-lvl]").forEach(function(el){
+    var l = el.getAttribute("data-lvl");
+    el.classList.toggle("hide-lvl", f!=="all" && l.indexOf(f)<0);
+  });
+  store("filter", f); buildToc();
+}
+document.querySelectorAll(".lvl-filter button").forEach(function(b){ b.onclick=function(){ applyFilter(b.getAttribute("data-f")); }; });
+
+/* ---------- evidențiere sintaxă Python ---------- */
+var KW = "False None True and as assert async await break class continue def del elif else except finally for from global if import in is lambda nonlocal not or pass raise return try while with yield match case".split(" ");
+var BI = "print range len int float str list dict set tuple min max sum abs sorted enumerate zip map filter isinstance any all open round reversed super self heapq random math deque defaultdict itertools np".split(" ");
+function hlPython(src){
+  var re = /(#[^\n]*)|("""[\s\S]*?"""|'''[\s\S]*?'''|f?"(?:\\.|[^"\\\n])*"|f?'(?:\\.|[^'\\\n])*')|(\b\d+(?:\.\d+)?(?:e[-+]?\d+)?\b)|([A-Za-z_][A-Za-z0-9_]*)(\s*\()?/g;
+  var out = "", last = 0, m;
+  while((m = re.exec(src))){
+    out += esc(src.slice(last, m.index)); last = re.lastIndex;
+    if(m[1]) out += '<span class="c">'+esc(m[1])+'</span>';
+    else if(m[2]) out += '<span class="s">'+esc(m[2])+'</span>';
+    else if(m[3]) out += '<span class="n">'+m[3]+'</span>';
+    else if(m[4]){
+      var w = m[4], tail = m[5]||"";
+      if(KW.indexOf(w)>=0) out += '<span class="k">'+w+'</span>'+esc(tail);
+      else if(BI.indexOf(w)>=0) out += '<span class="bi">'+w+'</span>'+esc(tail);
+      else if(tail) out += '<span class="f">'+w+'</span>'+esc(tail);
+      else out += w;
+    }
+  }
+  return out + esc(src.slice(last));
+}
+function hlPddl(src){
+  return esc(src).replace(/(;[^\n]*)/g,'<span class="c">$1</span>')
+    .replace(/(\(\s*)(define|domain|problem|:requirements|:types|:predicates|:action|:parameters|:precondition|:effect|:objects|:init|:goal|:domain|and|not|or|forall|when)/g,'$1<span class="k">$2</span>')
+    .replace(/(\?[a-z0-9_-]+)/gi,'<span class="n">$1</span>')
+    .replace(/(:[a-z-]+)/gi,'<span class="f">$1</span>');
+}
+document.querySelectorAll("pre.code").forEach(function(pre){
+  var lang = pre.getAttribute("data-lang")||"python";
+  var src = pre.textContent.replace(/^\n/,"").replace(/\s+$/,"");
+  pre.innerHTML = lang==="python" ? hlPython(src) : (lang==="pddl" ? hlPddl(src) : esc(src));
+  var b = document.createElement("button"); b.className="copy"; b.textContent="Copiază";
+  b.onclick = function(){
+    var done=function(){ b.textContent="Copiat ✓"; setTimeout(function(){b.textContent="Copiază";},1500); };
+    if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(src).then(done, function(){ fallback(); }); } else fallback();
+    function fallback(){ var t=document.createElement("textarea"); t.value=src; document.body.appendChild(t); t.select(); try{document.execCommand("copy");}catch(e){} document.body.removeChild(t); done(); }
+  };
+  pre.appendChild(b);
+});
+
+/* ---------- flashcards ---------- */
+document.querySelectorAll(".card").forEach(function(c){ c.onclick=function(){ c.classList.toggle("flip"); }; });
+
+/* ---------- quiz ---------- */
+var answered = {};
+document.querySelectorAll("script.quiz-data").forEach(function(sc, qi){
+  var data = JSON.parse(sc.textContent); var host = document.createElement("div"); host.className="quiz";
+  sc.parentNode.insertBefore(host, sc);
+  var score = document.createElement("div"); score.className="score";
+  data.forEach(function(q, i){
+    var box = document.createElement("div"); box.className="qq"; if(q.lvl) box.setAttribute("data-lvl", q.lvl);
+    var html = '<div class="qt">'+(i+1)+'. '+(q.lvl?'<span class="badge '+q.lvl+'">'+LBL[q.lvl]+'</span> ':'')+q.q+'</div>';
+    q.o.forEach(function(o, j){ html += '<label><input type="radio" name="q'+qi+'_'+i+'" value="'+j+'"> '+o+'</label>'; });
+    html += '<div class="expl">'+(q.e||"")+'</div>';
+    box.innerHTML = html; host.appendChild(box);
+    box.querySelectorAll("input").forEach(function(inp){
+      inp.onchange = function(){
+        if(box.classList.contains("done")) return;
+        box.classList.add("done");
+        var j = +inp.value; var labels = box.querySelectorAll("label");
+        labels[q.a].classList.add("right"); if(j!==q.a) labels[j].classList.add("wrong");
+        box.querySelectorAll("input").forEach(function(x){ x.disabled=true; });
+        answered[qi+"_"+i] = (j===q.a); upd();
+      };
+    });
+  });
+  var reset = document.createElement("button"); reset.className="btn sec"; reset.textContent="Reia testul";
+  reset.onclick = function(){ host.querySelectorAll(".qq").forEach(function(b,i){ b.classList.remove("done"); b.querySelectorAll("label").forEach(function(l){l.className="";}); b.querySelectorAll("input").forEach(function(x){x.disabled=false;x.checked=false;}); delete answered[qi+"_"+i]; }); upd(); };
+  host.appendChild(score); host.appendChild(reset);
+  function upd(){ var n=0,ok=0; for(var k in answered){ if(k.indexOf(qi+"_")===0){ n++; if(answered[k]) ok++; } } score.textContent = "Scor: "+ok+" / "+n+" răspunsuri ("+data.length+" întrebări în total)"; progress(); }
+  upd();
+});
+
+/* ---------- liste de verificare + progres ---------- */
+var checks = document.querySelectorAll("ul.check input[type=checkbox]");
+checks.forEach(function(c, i){ if(store("chk"+i)==="1") c.checked=true; c.onchange=function(){ store("chk"+i, c.checked?"1":"0"); progress(); }; });
+function progress(){
+  var cks = document.querySelectorAll("ul.check input[type=checkbox]");
+  var tot = cks.length + document.querySelectorAll(".quiz .qq").length;
+  var done = 0; cks.forEach(function(c){ if(c.checked) done++; });
+  done += document.querySelectorAll(".quiz .qq.done").length;
+  var p = tot? Math.round(100*done/tot):0;
+  var bar = document.querySelector(".progress i"); if(bar) bar.style.width = p+"%";
+  var t = document.querySelector(".tocprog"); if(t) t.textContent = "Progres ședință: "+p+"% ("+done+"/"+tot+" sarcini + întrebări)";
+}
+
+/* ---------- cuprins ---------- */
+function buildToc(){
+  var toc = document.querySelector("nav.toc .links"); if(!toc) return; toc.innerHTML="";
+  document.querySelectorAll("main h2, main h3").forEach(function(h, i){
+    if(h.closest(".hide-lvl")) return;
+    if(!h.id) h.id = "s"+i;
+    var a = document.createElement("a"); a.href="#"+h.id; var hc = h.cloneNode(true); hc.querySelectorAll(".tag,.badge").forEach(function(x){x.remove();}); a.textContent = hc.textContent.trim();
+    a.className = h.tagName.toLowerCase(); toc.appendChild(a);
+  });
+}
+var spyLinks = [];
+window.addEventListener("scroll", function(){
+  var hs = document.querySelectorAll("main h2, main h3"), cur=null;
+  hs.forEach(function(h){ if(h.getBoundingClientRect().top < 120 && !h.closest(".hide-lvl")) cur = h.id; });
+  document.querySelectorAll("nav.toc a").forEach(function(a){ a.classList.toggle("act", a.getAttribute("href")==="#"+cur); });
+}, {passive:true});
+
+applyFilter(store("filter")||"all");
+progress();
+
+/* ---------- utilitare pentru simulări ---------- */
+window.IAA = {
+  rng: function(seed){ var s = seed>>>0 || 1; return function(){ s ^= s<<13; s>>>=0; s ^= s>>>17; s ^= s<<5; s>>>=0; return s/4294967296; }; },
+  css: function(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); },
+  fit: function(cv){ var r = window.devicePixelRatio||1; if(!cv._w){ cv._w = +cv.getAttribute("width"); cv._h = +cv.getAttribute("height"); cv.style.width = cv._w+"px"; cv.style.aspectRatio = cv._w+"/"+cv._h; cv.width = cv._w*r; cv.height = cv._h*r; } var g = cv.getContext("2d"); g.setTransform(r,0,0,r,0,0); g.W = cv._w; g.H = cv._h; return g; },
+  pos: function(cv, ev){ var b = cv.getBoundingClientRect(); return {x:(ev.clientX-b.left)*cv._w/b.width, y:(ev.clientY-b.top)*cv._h/b.height}; },
+  esc: esc
+};
+})();
+</script>
+<script>(function(){
+function neg(l){ return l.charAt(0)==="¬" ? l.slice(1) : "¬"+l; }
+function pairKey(a,b){ return a<b ? a+"||"+b : b+"||"+a; }
+var PROBS = {
+  cake: { fl:["Have(Cake)","Eaten(Cake)"], init:["Have(Cake)"], goal:["Have(Cake)","Eaten(Cake)"],
+    acts:[{n:"Eat(Cake)",pre:["Have(Cake)"],eff:["¬Have(Cake)","Eaten(Cake)"]},{n:"Bake(Cake)",pre:["¬Have(Cake)"],eff:["Have(Cake)"]}] },
+  tire: { fl:["At(Spare,Trunk)","At(Spare,Axle)","At(Spare,Ground)","At(Flat,Axle)","At(Flat,Ground)","At(Flat,Trunk)"],
+    init:["At(Spare,Trunk)","At(Flat,Axle)"], goal:["At(Spare,Axle)"], acts:[] }
+};
+["Spare","Flat"].forEach(function(o){ ["Trunk","Axle"].forEach(function(l){ PROBS.tire.acts.push({n:"Remove("+o+","+l+")",pre:["At("+o+","+l+")"],eff:["¬At("+o+","+l+")","At("+o+",Ground)"]}); });
+  PROBS.tire.acts.push({n:"PutOn("+o+",Axle)",pre:["At("+o+",Ground)","¬At(Flat,Axle)","¬At(Spare,Axle)"],eff:["¬At("+o+",Ground)","At("+o+",Axle)"]}); });
+PROBS.tire.acts.push({n:"LeaveOvernight",pre:[],eff:PROBS.tire.fl.map(neg)});
+
+var P, G, sel=null, solution=null, cv=document.getElementById("pgCv"), out=document.getElementById("pgOut");
+function reset(){
+  P = PROBS[document.getElementById("pgProb").value];
+  var S0 = P.fl.map(function(f){ return P.init.indexOf(f)>=0 ? f : neg(f); });
+  G = {S:[S0], A:[], mS:[{}], mA:[]}; sel=null; solution=null;
+  out.textContent = "S0 construit. Scop: "+P.goal.join(" ∧ ")+". Apăsați „Extinde un nivel”."; draw();
+}
+function expand(){
+  var i=G.S.length-1, S=G.S[i], mS=G.mS[i];
+  var acts = P.acts.filter(function(a){ return a.pre.every(function(p){ return S.indexOf(p)>=0; }) && !a.pre.some(function(p,x){ return a.pre.some(function(q,y){ return y>x && mS[pairKey(p,q)]; }); }); })
+    .map(function(a){ return {n:a.n, pre:a.pre, eff:a.eff}; });
+  S.forEach(function(l){ acts.push({n:"noop["+l+"]", pre:[l], eff:[l], noop:true}); });
+  var mA={};
+  for(var x=0;x<acts.length;x++) for(var y=x+1;y<acts.length;y++){
+    var a=acts[x], b=acts[y], m=null;
+    if(a.eff.some(function(e){ return b.eff.indexOf(neg(e))>=0; })) m="efecte inconsistente";
+    else if(a.eff.some(function(e){ return b.pre.indexOf(neg(e))>=0; }) || b.eff.some(function(e){ return a.pre.indexOf(neg(e))>=0; })) m="interferență";
+    else if(a.pre.some(function(p){ return b.pre.some(function(q){ return mS[pairKey(p,q)]; }); })) m="nevoi concurente";
+    if(m) mA[pairKey(a.n,b.n)]=m;
+  }
+  var S2=[]; acts.forEach(function(a){ a.eff.forEach(function(e){ if(S2.indexOf(e)<0) S2.push(e); }); });
+  S2.sort(function(p,q){ return P.fl.indexOf(p.replace("¬",""))-P.fl.indexOf(q.replace("¬","")) || (p.charAt(0)==="¬")-(q.charAt(0)==="¬"); });
+  var ach={}; S2.forEach(function(l){ ach[l]=acts.filter(function(a){ return a.eff.indexOf(l)>=0; }); });
+  var mS2={};
+  for(var u=0;u<S2.length;u++) for(var v=u+1;v<S2.length;v++){
+    var p=S2[u], q=S2[v];
+    if(p===neg(q)){ mS2[pairKey(p,q)]="negație"; continue; }
+    var all=true; ach[p].forEach(function(a){ ach[q].forEach(function(b){ if(a===b || !mA[pairKey(a.n,b.n)]) all=false; }); });
+    if(all) mS2[pairKey(p,q)]="suport inconsistent";
+  }
+  G.A.push(acts); G.mA.push(mA); G.S.push(S2); G.mS.push(mS2);
+  var i2=G.S.length-1, gok = P.goal.every(function(g){ return S2.indexOf(g)>=0; }) && !P.goal.some(function(g,x){ return P.goal.some(function(h,y){ return y>x && mS2[pairKey(g,h)]; }); });
+  var lev = G.S.length>2 && G.S[i2].length===G.S[i2-1].length && Object.keys(mS2).length===Object.keys(G.mS[i2-1]).length;
+  out.textContent = "Nivelul S"+i2+": "+S2.length+" literali, "+Object.keys(mS2).length+" perechi mutex. Scopuri "+(gok?"prezente și NE-mutex → se poate încerca extragerea.":"absente sau mutex.")+(lev?" Graful s-a stabilizat.":"");
+  draw();
+}
+function extract(goals, i, nog){
+  if(i===0) return goals.every(function(g){ return G.S[0].indexOf(g)>=0; }) ? [] : null;
+  var key=i+":"+goals.slice().sort().join(","); if(nog[key]) return null;
+  var acts=G.A[i-1], mA=G.mA[i-1];
+  function choose(k, chosen){
+    if(k===goals.length){ var sub=[]; chosen.forEach(function(a){ a.pre.forEach(function(p){ if(sub.indexOf(p)<0) sub.push(p); }); }); var r=extract(sub,i-1,nog); return r===null?null:r.concat([chosen]); }
+    var g=goals[k]; if(chosen.some(function(a){ return a.eff.indexOf(g)>=0; })) return choose(k+1, chosen);
+    var c=acts.filter(function(a){ return a.eff.indexOf(g)>=0; }).sort(function(a,b){ return (b.noop?1:0)-(a.noop?1:0); });
+    for(var j=0;j<c.length;j++){ var a=c[j]; if(chosen.every(function(b){ return !mA[pairKey(a.n,b.n)]; })){ var r=choose(k+1, chosen.concat([a])); if(r) return r; } }
+    return null;
+  }
+  var r=choose(0,[]); if(!r) nog[key]=1; return r;
+}
+function solve(){
+  reset(); var nog={};
+  for(var t=0;t<8;t++){
+    var S=G.S[t], mS=G.mS[t];
+    var ok=P.goal.every(function(g){ return S.indexOf(g)>=0; }) && !P.goal.some(function(g,x){ return P.goal.some(function(h,y){ return y>x && mS[pairKey(g,h)]; }); });
+    if(ok){ var r=extract(P.goal.slice(), t, nog); if(r){ solution=r; out.textContent="GraphPlan: plan pe "+t+" niveluri\n"+r.map(function(st,i){ return "pas "+i+": "+st.filter(function(a){return !a.noop;}).map(function(a){return a.n;}).join(", "); }).join("\n")+"\n(verde = acțiuni/literali din plan)"; draw(); return; } }
+    expand();
+  }
+  out.textContent="Nu s-a găsit plan în 8 niveluri.";
+}
+var NODES=[];
+function draw(){
+  var g=IAA.fit(cv), W=g.W, H=g.H; g.clearRect(0,0,W,H); NODES=[];
+  var showNoop=document.getElementById("pgNoop").checked, cols=G.S.length*2-1, cw=Math.min(190, (W-20)/cols);
+  var ink=IAA.css("--ink"), muted=IAA.css("--muted"), line=IAA.css("--line"), acc=IAA.css("--accent");
+  var pos={};
+  function place(list, ci, kind, lvl){ var n=list.length, step=Math.min(34,(H-40)/Math.max(n,1)); list.forEach(function(it,j){ var nm = kind==="S"?it:it.n; var x=10+ci*cw, y=30+j*step; pos[kind+lvl+":"+nm]={x:x,y:y}; NODES.push({x:x,y:y,w:cw-30,h:22,kind:kind,lvl:lvl,name:nm}); }); }
+  G.S.forEach(function(S,i){ place(S, 2*i, "S", i); });
+  G.A.forEach(function(A,i){ place(A.filter(function(a){ return showNoop || !a.noop; }), 2*i+1, "A", i); });
+  g.font="bold 13px sans-serif"; g.fillStyle=acc;
+  G.S.forEach(function(S,i){ g.fillText("S"+i, 10+2*i*cw, 16); }); G.A.forEach(function(A,i){ g.fillText("A"+i, 10+(2*i+1)*cw, 16); });
+  var inSol={}; if(solution) solution.forEach(function(st,i){ st.forEach(function(a){ inSol["A"+i+":"+a.n]=1; a.pre.forEach(function(p){ inSol["S"+i+":"+p]=1; }); a.eff.forEach(function(e){ inSol["S"+(i+1)+":"+e]=1; }); }); });
+  // muchii
+  G.A.forEach(function(A,i){ A.forEach(function(a){
+    if(a.noop && !showNoop){ var p1=pos["S"+i+":"+a.pre[0]], p2=pos["S"+(i+1)+":"+a.pre[0]]; if(p1&&p2){ g.strokeStyle=line; g.setLineDash([3,4]); g.beginPath(); g.moveTo(p1.x+cw-30,p1.y+11); g.lineTo(p2.x,p2.y+11); g.stroke(); g.setLineDash([]); } return; }
+    var pa=pos["A"+i+":"+a.n]; if(!pa) return;
+    a.pre.forEach(function(p){ var ps=pos["S"+i+":"+p]; if(ps){ g.strokeStyle=inSol["A"+i+":"+a.n]?"#2e7d4f":muted; g.lineWidth=inSol["A"+i+":"+a.n]?2:0.7; g.beginPath(); g.moveTo(ps.x+cw-30,ps.y+11); g.lineTo(pa.x,pa.y+11); g.stroke(); } });
+    a.eff.forEach(function(e){ var ps=pos["S"+(i+1)+":"+e]; if(ps){ g.strokeStyle=inSol["A"+i+":"+a.n]?"#2e7d4f":(e.charAt(0)==="¬"?"#b3261e":acc); g.lineWidth=inSol["A"+i+":"+a.n]?2:0.7; g.beginPath(); g.moveTo(pa.x+cw-30,pa.y+11); g.lineTo(ps.x,ps.y+11); g.stroke(); } });
+  }); });
+  g.lineWidth=1;
+  // mutex-urile nodului selectat
+  var mx={}; if(sel){ var M = sel.kind==="S" ? G.mS[sel.lvl] : G.mA[sel.lvl]; for(var k in M){ var pr=k.split("||"); if(pr[0]===sel.name) mx[pr[1]]=M[k]; if(pr[1]===sel.name) mx[pr[0]]=M[k]; } }
+  NODES.forEach(function(n){
+    var key=n.kind+n.lvl+":"+n.name, isSel = sel && sel.kind===n.kind && sel.lvl===n.lvl && sel.name===n.name, isM = sel && sel.kind===n.kind && sel.lvl===n.lvl && mx[n.name];
+    g.fillStyle = isSel ? acc : isM ? "#f3c6c3" : inSol[key] ? "#cde8d6" : IAA.css("--panel");
+    g.strokeStyle = isM ? "#b3261e" : n.kind==="A" ? acc : line; g.lineWidth = n.kind==="A"?1.5:1;
+    if(n.kind==="A"){ g.fillRect(n.x,n.y,n.w,n.h); g.strokeRect(n.x,n.y,n.w,n.h); } else { g.beginPath(); g.ellipse(n.x+n.w/2,n.y+11,n.w/2,11,0,0,7); g.fill(); g.stroke(); }
+    g.fillStyle = isSel ? "#fff" : ink; g.font="11px sans-serif"; var t=n.name; while(g.measureText(t).width>n.w-6 && t.length>3) t=t.slice(0,-2); if(t!==n.name) t+="…"; g.fillText(t, n.x+4, n.y+15);
+  });
+  g.lineWidth=1;
+  if(sel){ var lst=Object.keys(mx).map(function(k){ return k+" ("+mx[k]+")"; }); out.textContent = (sel.kind==="S"?"Literalul ":"Acțiunea ")+sel.name+" la nivelul "+sel.kind+sel.lvl+" este mutex cu:\n"+(lst.length?lst.join("\n"):"(nimic)"); }
+}
+cv.addEventListener("click", function(e){ var p=IAA.pos(cv,e); var hit=null; NODES.forEach(function(n){ if(p.x>=n.x&&p.x<=n.x+n.w&&p.y>=n.y&&p.y<=n.y+n.h) hit=n; }); sel = hit; draw(); });
+document.getElementById("pgExp").onclick=function(){ if(G.S.length<5) expand(); };
+document.getElementById("pgSolve").onclick=solve;
+document.getElementById("pgReset").onclick=reset;
+document.getElementById("pgProb").onchange=reset;
+document.getElementById("pgNoop").onchange=draw;
+document.addEventListener("themechange", draw);
+reset();
+
+/* ================= Explorator SATPlan (tortul) ================= */
+document.getElementById("satRun").onclick=function(){
+  var T=+document.getElementById("satT").value, frame=document.getElementById("satFrame").checked, excl=document.getElementById("satExcl").checked;
+  var Pc=PROBS.cake, vars={}, names=[], groups=[];
+  function V(n){ if(!(n in vars)){ names.push(n); vars[n]=names.length; } return vars[n]; }
+  function lit(l,t){ return l.charAt(0)==="¬" ? -V(short(l.slice(1))+t) : V(short(l)+t); }
+  function short(f){ return f==="Have(Cake)"?"H":"E"; }
+  function add(gname, cl){ var gr=groups.filter(function(x){return x[0]===gname;})[0]; if(!gr){ gr=[gname,[]]; groups.push(gr); } gr[1].push(cl); }
+  Pc.fl.forEach(function(f){ add("Stare inițială", [Pc.init.indexOf(f)>=0 ? V(short(f)+0) : -V(short(f)+0)]); });
+  Pc.goal.forEach(function(f){ add("Scop (la T)", [V(short(f)+T)]); });
+  for(var t=0;t<T;t++){
+    Pc.acts.forEach(function(a){ var av=V(a.n.split("(")[0]+t);
+      a.pre.forEach(function(p){ add("Precondiții", [-av, lit(p,t)]); });
+      a.eff.forEach(function(e){ add("Efecte", [-av, lit(e,t+1)]); }); });
+    if(frame) Pc.fl.forEach(function(f){
+      var adders=Pc.acts.filter(function(a){ return a.eff.indexOf(f)>=0; }).map(function(a){ return V(a.n.split("(")[0]+t); });
+      var dels=Pc.acts.filter(function(a){ return a.eff.indexOf(neg(f))>=0; }).map(function(a){ return V(a.n.split("(")[0]+t); });
+      add("Axiome-cadru", [V(short(f)+t), -V(short(f)+(t+1))].concat(adders));
+      add("Axiome-cadru", [-V(short(f)+t), V(short(f)+(t+1))].concat(dels)); });
+    if(excl) add("Excludere", [-V("Eat"+t), -V("Bake"+t)]);
+  }
+  var all=[]; groups.forEach(function(gr){ all=all.concat(gr[1]); });
+  function show(cl){ return "("+cl.map(function(x){ return (x<0?"¬":"")+names[Math.abs(x)-1]; }).join(" ∨ ")+")"; }
+  // DPLL cu propagare unitară
+  var steps=0;
+  function dpll(cls, asg){
+    steps++;
+    for(;;){ var unit=null, changed=false;
+      for(var i=0;i<cls.length;i++){ var c=cls[i], sat=false, free=[];
+        for(var j=0;j<c.length;j++){ var v=Math.abs(c[j]), val=asg[v]; if(val===undefined) free.push(c[j]); else if((c[j]>0)===val){ sat=true; break; } }
+        if(sat) continue; if(!free.length) return null; if(free.length===1){ unit=free[0]; break; } }
+      if(unit===null) break; asg[Math.abs(unit)] = unit>0; }
+    var fv=null; for(var i2=0;i2<cls.length && fv===null;i2++) for(var j2=0;j2<cls[i2].length;j2++) if(asg[Math.abs(cls[i2][j2])]===undefined){ fv=Math.abs(cls[i2][j2]); break; }
+    if(fv===null) return asg;
+    var a1=Object.assign({},asg); a1[fv]=true; var r=dpll(cls,a1); if(r) return r;
+    var a2=Object.assign({},asg); a2[fv]=false; return dpll(cls,a2);
+  }
+  var model=dpll(all,{});
+  var txt="T = "+T+": "+names.length+" variabile, "+all.length+" clauze\n";
+  groups.forEach(function(gr){ txt+="\n— "+gr[0]+":\n  "+gr[1].map(show).join("  "); });
+  txt+="\n\nDPLL ("+steps+" apeluri): ";
+  if(!model) txt+="NESATISFIABIL – nu există plan de lungime "+T+".";
+  else { txt+="SATISFIABIL\nModel: "+names.map(function(n,i){ return (model[i+1]?"":"¬")+n; }).join(" ")+"\nPlan: ";
+    var pl=[]; for(var t2=0;t2<T;t2++){ ["Eat","Bake"].forEach(function(a){ if(model[vars[a+t2]]) pl.push(a+"(Cake)@"+t2); }); }
+    txt+= pl.length? pl.join(", ") : "(nicio acțiune!)"; if(!frame) txt+="\n⚠ Fără axiome-cadru, fluenții se pot schimba fără cauză – „planul” nu este valid."; }
+  document.getElementById("satOut").textContent=txt;
+};
+document.getElementById("satRun").click();
+})();
+</script>
+</body>
+</html>

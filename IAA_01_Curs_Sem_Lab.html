@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IAA 01 – Agenți inteligenți și mediul lor de activitate</title>
+<style>:root{
+  --bg:#f7f6f2; --panel:#ffffff; --ink:#1d2433; --muted:#5c6577; --line:#e3e0d8;
+  --accent:#2f5d8a; --accent-soft:#e6eef7; --code-bg:#1f2430; --code-ink:#e6e6e6;
+  --b:#2e7d4f; --b-soft:#e5f3ea; --m:#b26a00; --m-soft:#fbf0de; --a:#9b2c4f; --a-soft:#f8e4ea;
+  --ok:#2e7d4f; --bad:#b3261e; --shadow:0 1px 2px rgba(0,0,0,.05),0 4px 14px rgba(0,0,0,.05);
+  --radius:10px; --sans:"Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --serif:Georgia,"Times New Roman",serif; --mono:"JetBrains Mono","Cascadia Code",Consolas,"Liberation Mono",monospace;
+}
+html.dark{
+  --bg:#14171d; --panel:#1c2029; --ink:#e4e6eb; --muted:#9aa3b2; --line:#2c3240;
+  --accent:#7fb0e0; --accent-soft:#1f2b3a; --code-bg:#0f1218;
+  --b:#6cc48f; --b-soft:#17291f; --m:#e0a24a; --m-soft:#2d2415; --a:#e57a9c; --a-soft:#2e1a22;
+  --shadow:none;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.62 var(--sans)}
+a{color:var(--accent)}
+header.top{position:sticky;top:0;z-index:20;background:var(--panel);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:8px 18px;flex-wrap:wrap}
+header.top .brand{font-weight:700;letter-spacing:.2px;white-space:nowrap}
+header.top .brand small{font-weight:400;color:var(--muted);margin-left:6px}
+.lvl-filter{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+.lvl-filter button,.tbtn{border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:5px 11px;border-radius:999px;cursor:pointer;font:inherit;font-size:13.5px}
+.lvl-filter button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+html.dark .lvl-filter button.on{color:#10141a}
+.progress{height:4px;background:var(--line);width:100%;position:absolute;left:0;bottom:-1px}
+.progress i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:28px;max-width:1320px;margin:0 auto;padding:24px 18px 80px}
+nav.toc{position:sticky;top:70px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px;border-right:1px solid var(--line);padding-right:12px}
+nav.toc a{display:block;text-decoration:none;color:var(--muted);padding:3px 8px;border-radius:6px;line-height:1.35}
+nav.toc a.h3{padding-left:20px;font-size:13px}
+nav.toc a:hover,nav.toc a.act{color:var(--ink);background:var(--accent-soft)}
+nav.toc .tocprog{font-size:12.5px;color:var(--muted);margin:12px 8px}
+main{min-width:0}
+.hero{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:26px 28px;box-shadow:var(--shadow);margin-bottom:22px}
+.hero .kicker{text-transform:uppercase;letter-spacing:1.4px;font-size:12px;color:var(--accent);font-weight:700}
+.hero h1{font-family:var(--serif);font-size:34px;line-height:1.2;margin:6px 0 10px}
+.hero .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chip{display:inline-block;font-size:12.5px;padding:3px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent);border:1px solid transparent}
+section.part{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:8px 28px 22px;margin-bottom:22px;box-shadow:var(--shadow)}
+h2{font-family:var(--serif);font-size:27px;margin:26px 0 8px;padding-bottom:6px;border-bottom:2px solid var(--line)}
+h2 .tag{font-family:var(--sans);font-size:12px;vertical-align:middle;margin-left:8px;padding:2px 8px;border-radius:6px;background:var(--accent);color:#fff;letter-spacing:.5px}
+html.dark h2 .tag{color:#10141a}
+h3{font-size:20px;margin:26px 0 8px}
+h4{font-size:16.5px;margin:18px 0 6px}
+p,li{max-width:80ch}
+.lvl{border-left:4px solid var(--line);padding:10px 16px 6px;margin:14px 0;border-radius:0 8px 8px 0;position:relative}
+.lvl[data-lvl=b]{border-color:var(--b);background:var(--b-soft)}
+.lvl[data-lvl=m]{border-color:var(--m);background:var(--m-soft)}
+.lvl[data-lvl=a]{border-color:var(--a);background:var(--a-soft)}
+.badge{display:inline-block;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;padding:2px 8px;border-radius:5px;color:#fff;margin-bottom:4px}
+.badge.b{background:var(--b)}.badge.m{background:var(--m)}.badge.a{background:var(--a)}
+html.dark .badge{color:#10141a}
+.hide-lvl{display:none!important}
+.note,.tip,.warn,.ai,.def{border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin:14px 0;background:var(--panel)}
+.note::before,.tip::before,.warn::before,.ai::before,.def::before{display:block;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px}
+.note::before{content:"Observație";color:var(--accent)}
+.tip::before{content:"Sfat";color:var(--b)}
+.warn::before{content:"Atenție";color:var(--bad)}
+.ai{border-color:#7b61c9;background:rgba(123,97,201,.07)}.ai::before{content:"AI generativ – utilizare responsabilă";color:#7b61c9}
+.def{border-left:4px solid var(--accent)}.def::before{content:"Definiție";color:var(--accent)}
+.formula{font-family:var(--serif);font-size:17px;background:var(--accent-soft);padding:10px 14px;border-radius:8px;margin:10px 0;overflow-x:auto;white-space:nowrap}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14.5px}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}
+th{background:var(--accent-soft)}
+.tablewrap{overflow-x:auto}
+pre.code{position:relative;background:var(--code-bg);color:var(--code-ink);padding:14px 16px;border-radius:8px;overflow:auto;font:13.5px/1.5 var(--mono);max-height:560px}
+pre.code .copy{position:absolute;top:6px;right:6px;font:12px var(--sans);background:#394050;color:#fff;border:0;border-radius:5px;padding:3px 8px;cursor:pointer;opacity:.8}
+pre.code .copy:hover{opacity:1}
+.k{color:#c792ea}.s{color:#c3e88d}.c{color:#7f8aa3;font-style:italic}.n{color:#f78c6c}.f{color:#82aaff}.bi{color:#ffcb6b}
+code{font-family:var(--mono);font-size:.92em;background:var(--accent-soft);padding:1px 5px;border-radius:4px}
+pre code{background:none;padding:0}
+details{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:10px 0;background:var(--panel)}
+details>summary{cursor:pointer;font-weight:600;color:var(--accent)}
+details[open]>summary{margin-bottom:8px}
+.ex{border:1px dashed var(--line);border-radius:8px;padding:10px 16px;margin:14px 0}
+.ex .exh{font-weight:700}
+.widget{border:1px solid var(--line);border-radius:10px;padding:14px;margin:16px 0;background:var(--bg)}
+.widget .wtitle{font-weight:700;margin-bottom:8px}
+.widget .ctrl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0;font-size:14px}
+.widget button,.btn{border:1px solid var(--accent);background:var(--accent);color:#fff;padding:5px 12px;border-radius:6px;cursor:pointer;font:inherit;font-size:14px}
+html.dark .widget button,html.dark .btn{color:#10141a}
+.widget button.sec,.btn.sec{background:transparent;color:var(--accent)}
+.widget select,.widget input[type=number],.widget input[type=text],.widget textarea{font:inherit;font-size:14px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
+.widget canvas{max-width:100%;background:var(--panel);border:1px solid var(--line);border-radius:6px;display:block}
+.widget .out{font:13px/1.45 var(--mono);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 10px;white-space:pre-wrap;max-height:260px;overflow:auto;margin-top:8px}
+.stats{display:flex;gap:14px;flex-wrap:wrap;font-size:14px;margin-top:6px}
+.stats b{font-variant-numeric:tabular-nums}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.quiz .qq{border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:12px 0;background:var(--panel)}
+.quiz .qq .qt{font-weight:600;margin-bottom:6px}
+.quiz label{display:block;padding:5px 8px;border-radius:6px;cursor:pointer;margin:2px 0}
+.quiz label:hover{background:var(--accent-soft)}
+.quiz label.right{background:var(--b-soft);outline:1px solid var(--ok)}
+.quiz label.wrong{background:var(--a-soft);outline:1px solid var(--bad)}
+.quiz .expl{font-size:14px;color:var(--muted);margin-top:6px;display:none}
+.quiz .qq.done .expl{display:block}
+.quiz .score{font-weight:700;font-size:17px;margin-top:8px}
+ul.check{list-style:none;padding-left:0}
+ul.check li{padding:4px 0}
+ul.check input{margin-right:8px;transform:scale(1.15)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin:12px 0}
+.card{perspective:800px;height:150px;cursor:pointer}
+.card .in{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
+.card.flip .in{transform:rotateY(180deg)}
+.card .fr,.card .bk{position:absolute;inset:0;backface-visibility:hidden;border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:14px;overflow:auto}
+.card .fr{background:var(--panel);font-weight:700;font-size:15.5px}
+.card .bk{background:var(--accent-soft);transform:rotateY(180deg)}
+.agenda td:first-child{white-space:nowrap;font-variant-numeric:tabular-nums}
+.drag-item{display:inline-block;padding:4px 10px;margin:3px;border:1px solid var(--line);border-radius:6px;background:var(--panel);cursor:grab;font-size:14px}
+.ok{color:var(--ok);font-weight:700}.bad{color:var(--bad);font-weight:700}
+footer{max-width:1320px;margin:0 auto;padding:0 18px 40px;color:var(--muted);font-size:13px}
+.pager{display:flex;justify-content:space-between;gap:10px;margin:12px 0}
+@media (max-width:900px){.layout{grid-template-columns:1fr}nav.toc{display:none}.grid2{grid-template-columns:1fr}.hero h1{font-size:27px}section.part{padding:6px 16px 16px}}
+@media print{header.top,nav.toc,.widget button,.lvl-filter{display:none!important}.layout{display:block}details{display:block}details>*{display:block!important}section.part{box-shadow:none;break-inside:auto}body{background:#fff}}
+</style>
+</head>
+<body data-session="01">
+<header class="top">
+  <div class="brand">IAA · Inteligență artificială aplicată<small>Ședința 1/7 · Curs + Seminar + Laborator</small></div>
+  <div class="lvl-filter" role="group" aria-label="Filtru nivel">
+    <button data-f="all" class="on">Toate nivelele</button>
+    <button data-f="b">Începător</button>
+    <button data-f="m">Mediu</button>
+    <button data-f="a">Avansat</button>
+    <button class="tbtn" id="themeBtn" title="Temă luminoasă / întunecată">Temă</button>
+    <button class="tbtn" id="printBtn" title="Tipărește (deschide toate soluțiile)">Tipărire</button>
+  </div>
+  <div class="progress"><i></i></div>
+</header>
+<div class="layout">
+<nav class="toc"><div class="tocprog"></div><div class="links"></div></nav>
+<main>
+<div class="hero">
+  <div class="kicker">Ședința 1 din 7 · Orele de curs 1–2 din 14 · Capitolul 1 din fișa disciplinei</div>
+  <h1>Agenți inteligenți și mediul lor de activitate</h1>
+  <p>Agenții inteligenți și mediul lor de activitate. Comportamentul calitativ al agenților. Determinarea tipului mediului de activitate. Structura unui agent inteligent. Agenți de căutare care acționează în regim operativ și în mediu necunoscut.</p>
+  <div class="meta">
+    <span class="chip">Curs: 2 ore</span><span class="chip">Laborator asociat: 2 ore (L1 din fișă)</span>
+    <span class="chip">Python 3 · AIMA-Python</span><span class="chip">Nivele: începător · mediu · avansat</span>
+  </div>
+</div>
+
+<section class="part">
+<h2>0. Cum folosiți acest material</h2>
+<p>Materialul reunește <b>cursul</b>, <b>seminarul</b> (exerciții rezolvate și problematizare) și <b>laboratorul</b> aferente primelor două ore din fișa disciplinei. Fiecare bloc are o etichetă de nivel. Cu butoanele din bara de sus puteți afișa doar nivelul dorit:</p>
+<ul>
+  <li><span class="badge b">Începător</span> – concepte, definiții, exemple intuitive; obligatoriu pentru toți (standardul minim de performanță).</li>
+  <li><span class="badge m">Mediu</span> – formalizare, algoritmi, implementare; nivelul țintă pentru nota 7–8.</li>
+  <li><span class="badge a">Avansat</span> – demonstrații, analiză de complexitate, extensii de cercetare; pregătire pentru proiect și nota 9–10.</li>
+</ul>
+<h3>Plan orientativ al ședinței</h3>
+<div class="tablewrap"><table class="agenda">
+<tr><th>Interval</th><th>Activitate</th><th>Metodă (cf. fișă)</th></tr>
+<tr><td>Săpt. 1 · 0–10 min</td><td>Problematizare: „Este un termostat inteligent? Dar un NPC dintr-un joc VR?”</td><td>Conversația, problematizarea</td></tr>
+<tr><td>10–50 min</td><td>Curs §1–§3: agent, raționalitate, PEAS, proprietățile mediului</td><td>Predare interactivă, sintetizare</td></tr>
+<tr><td>Lab 1 · 50 min</td><td>Lumea aspiratorului: agent reflex vs. agent cu model; clasificarea mediilor</td><td>Exercițiul, învățare prin cooperare</td></tr>
+<tr><td>Săpt. 2 · 0–50 min</td><td>Curs §4–§6: structura agenților, agenți de căutare, căutare online</td><td>Predare interactivă, exemple cu AI</td></tr>
+<tr><td>Lab 2 · 50 min</td><td>BFS / DFS / UCS / A* pe grilă; LRTA* în mediu necunoscut; evaluarea critică a unui cod generat de AI</td><td>Exercițiul, prompt engineering, testare</td></tr>
+</table></div>
+<h3>Obiective (corelate cu secțiunea 7 a fișei)</h3>
+<ul class="check">
+  <li><label><input type="checkbox">Pot defini un agent, funcția agentului și programul agentului.</label></li>
+  <li><label><input type="checkbox">Pot descrie un mediu de activitate prin PEAS și îl pot clasifica după cele 7 dimensiuni.</label></li>
+  <li><label><input type="checkbox">Pot compara cele 5 arhitecturi de agent (reflex, cu model, cu scop, cu utilitate, care învață).</label></li>
+  <li><label><input type="checkbox">Pot formula o problemă de căutare și aplica BFS, UCS, A*.</label></li>
+  <li><label><input type="checkbox">Pot explica diferența dintre căutarea offline și căutarea online (LRTA*).</label></li>
+</ul>
+</section>
+
+<section class="part">
+<h2>1. Curs<span class="tag">CURS</span></h2>
+
+<h3>1.1 Ce este un agent?</h3>
+<div class="lvl" data-lvl="b">
+<div class="def">Un <b>agent</b> este orice entitate care <b>percepe</b> mediul prin <b>senzori</b> și <b>acționează</b> asupra lui prin <b>efectori (actuatori)</b>.</div>
+<p>Exemple: un om (ochi, urechi → mâini, voce), un robot (camere, lidar → motoare), un program (fișiere, pachete de rețea, apăsări de taste → scriere pe ecran, trimitere de mesaje), un personaj autonom (NPC) dintr-un mediu virtual (poziția jucătorului, sunete, coliziuni → deplasare, dialog, animații).</p>
+<p>Ce primește agentul la un moment dat se numește <b>percepție</b>; tot ce a primit până acum este <b>secvența de percepții</b>. Comportamentul agentului este descris de <b>funcția agentului</b>, care asociază fiecărei secvențe de percepții o acțiune:</p>
+<div class="formula">f : P* → A</div>
+<p>Funcția agentului este o descriere <i>matematică</i>, abstractă. <b>Programul agentului</b> este implementarea ei concretă, care rulează pe o <b>arhitectură</b> (hardware + senzori + efectori). Pe scurt: <b>agent = arhitectură + program</b>.</p>
+</div>
+<div class="lvl" data-lvl="m">
+<p>De ce nu implementăm funcția agentului direct, ca tabel? Pentru că tabelul are câte o intrare pentru fiecare secvență posibilă de percepții. Cu |P| percepții posibile și o durată de viață de T pași, tabelul are</p>
+<div class="formula">Σ<sub>t=1..T</sub> |P|<sup>t</sup> intrări</div>
+<p>Pentru o cameră video modestă (|P| uriaș) și T de ordinul orelor, numărul depășește numărul de atomi din univers. Provocarea IA este să scriem <b>programe mici</b> care produc comportament rațional, nu tabele imense.</p>
+</div>
+
+<h3>1.2 Comportamentul calitativ: raționalitate</h3>
+<div class="lvl" data-lvl="b">
+<p>Un agent se comportă „bine” dacă secvența de stări ale mediului pe care o produce este dezirabilă. Dezirabilitatea este măsurată de o <b>măsură de performanță</b>, stabilită de proiectant, nu de agent.</p>
+<div class="def">Un <b>agent rațional</b> alege, pentru fiecare secvență de percepții, acțiunea care <b>maximizează valoarea așteptată a măsurii de performanță</b>, ținând cont de percepții și de cunoștințele sale anterioare.</div>
+<p>Raționalitatea depinde de patru lucruri: (1) măsura de performanță, (2) cunoștințele inițiale despre mediu, (3) acțiunile posibile, (4) secvența de percepții de până acum.</p>
+<div class="tip">Proiectați măsura de performanță după ce vreți să se întâmple <b>în mediu</b>, nu după cum credeți că ar trebui să se comporte agentul. Un aspirator recompensat pentru „cantitatea de praf aspirată” poate învăța să verse praful înapoi și să-l aspire din nou.</div>
+</div>
+<div class="lvl" data-lvl="m">
+<h4>Rațional ≠ omniscient ≠ infailibil</h4>
+<ul>
+<li><b>Omnisciența</b> ar presupune cunoașterea rezultatului real al acțiunilor – imposibil în lumi reale. Raționalitatea maximizează performanța <i>așteptată</i>.</li>
+<li><b>Colectarea de informații</b> (acțiuni care modifică percepțiile viitoare – „mă uit înainte să traversez”) face parte din comportamentul rațional.</li>
+<li><b>Învățarea</b>: agentul trebuie să învețe din percepții cât mai mult; un agent care se bazează doar pe cunoștințele proiectantului nu are <b>autonomie</b>.</li>
+</ul>
+</div>
+<div class="lvl" data-lvl="a">
+<h4>Problema specificării obiectivului (value alignment)</h4>
+<p>În IA modernă, măsura de performanță este rareori complet cunoscută. Russell (2019) propune ca agentul să fie <b>incert asupra obiectivului</b> și să deducă preferințele umane din comportament (<i>assistance games</i>, Inverse Reinforcement Learning cooperativ). Pentru proiect, reflectați: măsura voastră de performanță poate fi „păcălită” (<i>reward hacking</i>)? Ce efecte secundare nedorite pot apărea dacă este optimizată excesiv (legea lui Goodhart)?</p>
+</div>
+
+<h3>1.3 Mediul de activitate: PEAS și proprietățile mediului</h3>
+<div class="lvl" data-lvl="b">
+<p>Un mediu de activitate (task environment) se specifică prin <b>PEAS</b>:</p>
+<div class="tablewrap"><table>
+<tr><th>Agent</th><th>P – Performanță</th><th>E – Mediu</th><th>A – Actuatori</th><th>S – Senzori</th></tr>
+<tr><td>Taxi autonom</td><td>siguranță, timp, cost, confort, legalitate</td><td>drumuri, trafic, pietoni, vreme</td><td>volan, accelerație, frână, semnalizare, ecran</td><td>camere, lidar, radar, GPS, odometru</td></tr>
+<tr><td>NPC ghid într-un muzeu virtual</td><td>satisfacția vizitatorilor, timp de răspuns, acuratețe</td><td>scena 3D, vizitatori (avatare), exponate</td><td>deplasare, gesturi, voce sintetizată, evidențiere obiecte</td><td>poziția avatarelor, microfon (ASR), direcția privirii</td></tr>
+<tr><td>Robot de sortare</td><td>% obiecte sortate corect</td><td>bandă transportoare, cutii</td><td>braț articulat, gheară</td><td>cameră, senzori de unghi</td></tr>
+</table></div>
+<h4>Cele 7 dimensiuni ale mediului</h4>
+<div class="tablewrap"><table>
+<tr><th>Dimensiune</th><th>Valori</th><th>Întrebarea-cheie</th></tr>
+<tr><td>Observabilitate</td><td>complet / parțial / neobservabil</td><td>Senzorii dau acces la toată starea relevantă?</td></tr>
+<tr><td>Agenți</td><td>unul / mai mulți (competitiv, cooperant)</td><td>Există alte entități a căror performanță depinde de a mea?</td></tr>
+<tr><td>Determinism</td><td>determinist / nedeterminist / stochastic</td><td>Starea următoare e complet determinată de stare + acțiune?</td></tr>
+<tr><td>Episodic</td><td>episodic / secvențial</td><td>Decizia curentă influențează deciziile viitoare?</td></tr>
+<tr><td>Dinamică</td><td>static / dinamic / semidinamic</td><td>Se schimbă mediul cât timp agentul deliberează?</td></tr>
+<tr><td>Continuitate</td><td>discret / continuu</td><td>Stări, timp, percepții, acțiuni – mulțimi finite sau continue?</td></tr>
+<tr><td>Cunoaștere</td><td>cunoscut / necunoscut</td><td>Agentul (proiectantul) cunoaște „legile fizicii” mediului?</td></tr>
+</table></div>
+<p>Cel mai dificil caz: <b>parțial observabil, multi-agent, stochastic, secvențial, dinamic, continuu, necunoscut</b> – exact cazul taxiului autonom sau al unui agent într-un mediu virtual multi-utilizator.</p>
+</div>
+<div class="lvl" data-lvl="m">
+<div class="note">„Cunoscut/necunoscut” se referă la starea de cunoaștere a agentului despre <b>regulile</b> mediului, nu la mediu. Un mediu cunoscut poate fi parțial observabil (solitaire: știu regulile, nu văd cărțile întoarse); un mediu necunoscut poate fi complet observabil (un joc video nou: văd tot ecranul, dar nu știu ce fac butoanele).</div>
+<p>Distincția <b>nedeterminist</b> vs. <b>stochastic</b>: un model nedeterminist enumeră rezultatele posibile ale unei acțiuni; un model stochastic le atașează și probabilități.</p>
+</div>
+
+<div class="widget" id="envw">
+  <div class="wtitle">Exercițiu interactiv: clasificați mediile de activitate</div>
+  <p style="font-size:14px;margin:0 0 6px">Alegeți valoarea fiecărei proprietăți, apoi apăsați „Verifică”. Răspunsurile de referință urmează Russell &amp; Norvig (fig. 2.6); unele celule sunt discutabile – argumentați!</p>
+  <div class="tablewrap" id="envTable"></div>
+  <div class="ctrl"><button id="envCheck">Verifică</button><button class="sec" id="envShow">Arată răspunsurile</button><span id="envRes"></span></div>
+</div>
+
+<h3>1.4 Structura unui agent inteligent</h3>
+<div class="lvl" data-lvl="b">
+<p>Există cinci tipuri de bază de programe-agent, în ordinea crescătoare a generalității:</p>
+<ol>
+<li><b>Agent reflex simplu</b> – reguli <i>condiție → acțiune</i> aplicate percepției curente. Funcționează corect doar dacă mediul este complet observabil.</li>
+<li><b>Agent reflex bazat pe model</b> – păstrează o <b>stare internă</b> actualizată cu un <i>model de tranziție</i> (cum evoluează lumea, ce fac acțiunile mele) și un <i>model senzorial</i> (cum se reflectă lumea în percepții).</li>
+<li><b>Agent bazat pe scop</b> – știe ce stări sunt dezirabile (scopuri) și caută/planifică secvențe de acțiuni pentru a le atinge.</li>
+<li><b>Agent bazat pe utilitate</b> – o funcție de utilitate U(s) ordonează stările; alege acțiunea cu <b>utilitate așteptată maximă</b>. Necesar când scopurile sunt în conflict sau incerte.</li>
+<li><b>Agent care învață</b> – element de performanță + critic + element de învățare + generator de probleme (explorare).</li>
+</ol>
+</div>
+<div class="lvl" data-lvl="m">
+<pre class="code" data-lang="python">
+def simple_reflex_agent_program(rules, interpret_input):
+    def program(percept):
+        state = interpret_input(percept)          # abstractizează percepția
+        rule = next(r for r in rules if r.matches(state))
+        return rule.action
+    return program
+
+def model_based_agent_program(rules, update_state, transition_model, sensor_model):
+    state, last_action = None, None
+    def program(percept):
+        nonlocal state, last_action
+        state = update_state(state, last_action, percept, transition_model, sensor_model)
+        rule = next(r for r in rules if r.matches(state))
+        last_action = rule.action
+        return last_action
+    return program
+</pre>
+<p><b>Agentul bazat pe utilitate</b> alege <code>argmax<sub>a</sub> Σ<sub>s'</sub> P(s' | s, a) · U(s')</code>. Agenții de căutare din §1.5 sunt agenți bazați pe scop, cu reprezentare <b>atomică</b> a stărilor.</p>
+</div>
+<div class="lvl" data-lvl="a">
+<h4>Reprezentări ale stării: atomică → factorizată → structurată</h4>
+<ul>
+<li><b>Atomică</b>: starea este o „cutie neagră” (un nume). Căutare, jocuri, MDP-uri simple.</li>
+<li><b>Factorizată</b>: starea este un vector de variabile/atribute. CSP, logică propozițională, <b>planificare (ședințele 2–4)</b>, rețele bayesiene, <b>algoritmi genetici (cromozomul ca vector, ședințele 4–6)</b>.</li>
+<li><b>Structurată</b>: obiecte și relații. Logică de ordinul I, PDDL cu variabile, grafuri de cunoștințe.</li>
+</ul>
+<p>Expresivitatea crescută permite descrieri mult mai compacte, dar raționamentul devine mai costisitor. Alegerea reprezentării este prima decizie de proiectare în proiectul vostru.</p>
+<p><b>Sisteme multi-agent (SMA).</b> În medii virtuale distribuite, agenții comunică prin limbaje standard (FIPA-ACL: <i>inform, request, propose, cfp</i>). Platforma <b>JADE</b> (Bellifemine et al., 2007) implementează standardul FIPA în Java: agenți cu <i>behaviours</i>, pagini galbene (DF), protocoale de interacțiune (Contract Net). Revenim la agenți cooperanți la planificarea multi-agent (ședința 4).</p>
+</div>
+
+<h3>1.5 Agenți de căutare (rezolvarea problemelor prin căutare)</h3>
+<div class="lvl" data-lvl="b">
+<p>Un agent bazat pe scop, într-un mediu <b>complet observabil, determinist, cunoscut, discret</b>, poate calcula <i>înainte de a acționa</i> o secvență de acțiuni care îl duce la scop. Pașii: <b>formularea scopului → formularea problemei → căutare → execuție</b>.</p>
+<div class="def">O <b>problemă de căutare</b> este definită de: starea inițială s<sub>0</sub>; ACTIONS(s); modelul de tranziție RESULT(s, a); testul de scop IS-GOAL(s); costul acțiunii c(s, a, s'). O <b>soluție</b> este un drum de la s<sub>0</sub> la o stare-scop; soluția <b>optimă</b> are cost minim.</div>
+<p>Algoritmii construiesc un <b>arbore de căutare</b> peste graful stărilor. <b>Frontiera</b> conține nodurile generate, dar neexpandate; strategia de căutare = ordinea în care alegem din frontieră.</p>
+<div class="tablewrap"><table>
+<tr><th>Algoritm</th><th>Frontiera</th><th>Complet?</th><th>Optim?</th><th>Timp / Memorie</th></tr>
+<tr><td>BFS (lățime)</td><td>coadă FIFO</td><td>da (b finit)</td><td>da, dacă toate costurile sunt egale</td><td>O(b<sup>d</sup>) / O(b<sup>d</sup>)</td></tr>
+<tr><td>DFS (adâncime)</td><td>stivă LIFO</td><td>nu (spații infinite / cicluri)</td><td>nu</td><td>O(b<sup>m</sup>) / O(bm)</td></tr>
+<tr><td>UCS (cost uniform, Dijkstra)</td><td>coadă de priorități după g(n)</td><td>da (costuri ≥ ε &gt; 0)</td><td>da</td><td>O(b<sup>1+⌊C*/ε⌋</sup>)</td></tr>
+<tr><td>Greedy best-first</td><td>prioritate h(n)</td><td>nu (în arbore)</td><td>nu</td><td>O(b<sup>m</sup>), bun în practică</td></tr>
+<tr><td>A*</td><td>prioritate f(n) = g(n) + h(n)</td><td>da</td><td>da, dacă h este admisibilă (consistentă la căutarea în graf)</td><td>exponențial în cel mai rău caz</td></tr>
+</table></div>
+<p style="font-size:14px">b = factorul de ramificare, d = adâncimea soluției celei mai puțin adânci, m = adâncimea maximă, C* = costul soluției optime.</p>
+</div>
+<div class="lvl" data-lvl="m">
+<h4>Euristici admisibile și consistente</h4>
+<ul>
+<li><b>Admisibilă</b>: h(n) ≤ h*(n) pentru orice n (nu supraestimează costul real rămas).</li>
+<li><b>Consistentă (monotonă)</b>: h(n) ≤ c(n, a, n') + h(n') și h(scop) = 0. Consistența implică admisibilitatea; cu ea, f este nedescrescătoare pe orice drum.</li>
+</ul>
+<p>Pe grilă cu 4 direcții: distanța <b>Manhattan</b> |Δx| + |Δy| este consistentă; cu 8 direcții și cost √2 pe diagonală – distanța <b>octilă</b>. Euclidiana este admisibilă în ambele cazuri, dar mai puțin informată.</p>
+<p><b>Dominanță</b>: dacă h<sub>2</sub>(n) ≥ h<sub>1</sub>(n) pentru orice n și ambele sunt admisibile, A* cu h<sub>2</sub> nu expandează niciodată mai multe noduri (până la departajări) decât cu h<sub>1</sub>. Euristici bune se obțin din <b>probleme relaxate</b> (eliminăm restricții) – idee reluată la planificare (ședința 2).</p>
+</div>
+<div class="lvl" data-lvl="a">
+<h4>Schiță de demonstrație: optimalitatea A* (căutare în graf, h consistentă)</h4>
+<ol>
+<li>Dacă h este consistentă, valorile f de-a lungul oricărui drum sunt nedescrescătoare: f(n') = g(n) + c + h(n') ≥ g(n) + h(n) = f(n).</li>
+<li>Când A* extrage un nod n din frontieră, drumul optim până la n a fost deja găsit. (Altfel, există pe drumul optim un nod n'' în frontieră cu f(n'') ≤ f(n), contradicție cu ordinea de extragere – departajare tratată separat.)</li>
+<li>Deci nodurile sunt expandate în ordinea nedescrescătoare a lui f; primul nod-scop extras are f = g = C*.</li>
+</ol>
+<p><b>Eficiența optimă</b>: orice algoritm care extinde drumuri de la rădăcină și folosește aceeași h trebuie să expandeze toate nodurile cu f(n) &lt; C*. A* nu expandează niciun nod cu f(n) &gt; C* (<i>pruning</i>).</p>
+<p><b>Variante cu memorie limitată</b>: IDA* (adâncire iterativă pe pragul f), RBFS, SMA*. <b>Weighted A*</b> (f = g + w·h, w &gt; 1) găsește soluții de cost ≤ w·C*, mult mai repede – des folosit în jocuri și robotică.</p>
+</div>
+
+<h3>1.6 Agenți de căutare în regim operativ (online) și în mediu necunoscut</h3>
+<div class="lvl" data-lvl="b">
+<p>Până acum agentul <b>calcula întregul plan offline</b>, apoi îl executa „cu ochii închiși”. Asta nu mai merge când:</p>
+<ul>
+<li>mediul este <b>necunoscut</b> (nu știm RESULT(s, a) până nu încercăm acțiunea) – ex.: un robot într-o clădire necartografiată, un NPC într-o lume generată procedural;</li>
+<li>mediul este <b>dinamic</b> și nu ne permitem să deliberăm mult (penalizare pentru timp);</li>
+<li>mediul este <b>nedeterminist</b>: trebuie să vedem ce s-a întâmplat înainte de pasul următor.</li>
+</ul>
+<p>Un <b>agent de căutare online</b> <b>intercalează calculul și acțiunea</b>: acționează, observă starea rezultată, își actualizează cunoștințele și abia apoi decide pasul următor.</p>
+</div>
+<div class="lvl" data-lvl="m">
+<h4>Ce știe un agent online</h4>
+<p>Doar: ACTIONS(s) pentru starea curentă, costul c(s, a, s') – aflat <i>după</i> ce ajunge în s' –, IS-GOAL(s) și, eventual, o euristică admisibilă h(s). Calitatea se măsoară prin <b>raportul competitiv</b> = costul drumului parcurs efectiv / costul drumului optim (dacă mediul ar fi fost cunoscut).</p>
+<h4>Dificultăți</h4>
+<ul>
+<li><b>Fundături (dead ends)</b>: acțiuni ireversibile (o rampă pe care nu mai poți urca înapoi). Niciun algoritm nu le poate evita în toate spațiile – argument cu adversar.</li>
+<li>Presupunem de obicei un spațiu <b>sigur de explorat</b> (safely explorable): din orice stare accesibilă se poate ajunge la scop.</li>
+<li>Algoritmii care „sar” între noduri ale frontierei (A*) nu sunt potriviți: agentul ar trebui să se deplaseze fizic până acolo. Sunt preferați algoritmii <b>locali</b>: DFS online (cu revenire fizică), <b>LRTA*</b>.</li>
+</ul>
+<h4>LRTA* (Learning Real-Time A*)</h4>
+<p>Agentul păstrează un tabel H(s), inițializat cu h(s). La fiecare pas:</p>
+<div class="formula">H(s<sub>prev</sub>) ← min<sub>b</sub> [ c(s<sub>prev</sub>, b, s') + H(s') ];&nbsp;&nbsp; a ← argmin<sub>b</sub> [ c(s, b, s') + H(s') ]</div>
+<p>Acțiunile neîncercate încă sunt evaluate optimist (cu h(s)) – <b>optimism în fața incertitudinii</b>, care încurajează explorarea. LRTA* este complet în spații finite, sigur de explorat, și, rulat repetat, converge spre drumul optim (H converge la h* pe drumul optim).</p>
+</div>
+<div class="lvl" data-lvl="a">
+<h4>Rezultate teoretice și legături</h4>
+<ul>
+<li>Pentru DFS online, într-un spațiu sigur de explorat cu acțiuni reversibile, fiecare muchie este traversată de cel mult două ori; dar raportul competitiv poate fi <b>arbitrar de mare</b> (scopul e aproape, dar agentul pleacă într-o explorare lungă).</li>
+<li>O „plimbare aleatoare” este completă în spații finite sigure, dar poate avea cost exponențial (exemplul „lanțului” în care probabilitatea de a avansa scade).</li>
+<li>LRTA* este un caz particular al ideii de <b>învățare a funcției valoare</b>; în medii stochastice generalizarea este <i>Real-Time Dynamic Programming</i> și, mai departe, învățarea prin întărire (Q-learning).</li>
+<li>Planificarea cu <b>replanificare</b> (D* Lite, folosit pe roverele marțiene) reutilizează calculele anterioare când harta se modifică – foarte relevant pentru agenți în medii virtuale dinamice.</li>
+</ul>
+</div>
+</section>
+
+<section class="part">
+<h2>2. Seminar<span class="tag">SEMINAR</span></h2>
+<p>Exercițiile se lucrează în echipe de 2–3 studenți (învățare prin cooperare). Încercați întâi singuri, apoi deschideți soluția.</p>
+
+<div class="ex lvl" data-lvl="b">
+<div class="exh">S1.1 – PEAS pentru trei agenți</div>
+<p>Descrieți PEAS pentru: (a) un asistent de rezervări bazat pe chat; (b) un dron care inspectează turbinele eoliene din Dobrogea; (c) un adversar automat într-un joc de șah online.</p>
+<details><summary>Soluție propusă</summary>
+<div class="tablewrap"><table>
+<tr><th></th><th>P</th><th>E</th><th>A</th><th>S</th></tr>
+<tr><td>(a)</td><td>rezervări corecte, timp scurt, satisfacție, fără date personale expuse</td><td>utilizatori, baza de date a hotelurilor, sistem de plăți</td><td>mesaje text, interogări/actualizări BD</td><td>text introdus, răspunsuri API</td></tr>
+<tr><td>(b)</td><td>defecte detectate corect, durata misiunii, consum baterie, siguranță</td><td>parc eolian, vânt, păsări, alte drone</td><td>rotoare, gimbal cameră, transmisie radio</td><td>camere RGB/termice, GPS, IMU, anemometru</td></tr>
+<tr><td>(c)</td><td>rata de victorii, timp pe mutare, „distracția” jucătorului</td><td>tabla, adversarul uman, ceasul</td><td>mutări</td><td>poziția curentă, timpul rămas</td></tr>
+</table></div></details>
+</div>
+
+<div class="ex lvl" data-lvl="b">
+<div class="exh">S1.2 – Adevărat sau fals? Argumentați.</div>
+<ol>
+<li>Un agent care percepe doar parțial starea nu poate fi perfect rațional.</li>
+<li>Există medii în care un agent reflex simplu este perfect rațional.</li>
+<li>Un agent care alege acțiuni aleatoare poate fi rațional.</li>
+<li>Un mediu complet observabil este întotdeauna determinist.</li>
+</ol>
+<details><summary>Soluție</summary>
+<ol>
+<li><b>Fals.</b> Raționalitatea se raportează la percepțiile disponibile; agentul face tot ce se poate cu ele.</li>
+<li><b>Adevărat.</b> De exemplu, lumea aspiratorului cu 2 camere, complet observabilă local, fără penalizare pentru deplasări.</li>
+<li><b>Adevărat.</b> În mediile în care orice acțiune este la fel de bună, sau când randomizarea evită ciclurile (agentul reflex care se blochează) ori exploatarea de către un adversar (piatră-hârtie-foarfecă).</li>
+<li><b>Fals.</b> Zarul este complet observabil după aruncare, dar rezultatul acțiunii „aruncă” este stochastic.</li>
+</ol></details>
+</div>
+
+<div class="ex lvl" data-lvl="m">
+<div class="exh">S1.3 – Problematizare: când eșuează agentul reflex?</div>
+<p>În lumea aspiratorului cu 2 camere, penalizăm fiecare deplasare cu −1 și recompensăm fiecare cameră curățată cu +10. (a) Este agentul reflex simplu rațional? (b) Ce agent ar fi rațional? (c) Ce se schimbă dacă murdăria reapare aleator cu probabilitatea p la fiecare pas?</p>
+<details><summary>Soluție</summary>
+<p>(a) Nu: după ce ambele camere sunt curate, oscilează la infinit și pierde 1 punct la fiecare pas. (b) Un agent cu model care reține că ambele camere sunt curate și execută <code>NoOp</code>. (c) Cu p &gt; 0, a sta pe loc la nesfârșit nu mai e rațional: murdăria reapare. Agentul ar trebui să revină periodic, la un interval care depinde de p și de costul deplasării (decizie de tip utilitate). Experimentul din laborator (L1) confirmă: pentru p = 0 agentul cu model câștigă clar, dar pentru p = 0,1 și p = 0,3 agentul reflex obține un scor mediu mai mare – modelul „totul e curat pentru totdeauna” a devenit fals.</p></details>
+</div>
+
+<div class="ex lvl" data-lvl="m">
+<div class="exh">S1.4 – A* „de mână” pe o hartă a Dobrogei</div>
+<p>Distanțele sunt <i>ilustrative</i> (nu sunt distanțe rutiere exacte). Pornim din <b>Cernavodă</b>, scopul este <b>Tulcea</b>. Euristica h = distanța în linie dreaptă până la Tulcea.</p>
+<div class="grid2">
+<div class="tablewrap"><table>
+<tr><th>Drum</th><th>km</th></tr>
+<tr><td>Cernavodă – Medgidia</td><td>25</td></tr><tr><td>Cernavodă – Hârșova</td><td>50</td></tr>
+<tr><td>Hârșova – Tulcea</td><td>100</td></tr><tr><td>Medgidia – Babadag</td><td>80</td></tr>
+<tr><td>Medgidia – Constanța</td><td>40</td></tr><tr><td>Medgidia – Negru Vodă</td><td>40</td></tr>
+<tr><td>Constanța – Babadag</td><td>90</td></tr><tr><td>Constanța – Mangalia</td><td>45</td></tr>
+<tr><td>Mangalia – Negru Vodă</td><td>35</td></tr><tr><td>Babadag – Tulcea</td><td>35</td></tr>
+</table></div>
+<div class="tablewrap"><table>
+<tr><th>Oraș</th><th>h (km)</th></tr>
+<tr><td>Cernavodă</td><td>105</td></tr><tr><td>Medgidia</td><td>100</td></tr><tr><td>Hârșova</td><td>80</td></tr>
+<tr><td>Constanța</td><td>105</td></tr><tr><td>Babadag</td><td>30</td></tr><tr><td>Negru Vodă</td><td>140</td></tr>
+<tr><td>Mangalia</td><td>145</td></tr><tr><td>Tulcea</td><td>0</td></tr>
+</table></div></div>
+<p>(a) Rulați A* și scrieți ordinea expandării cu valorile f. (b) Rulați Greedy best-first. (c) Ce drum ar fi returnat A* dacă testul de scop s-ar face la <i>generarea</i> nodului, nu la extragerea lui? (d) Verificați că h este consistentă.</p>
+<details><summary>Soluție</summary>
+<div class="tablewrap"><table>
+<tr><th>Pas</th><th>Expandează</th><th>g</th><th>f = g + h</th><th>Frontiera după expandare (f)</th></tr>
+<tr><td>1</td><td>Cernavodă</td><td>0</td><td>105</td><td>Medgidia 125, Hârșova 130</td></tr>
+<tr><td>2</td><td>Medgidia</td><td>25</td><td>125</td><td>Hârșova 130, Babadag 135, Constanța 170, Negru Vodă 205</td></tr>
+<tr><td>3</td><td>Hârșova</td><td>50</td><td>130</td><td>Babadag 135, <b>Tulcea 150</b>, Constanța 170, Negru Vodă 205</td></tr>
+<tr><td>4</td><td>Babadag</td><td>105</td><td>135</td><td><b>Tulcea 140</b> (drum mai bun, înlocuiește 150), Constanța 170, …</td></tr>
+<tr><td>5</td><td>Tulcea</td><td>140</td><td>140</td><td>STOP – drum optim</td></tr>
+</table></div>
+<p><b>A*:</b> Cernavodă → Medgidia → Babadag → Tulcea, cost 140. (b) <b>Greedy:</b> Cernavodă → Hârșova (h = 80) → Tulcea, cost 150 – suboptimal. (c) La pasul 3 se generează Tulcea cu g = 150; un test la generare ar fi oprit căutarea cu drumul de cost <b>150</b>. Acesta este exact unul dintre defectele codului „generat de AI” din laborator. (d) Se verifică h(n) ≤ c(n, n') + h(n') pentru fiecare muchie, de ex. h(Cernavodă) = 105 ≤ 50 + 80 = 130 ✓, h(Medgidia) = 100 ≤ 80 + 30 ✓.</p>
+</details>
+</div>
+
+<div class="ex lvl" data-lvl="a">
+<div class="exh">S1.5 – Euristică admisibilă, dar inconsistentă</div>
+<p>(a) Construiți un graf cu 4 noduri și o euristică admisibilă, dar inconsistentă, pentru care A* <b>în graf</b> (cu mulțime de noduri închise, fără redeschidere) întoarce o soluție suboptimă. (b) Cum se repară algoritmul?</p>
+<details><summary>Soluție</summary>
+<p>Noduri S, A, B, G. Muchii: S–A cost 1, A–B cost 1, S–B cost 3, B–G cost 3. Euristica: h(S) = 0, h(A) = 4, h(B) = 0, h(G) = 0. Costurile reale până la G: h*(B) = 3, h*(A) = 4, h*(S) = 5 – deci h este admisibilă. Este inconsistentă pe muchia A–B: h(A) = 4 &gt; c(A, B) + h(B) = 1.</p>
+<div class="tablewrap"><table>
+<tr><th>Pas</th><th>Extrage</th><th>Acțiune</th><th>Frontiera (f)</th></tr>
+<tr><td>1</td><td>S (g = 0)</td><td>generează A (g = 1, f = 5), B (g = 3, f = 3)</td><td>B 3, A 5</td></tr>
+<tr><td>2</td><td>B (g = 3)</td><td>B se închide; generează G (g = 6, f = 6)</td><td>A 5, G 6</td></tr>
+<tr><td>3</td><td>A (g = 1)</td><td>găsește B cu g = 2 &lt; 3, dar B e închis → ignorat</td><td>G 6</td></tr>
+<tr><td>4</td><td>G (g = 6)</td><td>STOP</td><td>–</td></tr>
+</table></div>
+<p>Rezultat: cost 6, deși drumul S–A–B–G costă 5.</p>
+<p>(b) Fie folosim o euristică consistentă (sau corecția <i>pathmax</i>: f(n') = max(f(n), g(n') + h(n'))), fie permitem <b>redeschiderea</b> nodurilor închise când găsim un g mai mic. În codul din laborator (L1.2), redeschiderea înseamnă să adăugați <code>closed.discard(s2)</code> în ramura <code>if s2 not in g or g2 &lt; g[s2]</code>; cu euristica Manhattan (consistentă) nu este necesară.</p>
+</details>
+</div>
+
+<div class="ex lvl" data-lvl="a">
+<div class="exh">S1.6 – Adversarul căutării online</div>
+<p>Arătați că niciun agent online nu poate garanta un raport competitiv mărginit în spații cu fundături.</p>
+<details><summary>Soluție (schiță)</summary><p>Considerăm două spații de stări identice până într-o stare s, unde există acțiunile x și y. În primul spațiu, x duce la scop și y într-o fundătură; în al doilea invers. Agentul nu le poate distinge înainte să aleagă. Orice algoritm determinist alege aceeași acțiune în ambele; adversarul construiește spațiul în care acea alegere duce în fundătură → cost infinit, în timp ce optimul este finit. Pentru algoritmi randomizați, adversarul obține eșec cu probabilitate ≥ 1/2.</p></details>
+</div>
+
+<div class="lvl" data-lvl="b m a">
+<h3>Discuție ghidată (conversația, problematizarea)</h3>
+<ol>
+<li>Un LLM (ChatGPT, Claude, Copilot) este un agent? Care îi sunt senzorii, efectorii și măsura de performanță? Este mediul lui episodic sau secvențial?</li>
+<li>Ce ar însemna un „agent rațional” pentru un NPC dintr-un joc? Este de dorit ca un adversar dintr-un joc să fie <i>perfect</i> rațional?</li>
+<li>Ce dimensiuni ale mediului se schimbă când trecem de la o simulare VR cu un singur utilizator la una distribuită, multi-utilizator?</li>
+</ol>
+</div>
+</section>
+
+<section class="part">
+<h2>3. Laborator<span class="tag">LABORATOR</span></h2>
+<p>Corespunde punctului 1 din secțiunea 8.2 a fișei: <i>implementarea unor agenți reactivi și a unor agenți de căutare (BFS, DFS, A*) în medii de tip grilă; analiza tipului mediului de activitate</i>. Mediu de lucru: Python ≥ 3.10; opțional depozitul <a href="https://github.com/aimacode/aima-python" target="_blank" rel="noopener">aima-python</a> (fișierele <code>agents.py</code>, <code>search.py</code>).</p>
+
+<h3>3.1 Simulator: lumea aspiratorului</h3>
+<div class="widget" id="vacw">
+  <div class="wtitle">Agent reflex vs. agent bazat pe model</div>
+  <div class="ctrl">
+    Camere: <select id="vacN"><option>2</option><option selected>4</option><option>6</option></select>
+    Agent: <select id="vacA"><option value="reflex">reflex simplu</option><option value="model">bazat pe model</option><option value="random">aleator</option></select>
+    Prob. reapariție murdărie: <select id="vacP"><option value="0">0</option><option value="0.05">0,05</option><option value="0.2">0,2</option></select>
+    <button id="vacStep">Pas</button><button id="vacRun">Rulează 30 pași</button><button class="sec" id="vacReset">Reset</button>
+  </div>
+  <canvas id="vacCv" width="720" height="140"></canvas>
+  <div class="stats"><span>Pas: <b id="vacT">0</b></span><span>Scor: <b id="vacS">0</b></span><span>(+10 cameră curățată, −1 deplasare)</span></div>
+  <div class="out" id="vacLog"></div>
+</div>
+<p style="font-size:14px">Agentul reflex de aici, pentru n &gt; 2 camere, „merge înainte până la perete, apoi se întoarce”. Observați că un agent reflex fără memorie <b>nu poate</b> ști în ce direcție mergea – de aceea are nevoie de un bit de stare (direcția), adică devine deja un agent cu model minimal. Discutați!</p>
+
+<div class="lvl" data-lvl="b">
+<h4>L1.1 – Agentul reactiv în Python</h4>
+<p>Rulați scriptul, apoi răspundeți: (1) Ce scor mediu obține fiecare agent pentru p_dirt = 0? (2) Dar pentru p_dirt = 0,1 și 0,3? Explicați inversarea clasamentului. (3) Modificați măsura de performanță: −2 pentru deplasare. Se schimbă concluzia?</p>
+<pre class="code" data-lang="python">
+"""Lumea aspiratorului (Russell &amp; Norvig, cap. 2) – agent reflex simplu vs. agent bazat pe model.
+Rulare: python s01_vacuum.py"""
+import random
+
+class VacuumWorld:
+    """Mediu cu n camere pe o linie. Murdăria poate reapărea cu probabilitatea p_dirt."""
+    def __init__(self, n=2, p_dirt=0.0, seed=0):
+        self.rng = random.Random(seed)
+        self.n, self.p_dirt = n, p_dirt
+        self.dirty = [self.rng.random() &lt; 0.5 for _ in range(n)]
+        self.pos = self.rng.randrange(n)
+        self.score = 0
+
+    def percept(self):                      # observabilitate parțială: doar camera curentă
+        return self.pos, self.dirty[self.pos]
+
+    def execute(self, action):
+        if action == "Suck":
+            if self.dirty[self.pos]:
+                self.score += 10            # măsura de performanță: +10 pentru fiecare cameră curățată
+            self.dirty[self.pos] = False
+        elif action == "Left" and self.pos &gt; 0:
+            self.pos -= 1; self.score -= 1  # -1 pentru fiecare deplasare (consum de energie)
+        elif action == "Right" and self.pos &lt; self.n - 1:
+            self.pos += 1; self.score -= 1
+        for i in range(self.n):             # mediu dinamic: murdăria poate reapărea
+            if self.rng.random() &lt; self.p_dirt:
+                self.dirty[i] = True
+
+def simple_reflex_agent(percept):
+    """Regulă condiție-acțiune: decide DOAR pe baza percepției curente."""
+    pos, dirty = percept
+    if dirty:
+        return "Suck"
+    return "Right" if pos == 0 else "Left"   # pentru n = 2
+
+class ModelBasedAgent:
+    """Păstrează o stare internă (ce camere știe că sunt curate) și se oprește când totul e curat."""
+    def __init__(self, n):
+        self.known_clean = [False] * n
+        self.direction = "Right"
+    def __call__(self, percept):
+        pos, dirty = percept
+        if dirty:
+            self.known_clean[pos] = True
+            return "Suck"
+        self.known_clean[pos] = True
+        if all(self.known_clean):
+            return "NoOp"                    # nu mai consumă energie inutil
+        n = len(self.known_clean)
+        if pos == n - 1: self.direction = "Left"
+        if pos == 0: self.direction = "Right"
+        return self.direction
+
+def run(agent, env, steps=20, verbose=False):
+    for t in range(steps):
+        p = env.percept()
+        a = agent(p)
+        env.execute(a)
+        if verbose:
+            print(f"t={t:2d} percepție={p} acțiune={a:5s} scor={env.score}")
+    return env.score
+
+if __name__ == "__main__":
+    for p_dirt in (0.0, 0.05):
+        r1 = sum(run(simple_reflex_agent, VacuumWorld(2, p_dirt, s)) for s in range(100)) / 100
+        r2 = sum(run(ModelBasedAgent(2), VacuumWorld(2, p_dirt, s)) for s in range(100)) / 100
+        print(f"p_dirt={p_dirt:.2f}  reflex simplu: {r1:6.2f}   bazat pe model: {r2:6.2f}")</pre>
+<details><summary>Rezultate de referință</summary><p>Pentru 100 de rulări a câte 20 de pași: p = 0 → reflex −8,45, model +9,50; p = 0,05 → 14,43 vs 19,50; p = 0,1 → 35,33 vs 29,50; p = 0,3 → 88,90 vs 67,60. Când mediul devine dinamic, modelul „odată curat, mereu curat” este greșit, iar agentul cu model rămâne pe loc în timp ce murdăria reapare.</p></details>
+</div>
+
+<h3>3.2 Simulator: căutare pe grilă (BFS, DFS, UCS, Greedy, A*, LRTA*)</h3>
+<div class="widget" id="gridw">
+  <div class="wtitle">Vizualizator de căutare – click: zid · Shift+click: mlaștină (cost 5) · trageți S și G pentru a le muta</div>
+  <div class="ctrl">
+    Algoritm: <select id="gAlg"><option value="bfs">BFS</option><option value="dfs">DFS</option><option value="ucs">UCS (Dijkstra)</option><option value="greedy">Greedy best-first</option><option value="astar" selected>A* (Manhattan)</option><option value="wastar">Weighted A* (w = 2)</option><option value="lrta">LRTA* online (mediu necunoscut)</option></select>
+    Viteză: <input type="range" id="gSpeed" min="1" max="60" value="20">
+    <button id="gRun">Pornește</button><button class="sec" id="gClearS">Șterge căutarea</button><button class="sec" id="gMaze">Labirint aleator</button><button class="sec" id="gClear">Grilă goală</button>
+  </div>
+  <canvas id="gCv" width="760" height="380"></canvas>
+  <div class="stats"><span>Noduri expandate: <b id="gExp">0</b></span><span>Lungime drum (pași): <b id="gLen">–</b></span><span>Cost drum: <b id="gCost">–</b></span><span id="gNote"></span></div>
+</div>
+
+<div class="lvl" data-lvl="m">
+<h4>L1.2 – Agenți de căutare pe grilă</h4>
+<p>Codul de mai jos formulează problema (clasa <code>GridProblem</code>) și implementează BFS, DFS și o schemă generală <i>best-first</i> din care obținem UCS, Greedy și A*.</p>
+<pre class="code" data-lang="python">
+"""Agenți de căutare pe grilă: BFS, DFS, UCS, Greedy și A*.
+'#' = zid, '~' = mlaștină (cost 5), 'S' = start, 'G' = țintă.  Rulare: python s01_grid_search.py"""
+import heapq
+from collections import deque
+
+GRID = """
+S....#........
+.##..#..~~~...
+..#..#..~~~.#.
+..#.....~~~.#.
+..####..#...#.
+.....#..#..##G
+""".strip().splitlines()
+
+class GridProblem:
+    """Formularea problemei: stare inițială, acțiuni, model de tranziție, test de scop, cost."""
+    MOVES = {"N": (-1, 0), "S": (1, 0), "V": (0, -1), "E": (0, 1)}
+    def __init__(self, grid):
+        self.grid = grid
+        self.R, self.C = len(grid), len(grid[0])
+        for r, row in enumerate(grid):
+            for c, ch in enumerate(row):
+                if ch == "S": self.initial = (r, c)
+                if ch == "G": self.goal = (r, c)
+    def actions(self, s):
+        r, c = s
+        for a, (dr, dc) in self.MOVES.items():
+            nr, nc = r + dr, c + dc
+            if 0 &lt;= nr &lt; self.R and 0 &lt;= nc &lt; self.C and self.grid[nr][nc] != "#":
+                yield a, (nr, nc)
+    def cost(self, s, a, s2):
+        return 5 if self.grid[s2[0]][s2[1]] == "~" else 1
+    def is_goal(self, s):
+        return s == self.goal
+    def h(self, s):                       # distanța Manhattan: admisibilă și consistentă (cost minim pe pas = 1)
+        return abs(s[0] - self.goal[0]) + abs(s[1] - self.goal[1])
+
+def path_from(parent, s):
+    path = [s]
+    while parent[s] is not None:
+        s = parent[s]; path.append(s)
+    return path[::-1]
+
+def bfs(p):
+    frontier, parent, expanded = deque([p.initial]), {p.initial: None}, 0
+    while frontier:
+        s = frontier.popleft(); expanded += 1
+        if p.is_goal(s): return path_from(parent, s), expanded
+        for a, s2 in p.actions(s):
+            if s2 not in parent:
+                parent[s2] = s; frontier.append(s2)
+    return None, expanded
+
+def dfs(p):
+    frontier, parent, expanded, seen = [p.initial], {p.initial: None}, 0, set()
+    while frontier:
+        s = frontier.pop()
+        if s in seen: continue
+        seen.add(s); expanded += 1
+        if p.is_goal(s): return path_from(parent, s), expanded
+        for a, s2 in p.actions(s):
+            if s2 not in seen:
+                parent[s2] = s; frontier.append(s2)
+    return None, expanded
+
+def best_first(p, f):
+    """Schema generală best-first; f(g, s) dă prioritatea. UCS: f=g; Greedy: f=h; A*: f=g+h."""
+    g = {p.initial: 0}; parent = {p.initial: None}
+    frontier = [(f(0, p.initial), 0, p.initial)]; expanded = 0; tie = 0
+    closed = set()
+    while frontier:
+        _, _, s = heapq.heappop(frontier)
+        if s in closed: continue          # intrare învechită în coadă
+        closed.add(s); expanded += 1
+        if p.is_goal(s): return path_from(parent, s), expanded   # testul de scop la EXTRAGERE!
+        for a, s2 in p.actions(s):
+            g2 = g[s] + p.cost(s, a, s2)
+            if s2 not in g or g2 &lt; g[s2]:
+                g[s2] = g2; parent[s2] = s; tie += 1
+                heapq.heappush(frontier, (f(g2, s2), tie, s2))
+    return None, expanded
+
+def path_cost(p, path):
+    return sum(p.cost(path[i], None, path[i + 1]) for i in range(len(path) - 1))
+
+if __name__ == "__main__":
+    P = GridProblem(GRID)
+    algos = {
+        "BFS": lambda: bfs(P),
+        "DFS": lambda: dfs(P),
+        "UCS": lambda: best_first(P, lambda g, s: g),
+        "Greedy": lambda: best_first(P, lambda g, s: P.h(s)),
+        "A*": lambda: best_first(P, lambda g, s: g + P.h(s)),
+    }
+    print(f"{'Algoritm':8s} {'expandate':&gt;9s} {'pași':&gt;5s} {'cost':&gt;5s}")
+    for name, run in algos.items():
+        path, exp = run()
+        print(f"{name:8s} {exp:9d} {len(path)-1:5d} {path_cost(P, path):5d}")</pre>
+<p>Ieșire așteptată:</p>
+<pre class="code" data-lang="text">
+Algoritm expandate  pași  cost
+BFS             65    22    34
+DFS             40    34    70
+UCS             64    24    24
+Greedy          45    24    32
+A*              54    24    24
+</pre>
+<p><b>Sarcini:</b></p>
+<ul class="check">
+<li><label><input type="checkbox">Explicați de ce BFS găsește drumul cu cei mai puțini pași, dar nu cel mai ieftin.</label></li>
+<li><label><input type="checkbox">Adăugați mișcări pe diagonală (cost √2) și euristica octilă; comparați numărul de noduri expandate cu euristica Manhattan (care devine inadmisibilă – de ce?).</label></li>
+<li><label><input type="checkbox">Măsurați timpul de execuție (<code>time.perf_counter</code>) pe o grilă aleatoare 200×200 cu 25% ziduri; raportați media pe 10 instanțe.</label></li>
+<li><label><input type="checkbox">Clasificați mediul grilei după cele 7 dimensiuni. Ce se schimbă dacă zidurile apar și dispar în timp?</label></li>
+</ul>
+</div>
+
+<div class="lvl" data-lvl="a">
+<h4>L1.3 – Agent online LRTA* în mediu necunoscut</h4>
+<p>Agentul nu cunoaște harta: percepe doar direcțiile libere din celula curentă și învață H(s). Rulat de mai multe ori pe aceeași hartă (păstrând H), converge spre un drum cu număr minim de pași.</p>
+<pre class="code" data-lang="python">
+"""Agent de căutare ONLINE (LRTA*) într-un mediu NECUNOSCUT.
+Agentul nu cunoaște harta: la fiecare pas percepe doar vecinii accesibili ai celulei curente,
+acționează imediat și își actualizează estimarea H(s) a costului până la țintă.
+Rulare: python s01_lrta.py"""
+from s01_grid_search import GRID, GridProblem, bfs
+
+class LRTAStarAgent:
+    def __init__(self, goal):
+        self.goal = goal
+        self.H = {}                         # estimările învățate H(s)
+        self.result = {}                    # modelul de tranziție învățat: (s, a) -&gt; s'
+        self.s = self.a = None
+    def h(self, s):
+        return abs(s[0] - self.goal[0]) + abs(s[1] - self.goal[1])
+    def lrta_cost(self, s, s2):
+        if s2 is None:                      # rezultat încă necunoscut: optimism față de necunoscut
+            return self.h(s)
+        return 1 + self.H.get(s2, self.h(s2))
+    def __call__(self, s, available_actions):
+        if s == self.goal:
+            return None
+        self.H.setdefault(s, self.h(s))
+        if self.s is not None:
+            self.result[(self.s, self.a)] = s
+            # actualizare: H(s_prev) = min_b cost(s_prev, b)
+            self.H[self.s] = min(self.lrta_cost(self.s, self.result.get((self.s, b)))
+                                 for b in self.prev_actions)
+        self.a = min(available_actions,
+                     key=lambda b: self.lrta_cost(s, self.result.get((s, b))))
+        self.s, self.prev_actions = s, list(available_actions)
+        return self.a
+
+def explore(problem, agent, max_steps=2000):
+    """Mediul: execută acțiunea și îi întoarce agentului doar percepția locală."""
+    s, steps, trace = problem.initial, 0, [problem.initial]
+    while steps &lt; max_steps:
+        moves = dict(problem.actions(s))    # percepție locală: ce direcții sunt libere
+        a = agent(s, list(moves))
+        if a is None:
+            return steps, trace
+        s = moves[a]; steps += 1; trace.append(s)
+    return None, trace
+
+if __name__ == "__main__":
+    P = GridProblem(GRID)
+    opt_path, _ = bfs(P)   # LRTA* de aici numără pașii (cost unitar)
+    agent = LRTAStarAgent(P.goal)
+    for trial in range(1, 6):              # rulări repetate: agentul își păstrează H (învață)
+        steps, _ = explore(P, agent)
+        print(f"încercarea {trial}: {steps} pași  (minimul offline, cu harta cunoscută: {len(opt_path)-1})")
+        agent.s = agent.a = None</pre>
+<pre class="code" data-lang="text">
+încercarea 1: 242 pași  (minimul offline, cu harta cunoscută: 22)
+încercarea 2: 48 pași  (minimul offline, cu harta cunoscută: 22)
+încercarea 3: 38 pași  (minimul offline, cu harta cunoscută: 22)
+încercarea 4: 24 pași  (minimul offline, cu harta cunoscută: 22)
+încercarea 5: 22 pași  (minimul offline, cu harta cunoscută: 22)
+</pre>
+<ul class="check">
+<li><label><input type="checkbox">Calculați raportul competitiv la fiecare încercare.</label></li>
+<li><label><input type="checkbox">Includeți costul mlaștinii (5) în LRTA* (costul se află doar după ce agentul a intrat în celulă).</label></li>
+<li><label><input type="checkbox">Implementați agentul DFS online și comparați-l cu LRTA* la prima încercare.</label></li>
+<li><label><input type="checkbox">Bonus: un zid apare dinamic pe drumul învățat. Cât de repede se adaptează LRTA*?</label></li>
+</ul>
+</div>
+
+<h3>3.3 Evaluarea critică a codului generat de AI</h3>
+<div class="ai">Fișa disciplinei cere integrarea <b>responsabilă</b> a instrumentelor AI și evaluarea critică a rezultatelor lor. Exercițiul de mai jos simulează un scenariu real: un asistent AI a generat un A* care „pare să meargă” pe exemple simple.</div>
+<div class="lvl" data-lvl="m a">
+<pre class="code" data-lang="python">
+# Cod "generat de un asistent AI" la promptul: "Scrie A* pe grilă în Python".
+# SARCINA: găsiți cel puțin 4 probleme, explicați efectul fiecăreia și scrieți teste care le demonstrează.
+import heapq
+
+def astar(problem):
+    frontier = [(0, problem.initial)]
+    g = {problem.initial: 0}
+    parent = {problem.initial: None}
+    visited = set()
+    while frontier:
+        f, s = heapq.heappop(frontier)
+        visited.add(s)
+        for a, s2 in problem.actions(s):
+            if problem.is_goal(s2):
+                parent[s2] = s
+                return s2, parent
+            if s2 in visited:
+                continue
+            g[s2] = g[s] + problem.cost(s, a, s2)
+            parent[s2] = s
+            h = ((s2[0]-problem.goal[0])**2 + (s2[1]-problem.goal[1])**2)
+            heapq.heappush(frontier, (g[s2] + h, s2))
+    return None</pre>
+<p><b>Sarcină:</b> identificați cel puțin 4 defecte, explicați consecința fiecăruia și scrieți câte un test (cu <code>GridProblem</code> din L1.2) care pică din cauza lui. Comparați apoi cu soluția voastră.</p>
+<details><summary>Defectele (deschideți după ce ați încercat)</summary>
+<ol>
+<li><b>Testul de scop la generare</b>, nu la extragere → soluție suboptimală când costurile diferă (vezi S1.4, varianta (c)).</li>
+<li><b>Euristică neadmisibilă</b>: distanța euclidiană <i>la pătrat</i> supraestimează costul → A* nu mai garantează optimalitatea.</li>
+<li><b>g este suprascris necondiționat</b>: un drum mai prost găsit ulterior strică valoarea g și părintele unui nod deja în frontieră.</li>
+<li><b>Intrările învechite din coadă nu sunt ignorate</b>: un nod poate fi expandat de mai multe ori (<code>visited</code> e doar adăugat, nu verificat la extragere).</li>
+<li>Cazul în care starea inițială este scop nu este tratat; funcția nu întoarce costul și nici drumul reconstituit.</li>
+</ol></details>
+<h4>Șablon de prompt mai bun</h4>
+<pre class="code" data-lang="text">
+Context: implementez A* pentru o grilă 4-conexă cu costuri 1 (liber) și 5 (mlaștină).
+Interfața problemei: actions(s) -> (a, s2), cost(s, a, s2), is_goal(s), initial, goal.
+Cerințe: (1) test de scop la extragerea din coadă; (2) euristica Manhattan (justifică admisibilitatea);
+(3) actualizare g doar dacă drumul nou e mai bun; (4) ignorarea intrărilor învechite din heap;
+(5) întoarce (drum, cost, noduri_expandate). Adaugă 3 teste pytest, inclusiv unul în care
+testul de scop la generare ar da rezultat greșit. Nu folosi biblioteci externe.
+</pre>
+</div>
+<div class="lvl" data-lvl="b m a">
+<h4>Declarația „Utilizarea instrumentelor AI” (obligatorie în teme și proiect)</h4>
+<pre class="code" data-lang="text">
+Utilizarea instrumentelor AI
+- Instrument: [ex. ChatGPT (GPT-x), Claude, GitHub Copilot] – versiune/dată
+- Scop: [ex. explicarea diferenței dintre admisibil și consistent; generarea unui schelet de cod pentru LRTA*]
+- Contribuție: [ex. ~30 de linii din funcția lrta_cost au pornit de la o sugestie AI; am corectat
+  tratarea acțiunilor neîncercate și am scris testele în test_lrta.py]
+- Verificare: [cum ați validat: teste, comparație cu AIMA-Python, rulări pe instanțe cunoscute]
+</pre>
+</div>
+</section>
+
+<section class="part">
+<h2>4. Autoevaluare<span class="tag">QUIZ</span></h2>
+<h3>Cartonașe cu concepte-cheie (click pentru a întoarce)</h3>
+<div class="cards">
+  <div class="card"><div class="in"><div class="fr">Funcția agentului</div><div class="bk">Asocierea abstractă secvență de percepții → acțiune (f : P* → A).</div></div></div>
+  <div class="card"><div class="in"><div class="fr">PEAS</div><div class="bk">Performanță, Environment (mediu), Actuatori, Senzori – specificarea mediului de activitate.</div></div></div>
+  <div class="card"><div class="in"><div class="fr">Agent rațional</div><div class="bk">Maximizează valoarea așteptată a măsurii de performanță, dat fiind ce a perceput și ce știe.</div></div></div>
+  <div class="card"><div class="in"><div class="fr">Euristică admisibilă</div><div class="bk">h(n) ≤ h*(n): nu supraestimează niciodată costul real până la scop.</div></div></div>
+  <div class="card"><div class="in"><div class="fr">Euristică consistentă</div><div class="bk">h(n) ≤ c(n,a,n') + h(n'). Implică admisibilitatea; f nedescrescătoare pe drumuri.</div></div></div>
+  <div class="card"><div class="in"><div class="fr">Căutare online</div><div class="bk">Intercalează acțiunea și calculul; necesară în medii necunoscute sau dinamice.</div></div></div>
+  <div class="card"><div class="in"><div class="fr">Raport competitiv</div><div class="bk">Cost parcurs efectiv / cost optim cu hartă cunoscută.</div></div></div>
+  <div class="card"><div class="in"><div class="fr">LRTA*</div><div class="bk">Agent online care actualizează H(s) = min[c + H(s')]; optimist față de acțiunile neîncercate.</div></div></div>
+</div>
+<h3>Test grilă</h3>
+<script type="application/json" class="quiz-data">
+[
+{"lvl":"b","q":"Care dintre următoarele NU face parte din descrierea PEAS?","o":["Măsura de performanță","Actuatorii","Algoritmul de căutare folosit","Senzorii"],"a":2,"e":"PEAS descrie mediul de activitate (problema), nu soluția. Algoritmul ține de programul agentului."},
+{"lvl":"b","q":"Jocul de poker (Texas Hold'em) este un mediu:","o":["complet observabil, determinist","parțial observabil, stochastic, multi-agent","complet observabil, stochastic, un singur agent","parțial observabil, determinist, episodic"],"a":1,"e":"Nu vedem cărțile adversarilor (parțial observabil), împărțirea cărților e aleatoare (stochastic), există mai mulți jucători."},
+{"lvl":"b","q":"Un agent reflex simplu decide pe baza:","o":["întregii istorii a percepțiilor","doar a percepției curente","unui model al lumii","unei funcții de utilitate"],"a":1,"e":"Regulile condiție-acțiune se aplică percepției curente; nu există memorie."},
+{"lvl":"b","q":"Ce frontieră folosește BFS?","o":["stivă LIFO","coadă FIFO","coadă de priorități după g","coadă de priorități după h"],"a":1,"e":"BFS extinde nodurile în ordinea generării: coadă FIFO."},
+{"lvl":"m","q":"A* cu euristica h = 0 se comportă ca:","o":["BFS","DFS","UCS (Dijkstra)","Greedy best-first"],"a":2,"e":"f = g + 0 = g, deci ordinea este cea a costului uniform."},
+{"lvl":"m","q":"Pe o grilă 8-conexă cu cost √2 pe diagonală, distanța Manhattan este:","o":["admisibilă","inadmisibilă: poate supraestima","consistentă","egală cu distanța octilă"],"a":1,"e":"Pentru o deplasare diagonală (1,1), Manhattan = 2 > √2 = costul real."},
+{"lvl":"m","q":"De ce testul de scop trebuie făcut la extragerea din coadă în UCS/A*?","o":["Pentru a economisi memorie","Pentru că un drum mai ieftin către scop poate fi găsit după prima generare a scopului","Pentru că altfel algoritmul nu se termină","Nu contează unde se face testul"],"a":1,"e":"Vezi S1.4: Tulcea e generată întâi cu g = 150, apoi cu g = 140."},
+{"lvl":"m","q":"Un agent care folosește un model de tranziție pentru a ține evidența părților neobservate ale lumii este:","o":["reflex simplu","reflex bazat pe model","bazat pe tabel","aleator"],"a":1,"e":"Starea internă + modelul de tranziție și cel senzorial definesc agentul bazat pe model."},
+{"lvl":"a","q":"De ce A* clasic este nepotrivit pentru un robot care explorează fizic un mediu necunoscut?","o":["Pentru că nu e complet","Pentru că alege noduri din frontieră aflate departe de poziția fizică a robotului, iar deplasarea până la ele costă","Pentru că folosește prea puțină memorie","Pentru că funcționează doar pe arbori"],"a":1,"e":"Căutarea online preferă algoritmi locali (DFS online, LRTA*): agentul expandează doar nodul în care se află."},
+{"lvl":"a","q":"În LRTA*, acțiunile neîncercate încă sunt evaluate cu h(s). Efectul este:","o":["agentul evită explorarea","optimism în fața incertitudinii: explorarea este încurajată","algoritmul devine incomplet","H(s) scade la fiecare pas"],"a":1,"e":"Costul estimat al necunoscutului este cel mai mic posibil, deci agentul tinde să încerce acțiunile noi."},
+{"lvl":"a","q":"Weighted A* cu w = 2 garantează că soluția găsită are costul:","o":["egal cu C*","≤ 2·C*","≤ C* + 2","fără nicio garanție"],"a":1,"e":"Cu h admisibilă, f = g + w·h dă soluții w-suboptimale: cost ≤ w·C*."}
+]
+</script>
+</section>
+
+<section class="part">
+<h2>5. Temă și legătura cu proiectul</h2>
+<div class="lvl" data-lvl="b"><p><b>T1 (obligatoriu):</b> PEAS + clasificarea după cele 7 dimensiuni pentru un agent dintr-un mediu virtual pe care îl alegeți (joc, simulare VR, asistent conversațional). 1 pagină.</p></div>
+<div class="lvl" data-lvl="m"><p><b>T2:</b> Extindeți codul L1.2 cu mișcări diagonale și euristica octilă; raport cu un tabel comparativ (noduri expandate, cost, timp) pe 20 de grile aleatoare.</p></div>
+<div class="lvl" data-lvl="a"><p><b>T3:</b> Implementați D* Lite sau LRTA* cu obstacole dinamice și comparați raportul competitiv cu replanificarea completă A* la fiecare schimbare.</p></div>
+<div class="note"><b>Proiectul (70% din nota finală)</b> cere modelarea și rezolvarea unei probleme reale cu algoritmi euristici și compararea a cel puțin două abordări după calitatea soluției și timpul de rulare. Începeți acum: alegeți problema, scrieți PEAS-ul agentului care o rezolvă și decideți dacă este o problemă de <b>căutare</b>, de <b>planificare</b> sau de <b>optimizare</b>. Nu uitați secțiunea „Utilizarea instrumentelor AI”.</div>
+</section>
+
+<section class="part">
+<h2>6. Bibliografie</h2>
+<ol>
+<li>S. Russell, P. Norvig – <i>Artificial Intelligence: A Modern Approach</i>, ed. a 4-a, Pearson, 2020 – cap. 2 (agenți), cap. 3 (căutare), cap. 4.5 (căutare online).</li>
+<li>F. L. Bellifemine, G. Caire, D. Greenwood – <i>Developing Multi-Agent Systems with JADE</i>, Wiley, 2007 – cap. 1–3.</li>
+<li>D. M. Popovici et al. – <i>Medii virtuale multimodale distribuite</i>, vol. 1, Ed. Universitaria / Prouniversitaria, 2014.</li>
+<li>A. Konar – <i>Artificial Intelligence and Soft Computing</i>, CRC Press, 1999.</li>
+<li>AIMA Python – <a href="https://github.com/aimacode/aima-python" target="_blank" rel="noopener">github.com/aimacode/aima-python</a> (<code>agents.py</code>, <code>search.py</code>).</li>
+<li>Python Tutorial – <a href="https://docs.python.org/3/tutorial/" target="_blank" rel="noopener">docs.python.org/3/tutorial</a>.</li>
+</ol>
+</section>
+
+<div class="pager"><span></span><a href="IAA_02_Curs_Sem_Lab.html">Ședința 2 →</a></div>
+</main>
+</div>
+<footer>Material didactic pentru disciplina <b>Inteligență artificială aplicată</b> (MVMOD.1.1.10), Master „Medii virtuale multi-modale distribuite”, Facultatea de Matematică și Informatică, Universitatea „Ovidius” din Constanța, anul universitar 2026–2027. Conținutul urmează fișa disciplinei (secțiunile 8.1 și 8.2). Material elaborat cu asistența unui instrument AI generativ (Claude, Anthropic) – a se verifica și adapta de titularul disciplinei.</footer>
+<script>(function(){
+"use strict";
+var KEY = "IAA_" + (document.body.getAttribute("data-session") || "x") + "_";
+function store(k, v){ try{ if(v===undefined) return localStorage.getItem(KEY+k); localStorage.setItem(KEY+k, v); }catch(e){ return null; } }
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+/* ---------- temă ---------- */
+var themeBtn = document.getElementById("themeBtn");
+if(store("theme")==="dark") document.documentElement.classList.add("dark");
+if(themeBtn) themeBtn.onclick = function(){ var d=document.documentElement.classList.toggle("dark"); store("theme", d?"dark":"light"); document.dispatchEvent(new Event("themechange")); };
+var printBtn = document.getElementById("printBtn");
+if(printBtn) printBtn.onclick = function(){ document.querySelectorAll("details").forEach(function(d){d.open=true;}); window.print(); };
+
+/* ---------- insigne de nivel ---------- */
+var LBL = {b:"Începător", m:"Mediu", a:"Avansat"};
+document.querySelectorAll(".lvl").forEach(function(el){
+  var l = el.getAttribute("data-lvl"); var b = document.createElement("span");
+  b.className = "badge "+l; b.textContent = LBL[l]||l; el.insertBefore(b, el.firstChild);
+});
+
+/* ---------- filtru pe nivele ---------- */
+function applyFilter(f){
+  document.querySelectorAll(".lvl-filter button").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-f")===f); });
+  document.querySelectorAll("[data-lvl]").forEach(function(el){
+    var l = el.getAttribute("data-lvl");
+    el.classList.toggle("hide-lvl", f!=="all" && l.indexOf(f)<0);
+  });
+  store("filter", f); buildToc();
+}
+document.querySelectorAll(".lvl-filter button").forEach(function(b){ b.onclick=function(){ applyFilter(b.getAttribute("data-f")); }; });
+
+/* ---------- evidențiere sintaxă Python ---------- */
+var KW = "False None True and as assert async await break class continue def del elif else except finally for from global if import in is lambda nonlocal not or pass raise return try while with yield match case".split(" ");
+var BI = "print range len int float str list dict set tuple min max sum abs sorted enumerate zip map filter isinstance any all open round reversed super self heapq random math deque defaultdict itertools np".split(" ");
+function hlPython(src){
+  var re = /(#[^\n]*)|("""[\s\S]*?"""|'''[\s\S]*?'''|f?"(?:\\.|[^"\\\n])*"|f?'(?:\\.|[^'\\\n])*')|(\b\d+(?:\.\d+)?(?:e[-+]?\d+)?\b)|([A-Za-z_][A-Za-z0-9_]*)(\s*\()?/g;
+  var out = "", last = 0, m;
+  while((m = re.exec(src))){
+    out += esc(src.slice(last, m.index)); last = re.lastIndex;
+    if(m[1]) out += '<span class="c">'+esc(m[1])+'</span>';
+    else if(m[2]) out += '<span class="s">'+esc(m[2])+'</span>';
+    else if(m[3]) out += '<span class="n">'+m[3]+'</span>';
+    else if(m[4]){
+      var w = m[4], tail = m[5]||"";
+      if(KW.indexOf(w)>=0) out += '<span class="k">'+w+'</span>'+esc(tail);
+      else if(BI.indexOf(w)>=0) out += '<span class="bi">'+w+'</span>'+esc(tail);
+      else if(tail) out += '<span class="f">'+w+'</span>'+esc(tail);
+      else out += w;
+    }
+  }
+  return out + esc(src.slice(last));
+}
+function hlPddl(src){
+  return esc(src).replace(/(;[^\n]*)/g,'<span class="c">$1</span>')
+    .replace(/(\(\s*)(define|domain|problem|:requirements|:types|:predicates|:action|:parameters|:precondition|:effect|:objects|:init|:goal|:domain|and|not|or|forall|when)/g,'$1<span class="k">$2</span>')
+    .replace(/(\?[a-z0-9_-]+)/gi,'<span class="n">$1</span>')
+    .replace(/(:[a-z-]+)/gi,'<span class="f">$1</span>');
+}
+document.querySelectorAll("pre.code").forEach(function(pre){
+  var lang = pre.getAttribute("data-lang")||"python";
+  var src = pre.textContent.replace(/^\n/,"").replace(/\s+$/,"");
+  pre.innerHTML = lang==="python" ? hlPython(src) : (lang==="pddl" ? hlPddl(src) : esc(src));
+  var b = document.createElement("button"); b.className="copy"; b.textContent="Copiază";
+  b.onclick = function(){
+    var done=function(){ b.textContent="Copiat ✓"; setTimeout(function(){b.textContent="Copiază";},1500); };
+    if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(src).then(done, function(){ fallback(); }); } else fallback();
+    function fallback(){ var t=document.createElement("textarea"); t.value=src; document.body.appendChild(t); t.select(); try{document.execCommand("copy");}catch(e){} document.body.removeChild(t); done(); }
+  };
+  pre.appendChild(b);
+});
+
+/* ---------- flashcards ---------- */
+document.querySelectorAll(".card").forEach(function(c){ c.onclick=function(){ c.classList.toggle("flip"); }; });
+
+/* ---------- quiz ---------- */
+var answered = {};
+document.querySelectorAll("script.quiz-data").forEach(function(sc, qi){
+  var data = JSON.parse(sc.textContent); var host = document.createElement("div"); host.className="quiz";
+  sc.parentNode.insertBefore(host, sc);
+  var score = document.createElement("div"); score.className="score";
+  data.forEach(function(q, i){
+    var box = document.createElement("div"); box.className="qq"; if(q.lvl) box.setAttribute("data-lvl", q.lvl);
+    var html = '<div class="qt">'+(i+1)+'. '+(q.lvl?'<span class="badge '+q.lvl+'">'+LBL[q.lvl]+'</span> ':'')+q.q+'</div>';
+    q.o.forEach(function(o, j){ html += '<label><input type="radio" name="q'+qi+'_'+i+'" value="'+j+'"> '+o+'</label>'; });
+    html += '<div class="expl">'+(q.e||"")+'</div>';
+    box.innerHTML = html; host.appendChild(box);
+    box.querySelectorAll("input").forEach(function(inp){
+      inp.onchange = function(){
+        if(box.classList.contains("done")) return;
+        box.classList.add("done");
+        var j = +inp.value; var labels = box.querySelectorAll("label");
+        labels[q.a].classList.add("right"); if(j!==q.a) labels[j].classList.add("wrong");
+        box.querySelectorAll("input").forEach(function(x){ x.disabled=true; });
+        answered[qi+"_"+i] = (j===q.a); upd();
+      };
+    });
+  });
+  var reset = document.createElement("button"); reset.className="btn sec"; reset.textContent="Reia testul";
+  reset.onclick = function(){ host.querySelectorAll(".qq").forEach(function(b,i){ b.classList.remove("done"); b.querySelectorAll("label").forEach(function(l){l.className="";}); b.querySelectorAll("input").forEach(function(x){x.disabled=false;x.checked=false;}); delete answered[qi+"_"+i]; }); upd(); };
+  host.appendChild(score); host.appendChild(reset);
+  function upd(){ var n=0,ok=0; for(var k in answered){ if(k.indexOf(qi+"_")===0){ n++; if(answered[k]) ok++; } } score.textContent = "Scor: "+ok+" / "+n+" răspunsuri ("+data.length+" întrebări în total)"; progress(); }
+  upd();
+});
+
+/* ---------- liste de verificare + progres ---------- */
+var checks = document.querySelectorAll("ul.check input[type=checkbox]");
+checks.forEach(function(c, i){ if(store("chk"+i)==="1") c.checked=true; c.onchange=function(){ store("chk"+i, c.checked?"1":"0"); progress(); }; });
+function progress(){
+  var cks = document.querySelectorAll("ul.check input[type=checkbox]");
+  var tot = cks.length + document.querySelectorAll(".quiz .qq").length;
+  var done = 0; cks.forEach(function(c){ if(c.checked) done++; });
+  done += document.querySelectorAll(".quiz .qq.done").length;
+  var p = tot? Math.round(100*done/tot):0;
+  var bar = document.querySelector(".progress i"); if(bar) bar.style.width = p+"%";
+  var t = document.querySelector(".tocprog"); if(t) t.textContent = "Progres ședință: "+p+"% ("+done+"/"+tot+" sarcini + întrebări)";
+}
+
+/* ---------- cuprins ---------- */
+function buildToc(){
+  var toc = document.querySelector("nav.toc .links"); if(!toc) return; toc.innerHTML="";
+  document.querySelectorAll("main h2, main h3").forEach(function(h, i){
+    if(h.closest(".hide-lvl")) return;
+    if(!h.id) h.id = "s"+i;
+    var a = document.createElement("a"); a.href="#"+h.id; var hc = h.cloneNode(true); hc.querySelectorAll(".tag,.badge").forEach(function(x){x.remove();}); a.textContent = hc.textContent.trim();
+    a.className = h.tagName.toLowerCase(); toc.appendChild(a);
+  });
+}
+var spyLinks = [];
+window.addEventListener("scroll", function(){
+  var hs = document.querySelectorAll("main h2, main h3"), cur=null;
+  hs.forEach(function(h){ if(h.getBoundingClientRect().top < 120 && !h.closest(".hide-lvl")) cur = h.id; });
+  document.querySelectorAll("nav.toc a").forEach(function(a){ a.classList.toggle("act", a.getAttribute("href")==="#"+cur); });
+}, {passive:true});
+
+applyFilter(store("filter")||"all");
+progress();
+
+/* ---------- utilitare pentru simulări ---------- */
+window.IAA = {
+  rng: function(seed){ var s = seed>>>0 || 1; return function(){ s ^= s<<13; s>>>=0; s ^= s>>>17; s ^= s<<5; s>>>=0; return s/4294967296; }; },
+  css: function(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); },
+  fit: function(cv){ var r = window.devicePixelRatio||1; if(!cv._w){ cv._w = +cv.getAttribute("width"); cv._h = +cv.getAttribute("height"); cv.style.width = cv._w+"px"; cv.style.aspectRatio = cv._w+"/"+cv._h; cv.width = cv._w*r; cv.height = cv._h*r; } var g = cv.getContext("2d"); g.setTransform(r,0,0,r,0,0); g.W = cv._w; g.H = cv._h; return g; },
+  pos: function(cv, ev){ var b = cv.getBoundingClientRect(); return {x:(ev.clientX-b.left)*cv._w/b.width, y:(ev.clientY-b.top)*cv._h/b.height}; },
+  esc: esc
+};
+})();
+</script>
+<script>(function(){
+/* ============ 1. Clasificarea mediilor ============ */
+var DIMS = [["Observabil",["complet","parțial"]],["Agenți",["unul","mai mulți"]],["Determinist",["determinist","stochastic"]],["Episodic",["episodic","secvențial"]],["Static",["static","semidinamic","dinamic"]],["Discret",["discret","continuu"]]];
+var ENVS = [
+ ["Rezolvarea unui rebus",["complet","unul","determinist","secvențial","static","discret"]],
+ ["Șah cu ceas",["complet","mai mulți","determinist","secvențial","semidinamic","discret"]],
+ ["Poker",["parțial","mai mulți","stochastic","secvențial","static","discret"]],
+ ["Taxi autonom",["parțial","mai mulți","stochastic","secvențial","dinamic","continuu"]],
+ ["Analiza imaginilor medicale",["complet","unul","determinist","episodic","semidinamic","continuu"]],
+ ["Robot de sortare pe bandă",["parțial","unul","stochastic","episodic","dinamic","continuu"]],
+ ["NPC într-o lume VR multi-utilizator",["parțial","mai mulți","stochastic","secvențial","dinamic","continuu"]]
+];
+var t = '<table><tr><th>Mediu</th>' + DIMS.map(function(d){return '<th>'+d[0]+'</th>';}).join("") + '</tr>';
+ENVS.forEach(function(e,i){
+  t += '<tr><td>'+e[0]+'</td>';
+  DIMS.forEach(function(d,j){ t += '<td><select data-i="'+i+'" data-j="'+j+'"><option value="">–</option>' + d[1].map(function(v){return '<option>'+v+'</option>';}).join("") + '</select></td>'; });
+  t += '</tr>';
+});
+document.getElementById("envTable").innerHTML = t + '</table>';
+function envCheck(show){
+  var ok=0, tot=0;
+  document.querySelectorAll("#envTable select").forEach(function(s){
+    var ans = ENVS[+s.dataset.i][1][+s.dataset.j];
+    if(show) s.value = ans;
+    tot++; var good = s.value===ans; if(good) ok++;
+    s.style.outline = s.value ? (good ? "2px solid var(--ok)" : "2px solid var(--bad)") : "";
+  });
+  document.getElementById("envRes").innerHTML = '<b>'+ok+' / '+tot+'</b> corecte';
+}
+document.getElementById("envCheck").onclick = function(){ envCheck(false); };
+document.getElementById("envShow").onclick = function(){ envCheck(true); };
+
+/* ============ 2. Lumea aspiratorului ============ */
+var vc = document.getElementById("vacCv"), V;
+function vacReset(){
+  var n = +document.getElementById("vacN").value, r = IAA.rng(Date.now()%100000);
+  V = {n:n, dirty:[], pos:Math.floor(r()*n), score:0, t:0, dir:1, known:[], rng:r};
+  for(var i=0;i<n;i++){ V.dirty.push(r()<0.6); V.known.push(false); }
+  document.getElementById("vacLog").textContent=""; vacDraw();
+}
+function vacAgent(){
+  var type = document.getElementById("vacA").value, d = V.dirty[V.pos];
+  if(type==="random"){ var a=["Suck","Left","Right"]; return a[Math.floor(V.rng()*3)]; }
+  if(d){ V.known[V.pos]=true; return "Suck"; }
+  if(type==="model"){ V.known[V.pos]=true; if(V.known.every(Boolean)) return "NoOp"; }
+  if(V.pos===V.n-1) V.dir=-1; if(V.pos===0) V.dir=1;
+  return V.dir>0 ? "Right" : "Left";
+}
+function vacStep(){
+  var p = +document.getElementById("vacP").value;
+  var perc = "["+(V.pos+1)+", "+(V.dirty[V.pos]?"murdar":"curat")+"]";
+  var a = vacAgent();
+  if(a==="Suck"){ if(V.dirty[V.pos]) V.score+=10; V.dirty[V.pos]=false; }
+  else if(a==="Left" && V.pos>0){ V.pos--; V.score--; }
+  else if(a==="Right" && V.pos<V.n-1){ V.pos++; V.score--; }
+  for(var i=0;i<V.n;i++) if(V.rng()<p){ V.dirty[i]=true; if(document.getElementById("vacA").value==="model") {/* agentul cu model NU observă */} }
+  V.t++;
+  var log = document.getElementById("vacLog"); log.textContent = "t="+V.t+"  percepție="+perc+"  acțiune="+a+"  scor="+V.score+"\n"+log.textContent;
+  vacDraw();
+}
+function vacDraw(){
+  var g = IAA.fit(vc), W=g.W, H=g.H, n=V.n, w=(W-20)/n;
+  g.clearRect(0,0,W,H);
+  for(var i=0;i<n;i++){
+    var x=10+i*w;
+    g.fillStyle = V.dirty[i] ? "#c9a46a" : IAA.css("--panel"); g.strokeStyle = IAA.css("--line"); g.lineWidth=2;
+    g.fillRect(x,20,w-6,H-40); g.strokeRect(x,20,w-6,H-40);
+    if(V.dirty[i]){ g.fillStyle="#7a5a2a"; var r=IAA.rng(i+7); for(var k=0;k<14;k++){ g.beginPath(); g.arc(x+8+r()*(w-22), 30+r()*(H-60), 2+r()*3, 0, 7); g.fill(); } }
+    g.fillStyle = IAA.css("--muted"); g.font="12px sans-serif"; g.fillText("Camera "+(i+1), x+6, 15);
+  }
+  var cx = 10+V.pos*w+(w-6)/2;
+  g.fillStyle = IAA.css("--accent"); g.beginPath(); g.arc(cx, H/2, 22, 0, 7); g.fill();
+  g.fillStyle="#fff"; g.font="bold 13px sans-serif"; g.textAlign="center"; g.fillText("A", cx, H/2+5); g.textAlign="left";
+  document.getElementById("vacT").textContent=V.t; document.getElementById("vacS").textContent=V.score;
+}
+document.getElementById("vacStep").onclick = vacStep;
+document.getElementById("vacRun").onclick = function(){ var k=0; var id=setInterval(function(){ vacStep(); if(++k>=30) clearInterval(id); }, 120); };
+document.getElementById("vacReset").onclick = vacReset;
+["vacN","vacA","vacP"].forEach(function(id){ document.getElementById(id).onchange = vacReset; });
+vacReset();
+document.addEventListener("themechange", vacDraw);
+
+/* ============ 3. Căutare pe grilă ============ */
+var cv = document.getElementById("gCv"), C=38, R=19, CS=20;
+var cell = [], S={r:9,c:4}, G={r:9,c:33}, state = {}, timer=null, drag=null;
+function blank(){ cell=[]; for(var r=0;r<R;r++){ cell.push([]); for(var c=0;c<C;c++) cell[r].push(0); } }
+function defaultMap(){ blank(); for(var r=3;r<16;r++) cell[r][18]=1; for(var c=10;c<19;c++) cell[3][c]=1; for(var r2=6;r2<13;r2++) for(var c2=24;c2<29;c2++) cell[r2][c2]=2; }
+function maze(){ blank(); var r=IAA.rng(Date.now()%99991); for(var i=0;i<R;i++) for(var j=0;j<C;j++){ var x=r(); cell[i][j] = x<0.27?1:(x<0.33?2:0); } cell[S.r][S.c]=0; cell[G.r][G.c]=0; }
+defaultMap();
+function nb(p){ var o=[], d=[[-1,0],[1,0],[0,-1],[0,1]]; d.forEach(function(v){ var r=p.r+v[0], c=p.c+v[1]; if(r>=0&&r<R&&c>=0&&c<C&&cell[r][c]!==1) o.push({r:r,c:c}); }); return o; }
+function key(p){ return p.r*C+p.c; }
+function cost(p){ return cell[p.r][p.c]===2?5:1; }
+function h(p){ return Math.abs(p.r-G.r)+Math.abs(p.c-G.c); }
+function clearSearch(){ if(timer){ clearInterval(timer); timer=null; } state={closed:{},open:{},path:null,agent:null,H:null,trail:{}}; ["gExp","gLen","gCost"].forEach(function(id){ document.getElementById(id).textContent = id==="gExp"?"0":"–"; }); document.getElementById("gNote").textContent=""; draw(); }
+
+/* generator „manual” pentru animare */
+function makeSearch(alg){
+  var parent={}, g={}, front=[], closed={}, tie=0, exp=0;
+  var k0=key(S); g[k0]=0; parent[k0]=null;
+  function pri(p, gg){ return alg==="ucs"?gg : alg==="greedy"?h(p) : alg==="astar"?gg+h(p) : alg==="wastar"?gg+2*h(p) : 0; }
+  front.push({p:S, f:pri(S,0), t:0});
+  return function step(){
+    if(!front.length) return {done:true, fail:true};
+    var it;
+    if(alg==="bfs") it = front.shift();
+    else if(alg==="dfs") it = front.pop();
+    else { var bi=0; for(var i=1;i<front.length;i++){ if(front[i].f<front[bi].f || (front[i].f===front[bi].f && front[i].t<front[bi].t)) bi=i; } it = front.splice(bi,1)[0]; }
+    var k=key(it.p); if(closed[k]) return {done:false};
+    closed[k]=1; exp++; state.closed[k]=1; delete state.open[k];
+    if(it.p.r===G.r && it.p.c===G.c){ var path=[], x=k; while(x!==null){ path.push(x); x=parent[x]; } return {done:true, path:path.reverse(), exp:exp, cost:g[k]}; }
+    nb(it.p).forEach(function(q){
+      var kq=key(q), gq=g[k]+cost(q);
+      if(alg==="bfs"||alg==="dfs"){ if(alg==="bfs" && kq in parent) return; if(alg==="dfs" && closed[kq]) return; parent[kq]=k; g[kq]=gq; front.push({p:q,f:0,t:++tie}); state.open[kq]=1; }
+      else if(!(kq in g) || gq<g[kq]){ g[kq]=gq; parent[kq]=k; front.push({p:q, f:pri(q,gq), t:++tie}); state.open[kq]=1; }
+    });
+    return {done:false, exp:exp};
+  };
+}
+function makeLRTA(){
+  var H={}, result={}, trial=1, steps=0, pos={r:S.r,c:S.c}, prev=null, prevA=null, prevActs=null, totals=[];
+  state.H=H; state.agent=pos; state.known={};
+  function hh(k,p){ return (k in H)?H[k]:h(p); }
+  function lcost(sk, s2){ if(s2===undefined) return h(fromKey(sk)); return cost(fromKey(s2)) + hh(s2, fromKey(s2)); }
+  return function step(){
+    var k=key(pos); state.trail[k]=(state.trail[k]||0)+1; nb(pos).forEach(function(q){ state.known[key(q)]=1; }); state.known[k]=1;
+    if(pos.r===G.r && pos.c===G.c){
+      if(prev!==null){ result[prev+">"+prevA]=k; H[prev] = Math.min.apply(null, prevActs.map(function(b){ return lcost(prev, result[prev+">"+b]); })); }
+      totals.push(steps); document.getElementById("gNote").textContent = "Pași pe încercări: "+totals.join(", ");
+      if(trial>=6) return {done:true, lrta:true};
+      trial++; steps=0; pos.r=S.r; pos.c=S.c; prev=null; state.trail={}; return {done:false};
+    }
+    if(!(k in H)) H[k]=h(pos);
+    var acts = nb(pos).map(key);
+    if(prev!==null){ result[prev+">"+prevA]=k; H[prev] = Math.min.apply(null, prevActs.map(function(b){ return lcost(prev, result[prev+">"+b]); })); }
+    var best=null, bv=Infinity; acts.forEach(function(b){ var v=lcost(k, result[k+">"+b]); if(v<bv){ bv=v; best=b; } });
+    if(best===null) return {done:true, fail:true};
+    prev=k; prevA=best; prevActs=acts; var np=fromKey(best); pos.r=np.r; pos.c=np.c; steps++;
+    document.getElementById("gExp").textContent = "încercarea "+trial+", pasul "+steps;
+    return {done:false};
+  };
+}
+function fromKey(k){ return {r:Math.floor(k/C), c:k%C}; }
+function run(){
+  clearSearch(); var alg=document.getElementById("gAlg").value;
+  var step = alg==="lrta" ? makeLRTA() : makeSearch(alg);
+  if(alg==="lrta") document.getElementById("gNote").textContent="Agentul vede doar vecinii; culoarea = H învățat.";
+  timer = setInterval(function(){
+    var sp=+document.getElementById("gSpeed").value, res;
+    for(var i=0;i<sp;i++){ res=step(); if(res.done) break; }
+    if(res.exp!==undefined) document.getElementById("gExp").textContent=res.exp;
+    if(res.done){ clearInterval(timer); timer=null;
+      if(res.path){ state.path=res.path; document.getElementById("gLen").textContent=res.path.length-1; document.getElementById("gCost").textContent=res.cost; }
+      if(res.fail) document.getElementById("gNote").textContent="Nu există drum.";
+    }
+    draw();
+  }, 30);
+}
+function draw(){
+  var g=IAA.fit(cv), pal={wall:IAA.css("--ink"), mud:"#8fb3a0", open:"#f6d58a", closed:"#a9c4e6", path:"#d9534f", grid:IAA.css("--line"), bg:IAA.css("--panel")};
+  g.fillStyle=pal.bg; g.fillRect(0,0,g.W,g.H);
+  var maxH=1; if(state.H){ for(var kk in state.H) maxH=Math.max(maxH,state.H[kk]); }
+  for(var r=0;r<R;r++) for(var c=0;c<C;c++){
+    var k=r*C+c, x=c*CS, y=r*CS, col=null;
+    if(state.H){ if(state.known && !state.known[k]){ col = IAA.css("--line"); } if(k in state.H){ var v=state.H[k]/maxH; col="hsl("+(220-180*v)+",70%,"+(78-20*v)+"%)"; } }
+    else { if(state.closed && state.closed[k]) col=pal.closed; else if(state.open && state.open[k]) col=pal.open; }
+    if(cell[r][c]===2) col = col ? col : pal.mud;
+    if(col){ g.fillStyle=col; g.fillRect(x,y,CS,CS); }
+    if(cell[r][c]===2){ g.strokeStyle="#4f7f66"; g.beginPath(); g.moveTo(x+3,y+12); g.quadraticCurveTo(x+7,y+7,x+10,y+12); g.quadraticCurveTo(x+14,y+17,x+17,y+12); g.stroke(); }
+    if(cell[r][c]===1){ g.fillStyle=pal.wall; g.fillRect(x,y,CS,CS); }
+    g.strokeStyle=pal.grid; g.lineWidth=0.5; g.strokeRect(x,y,CS,CS);
+  }
+  if(state.trail) for(var tk in state.trail){ var p=fromKey(+tk); g.fillStyle="rgba(217,83,79,.35)"; g.beginPath(); g.arc(p.c*CS+CS/2,p.r*CS+CS/2,3,0,7); g.fill(); }
+  if(state.path){ g.strokeStyle=pal.path; g.lineWidth=3; g.beginPath(); state.path.forEach(function(k,i){ var p=fromKey(k); var x=p.c*CS+CS/2, y=p.r*CS+CS/2; if(i) g.lineTo(x,y); else g.moveTo(x,y); }); g.stroke(); }
+  function lab(p,t,colr){ g.fillStyle=colr; g.fillRect(p.c*CS+1,p.r*CS+1,CS-2,CS-2); g.fillStyle="#fff"; g.font="bold 13px sans-serif"; g.textAlign="center"; g.fillText(t,p.c*CS+CS/2,p.r*CS+15); g.textAlign="left"; }
+  lab(S,"S","#2e7d4f"); lab(G,"G","#9b2c4f");
+  if(state.agent){ g.fillStyle="#2f5d8a"; g.beginPath(); g.arc(state.agent.c*CS+CS/2,state.agent.r*CS+CS/2,7,0,7); g.fill(); }
+}
+cv.addEventListener("mousedown", function(e){
+  var p=IAA.pos(cv,e), c=Math.floor(p.x/CS), r=Math.floor(p.y/CS); if(r<0||r>=R||c<0||c>=C) return;
+  if(r===S.r&&c===S.c){ drag="S"; return; } if(r===G.r&&c===G.c){ drag="G"; return; }
+  var v = e.shiftKey?2:1; drag = cell[r][c]===v ? "erase" : (e.shiftKey?"mud":"wall"); cell[r][c] = cell[r][c]===v?0:v; clearSearch();
+});
+cv.addEventListener("mousemove", function(e){
+  if(!drag) return; var p=IAA.pos(cv,e), c=Math.floor(p.x/CS), r=Math.floor(p.y/CS); if(r<0||r>=R||c<0||c>=C) return;
+  if(drag==="S"||drag==="G"){ if(cell[r][c]!==1){ var o = drag==="S"?S:G; o.r=r; o.c=c; } }
+  else if(!((r===S.r&&c===S.c)||(r===G.r&&c===G.c))) cell[r][c] = drag==="wall"?1:drag==="mud"?2:0;
+  clearSearch();
+});
+window.addEventListener("mouseup", function(){ drag=null; });
+document.getElementById("gRun").onclick=run;
+document.getElementById("gClearS").onclick=clearSearch;
+document.getElementById("gMaze").onclick=function(){ maze(); clearSearch(); };
+document.getElementById("gClear").onclick=function(){ blank(); clearSearch(); };
+document.addEventListener("themechange", draw);
+clearSearch();
+})();
+</script>
+</body>
+</html>

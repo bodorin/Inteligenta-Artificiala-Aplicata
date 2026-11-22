@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IAA 02 – Planificare (I): problema de planificare, STRIPS/PDDL, căutare în spațiul stărilor</title>
+<style>:root{
+  --bg:#f7f6f2; --panel:#ffffff; --ink:#1d2433; --muted:#5c6577; --line:#e3e0d8;
+  --accent:#2f5d8a; --accent-soft:#e6eef7; --code-bg:#1f2430; --code-ink:#e6e6e6;
+  --b:#2e7d4f; --b-soft:#e5f3ea; --m:#b26a00; --m-soft:#fbf0de; --a:#9b2c4f; --a-soft:#f8e4ea;
+  --ok:#2e7d4f; --bad:#b3261e; --shadow:0 1px 2px rgba(0,0,0,.05),0 4px 14px rgba(0,0,0,.05);
+  --radius:10px; --sans:"Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --serif:Georgia,"Times New Roman",serif; --mono:"JetBrains Mono","Cascadia Code",Consolas,"Liberation Mono",monospace;
+}
+html.dark{
+  --bg:#14171d; --panel:#1c2029; --ink:#e4e6eb; --muted:#9aa3b2; --line:#2c3240;
+  --accent:#7fb0e0; --accent-soft:#1f2b3a; --code-bg:#0f1218;
+  --b:#6cc48f; --b-soft:#17291f; --m:#e0a24a; --m-soft:#2d2415; --a:#e57a9c; --a-soft:#2e1a22;
+  --shadow:none;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.62 var(--sans)}
+a{color:var(--accent)}
+header.top{position:sticky;top:0;z-index:20;background:var(--panel);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:8px 18px;flex-wrap:wrap}
+header.top .brand{font-weight:700;letter-spacing:.2px;white-space:nowrap}
+header.top .brand small{font-weight:400;color:var(--muted);margin-left:6px}
+.lvl-filter{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+.lvl-filter button,.tbtn{border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:5px 11px;border-radius:999px;cursor:pointer;font:inherit;font-size:13.5px}
+.lvl-filter button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+html.dark .lvl-filter button.on{color:#10141a}
+.progress{height:4px;background:var(--line);width:100%;position:absolute;left:0;bottom:-1px}
+.progress i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:28px;max-width:1320px;margin:0 auto;padding:24px 18px 80px}
+nav.toc{position:sticky;top:70px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px;border-right:1px solid var(--line);padding-right:12px}
+nav.toc a{display:block;text-decoration:none;color:var(--muted);padding:3px 8px;border-radius:6px;line-height:1.35}
+nav.toc a.h3{padding-left:20px;font-size:13px}
+nav.toc a:hover,nav.toc a.act{color:var(--ink);background:var(--accent-soft)}
+nav.toc .tocprog{font-size:12.5px;color:var(--muted);margin:12px 8px}
+main{min-width:0}
+.hero{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:26px 28px;box-shadow:var(--shadow);margin-bottom:22px}
+.hero .kicker{text-transform:uppercase;letter-spacing:1.4px;font-size:12px;color:var(--accent);font-weight:700}
+.hero h1{font-family:var(--serif);font-size:34px;line-height:1.2;margin:6px 0 10px}
+.hero .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chip{display:inline-block;font-size:12.5px;padding:3px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent);border:1px solid transparent}
+section.part{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:8px 28px 22px;margin-bottom:22px;box-shadow:var(--shadow)}
+h2{font-family:var(--serif);font-size:27px;margin:26px 0 8px;padding-bottom:6px;border-bottom:2px solid var(--line)}
+h2 .tag{font-family:var(--sans);font-size:12px;vertical-align:middle;margin-left:8px;padding:2px 8px;border-radius:6px;background:var(--accent);color:#fff;letter-spacing:.5px}
+html.dark h2 .tag{color:#10141a}
+h3{font-size:20px;margin:26px 0 8px}
+h4{font-size:16.5px;margin:18px 0 6px}
+p,li{max-width:80ch}
+.lvl{border-left:4px solid var(--line);padding:10px 16px 6px;margin:14px 0;border-radius:0 8px 8px 0;position:relative}
+.lvl[data-lvl=b]{border-color:var(--b);background:var(--b-soft)}
+.lvl[data-lvl=m]{border-color:var(--m);background:var(--m-soft)}
+.lvl[data-lvl=a]{border-color:var(--a);background:var(--a-soft)}
+.badge{display:inline-block;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;padding:2px 8px;border-radius:5px;color:#fff;margin-bottom:4px}
+.badge.b{background:var(--b)}.badge.m{background:var(--m)}.badge.a{background:var(--a)}
+html.dark .badge{color:#10141a}
+.hide-lvl{display:none!important}
+.note,.tip,.warn,.ai,.def{border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin:14px 0;background:var(--panel)}
+.note::before,.tip::before,.warn::before,.ai::before,.def::before{display:block;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px}
+.note::before{content:"Observație";color:var(--accent)}
+.tip::before{content:"Sfat";color:var(--b)}
+.warn::before{content:"Atenție";color:var(--bad)}
+.ai{border-color:#7b61c9;background:rgba(123,97,201,.07)}.ai::before{content:"AI generativ – utilizare responsabilă";color:#7b61c9}
+.def{border-left:4px solid var(--accent)}.def::before{content:"Definiție";color:var(--accent)}
+.formula{font-family:var(--serif);font-size:17px;background:var(--accent-soft);padding:10px 14px;border-radius:8px;margin:10px 0;overflow-x:auto;white-space:nowrap}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14.5px}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}
+th{background:var(--accent-soft)}
+.tablewrap{overflow-x:auto}
+pre.code{position:relative;background:var(--code-bg);color:var(--code-ink);padding:14px 16px;border-radius:8px;overflow:auto;font:13.5px/1.5 var(--mono);max-height:560px}
+pre.code .copy{position:absolute;top:6px;right:6px;font:12px var(--sans);background:#394050;color:#fff;border:0;border-radius:5px;padding:3px 8px;cursor:pointer;opacity:.8}
+pre.code .copy:hover{opacity:1}
+.k{color:#c792ea}.s{color:#c3e88d}.c{color:#7f8aa3;font-style:italic}.n{color:#f78c6c}.f{color:#82aaff}.bi{color:#ffcb6b}
+code{font-family:var(--mono);font-size:.92em;background:var(--accent-soft);padding:1px 5px;border-radius:4px}
+pre code{background:none;padding:0}
+details{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:10px 0;background:var(--panel)}
+details>summary{cursor:pointer;font-weight:600;color:var(--accent)}
+details[open]>summary{margin-bottom:8px}
+.ex{border:1px dashed var(--line);border-radius:8px;padding:10px 16px;margin:14px 0}
+.ex .exh{font-weight:700}
+.widget{border:1px solid var(--line);border-radius:10px;padding:14px;margin:16px 0;background:var(--bg)}
+.widget .wtitle{font-weight:700;margin-bottom:8px}
+.widget .ctrl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0;font-size:14px}
+.widget button,.btn{border:1px solid var(--accent);background:var(--accent);color:#fff;padding:5px 12px;border-radius:6px;cursor:pointer;font:inherit;font-size:14px}
+html.dark .widget button,html.dark .btn{color:#10141a}
+.widget button.sec,.btn.sec{background:transparent;color:var(--accent)}
+.widget select,.widget input[type=number],.widget input[type=text],.widget textarea{font:inherit;font-size:14px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
+.widget canvas{max-width:100%;background:var(--panel);border:1px solid var(--line);border-radius:6px;display:block}
+.widget .out{font:13px/1.45 var(--mono);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 10px;white-space:pre-wrap;max-height:260px;overflow:auto;margin-top:8px}
+.stats{display:flex;gap:14px;flex-wrap:wrap;font-size:14px;margin-top:6px}
+.stats b{font-variant-numeric:tabular-nums}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.quiz .qq{border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:12px 0;background:var(--panel)}
+.quiz .qq .qt{font-weight:600;margin-bottom:6px}
+.quiz label{display:block;padding:5px 8px;border-radius:6px;cursor:pointer;margin:2px 0}
+.quiz label:hover{background:var(--accent-soft)}
+.quiz label.right{background:var(--b-soft);outline:1px solid var(--ok)}
+.quiz label.wrong{background:var(--a-soft);outline:1px solid var(--bad)}
+.quiz .expl{font-size:14px;color:var(--muted);margin-top:6px;display:none}
+.quiz .qq.done .expl{display:block}
+.quiz .score{font-weight:700;font-size:17px;margin-top:8px}
+ul.check{list-style:none;padding-left:0}
+ul.check li{padding:4px 0}
+ul.check input{margin-right:8px;transform:scale(1.15)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin:12px 0}
+.card{perspective:800px;height:150px;cursor:pointer}
+.card .in{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
+.card.flip .in{transform:rotateY(180deg)}
+.card .fr,.card .bk{position:absolute;inset:0;backface-visibility:hidden;border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:14px;overflow:auto}
+.card .fr{background:var(--panel);font-weight:700;font-size:15.5px}
+.card .bk{background:var(--accent-soft);transform:rotateY(180deg)}
+.agenda td:first-child{white-space:nowrap;font-variant-numeric:tabular-nums}
+.drag-item{display:inline-block;padding:4px 10px;margin:3px;border:1px solid var(--line);border-radius:6px;background:var(--panel);cursor:grab;font-size:14px}
+.ok{color:var(--ok);font-weight:700}.bad{color:var(--bad);font-weight:700}
+footer{max-width:1320px;margin:0 auto;padding:0 18px 40px;color:var(--muted);font-size:13px}
+.pager{display:flex;justify-content:space-between;gap:10px;margin:12px 0}
+@media (max-width:900px){.layout{grid-template-columns:1fr}nav.toc{display:none}.grid2{grid-template-columns:1fr}.hero h1{font-size:27px}section.part{padding:6px 16px 16px}}
+@media print{header.top,nav.toc,.widget button,.lvl-filter{display:none!important}.layout{display:block}details{display:block}details>*{display:block!important}section.part{box-shadow:none;break-inside:auto}body{background:#fff}}
+</style>
+</head>
+<body data-session="02">
+<header class="top">
+  <div class="brand">IAA · Inteligență artificială aplicată<small>Ședința 2/7 · Curs + Seminar + Laborator</small></div>
+  <div class="lvl-filter" role="group" aria-label="Filtru nivel">
+    <button data-f="all" class="on">Toate nivelele</button>
+    <button data-f="b">Începător</button>
+    <button data-f="m">Mediu</button>
+    <button data-f="a">Avansat</button>
+    <button class="tbtn" id="themeBtn" title="Temă luminoasă / întunecată">Temă</button>
+    <button class="tbtn" id="printBtn" title="Tipărește (deschide toate soluțiile)">Tipărire</button>
+  </div>
+  <div class="progress"><i></i></div>
+</header>
+<div class="layout">
+<nav class="toc"><div class="tocprog"></div><div class="links"></div></nav>
+<main>
+<div class="hero">
+  <div class="kicker">Ședința 2 din 7 · Orele de curs 3–4 din 14 · Capitolul 2 din fișa disciplinei (orele 1–2 din 5)</div>
+  <h1>Planificare (I): problema de planificare, STRIPS/PDDL și căutarea în spațiul stărilor</h1>
+  <p>Problema de planificare. Reprezentarea factorizată a stărilor și acțiunilor. Planificarea bazată pe căutarea în spațiul stărilor posibile: progresie, regresie, euristici independente de domeniu.</p>
+  <div class="meta">
+    <span class="chip">Curs: 2 ore</span><span class="chip">Laborator asociat: 2 ore (L2, partea I)</span>
+    <span class="chip">Python 3 · PDDL · pyperplan</span><span class="chip">Nivele: începător · mediu · avansat</span>
+  </div>
+</div>
+
+<section class="part">
+<h2>0. Organizarea ședinței</h2>
+<div class="tablewrap"><table class="agenda">
+<tr><th>Interval</th><th>Activitate</th><th>Metodă</th></tr>
+<tr><td>Săpt. 3 · 0–10 min</td><td>Recapitulare: de ce căutarea „atomică” din ședința 1 nu scalează la 50 de colete și 10 avioane?</td><td>Problematizare</td></tr>
+<tr><td>10–50 min</td><td>§2.1–§2.3: problema de planificare, STRIPS, PDDL, exemple de domenii</td><td>Predare interactivă</td></tr>
+<tr><td>Lab · 50 min</td><td>Simulatorul „lumea blocurilor”; scrierea primului domeniu PDDL; rularea pyperplan</td><td>Exercițiul, cooperare</td></tr>
+<tr><td>Săpt. 4 · 0–50 min</td><td>§2.4–§2.6: progresie, regresie, euristici (h<sub>max</sub>, h<sub>add</sub>, h<sub>FF</sub>), anomalia lui Sussman</td><td>Predare, conversație</td></tr>
+<tr><td>Lab · 50 min</td><td>Planificator STRIPS în Python: BFS, A* cu euristici relaxate, regresie cu invarianți; PDDL generat de AI – evaluare critică</td><td>Exercițiul, prompt engineering</td></tr>
+</table></div>
+<h3>Obiective</h3>
+<ul class="check">
+<li><label><input type="checkbox">Pot defini formal o problemă de planificare clasică.</label></li>
+<li><label><input type="checkbox">Pot modela un domeniu în STRIPS și îl pot scrie în PDDL.</label></li>
+<li><label><input type="checkbox">Pot aplica progresia și regresia pe un exemplu mic.</label></li>
+<li><label><input type="checkbox">Pot calcula h<sub>max</sub> și h<sub>add</sub> și pot explica de ce una e admisibilă, iar cealaltă nu.</label></li>
+<li><label><input type="checkbox">Pot rula un planificator pe un domeniu PDDL și pot valida planul.</label></li>
+</ul>
+</section>
+
+<section class="part">
+<h2>1. Curs<span class="tag">CURS</span></h2>
+
+<h3>2.1 Ce este planificarea?</h3>
+<div class="lvl" data-lvl="b">
+<div class="def"><b>Planificarea</b> înseamnă găsirea unei secvențe (sau a unei structuri) de acțiuni care duce un agent dintr-o stare inițială într-o stare care satisface un scop, folosind o descriere <b>factorizată</b> a stărilor și a acțiunilor.</div>
+<p>Diferența față de căutarea din ședința 1: acolo starea era o „cutie neagră” și algoritmul avea nevoie de o euristică scrisă special pentru fiecare problemă. În planificare, starea este o mulțime de fapte (<i>fluenți</i>), iar acțiunile au structură (precondiții, efecte). Astfel putem construi <b>euristici independente de domeniu</b>, calculate automat din descrierea problemei.</p>
+<p><b>Planificarea clasică</b> presupune un mediu complet observabil, determinist, static, discret, cu un singur agent. Ședința 4 renunță pe rând la aceste ipoteze.</p>
+<p>Unde se folosește: logistică, roboți (Shakey, roverele marțiene), jocuri (planificatorul GOAP din <i>F.E.A.R.</i>, HTN în <i>Killzone</i>), compunerea serviciilor web, generarea de narațiuni interactive în medii virtuale, orchestrarea agenților bazați pe LLM.</p>
+</div>
+
+<h3>2.2 Reprezentarea STRIPS și PDDL</h3>
+<div class="lvl" data-lvl="b">
+<ul>
+<li><b>Starea</b> este o conjuncție de fluenți atomici fără variabile, de ex. <code>on(A,B) ∧ clear(A) ∧ handempty</code>. Ipoteza <b>lumii închise</b>: orice fluent nemenționat este fals. Ipoteza <b>numelor unice</b>: obiecte cu nume diferite sunt diferite.</li>
+<li><b>Scopul</b> este o conjuncție de literali; o stare îl satisface dacă îi conține pe toți. Scopul descrie deci o <i>mulțime</i> de stări.</li>
+<li><b>Schema de acțiune</b> are nume, parametri, <b>precondiții</b> PRE(a), listă de <b>adăugare</b> ADD(a) și listă de <b>ștergere</b> DEL(a).</li>
+</ul>
+<div class="formula">a aplicabilă în s ⇔ PRE(a) ⊆ s &nbsp;&nbsp;&nbsp;&nbsp; RESULT(s, a) = (s − DEL(a)) ∪ ADD(a)</div>
+<p>Efectele descriu doar ce se <b>schimbă</b>. Restul rămâne neschimbat: astfel STRIPS rezolvă elegant <b>problema cadrului</b> (frame problem).</p>
+<h4>Exemplu: lumea blocurilor</h4>
+<div class="tablewrap"><table>
+<tr><th>Acțiune</th><th>Precondiții</th><th>ADD</th><th>DEL</th></tr>
+<tr><td>pickup(x)</td><td>clear(x), ontable(x), handempty</td><td>holding(x)</td><td>clear(x), ontable(x), handempty</td></tr>
+<tr><td>putdown(x)</td><td>holding(x)</td><td>clear(x), ontable(x), handempty</td><td>holding(x)</td></tr>
+<tr><td>stack(x, y)</td><td>holding(x), clear(y)</td><td>on(x,y), clear(x), handempty</td><td>holding(x), clear(y)</td></tr>
+<tr><td>unstack(x, y)</td><td>on(x,y), clear(x), handempty</td><td>holding(x), clear(y)</td><td>on(x,y), clear(x), handempty</td></tr>
+</table></div>
+</div>
+<div class="lvl" data-lvl="m">
+<h4>PDDL (Planning Domain Definition Language)</h4>
+<p>PDDL separă <b>domeniul</b> (tipuri, predicate, scheme de acțiuni) de <b>problemă</b> (obiecte, stare inițială, scop). Același domeniu servește pentru oricâte probleme. Este limbajul standard al competițiilor internaționale de planificare (IPC) și este acceptat de toți planificatorii moderni (Fast Downward, pyperplan, ENHSP, LAMA).</p>
+<pre class="code" data-lang="pddl">
+;; Domeniul „lumea blocurilor” în PDDL (STRIPS + tipuri)
+(define (domain blocks)
+  (:requirements :strips :typing)
+  (:types block)
+  (:predicates (on ?x - block ?y - block) (ontable ?x - block)
+               (clear ?x - block) (handempty) (holding ?x - block))
+
+  (:action pickup
+    :parameters (?x - block)
+    :precondition (and (clear ?x) (ontable ?x) (handempty))
+    :effect (and (holding ?x) (not (clear ?x)) (not (ontable ?x)) (not (handempty))))
+
+  (:action putdown
+    :parameters (?x - block)
+    :precondition (holding ?x)
+    :effect (and (clear ?x) (ontable ?x) (handempty) (not (holding ?x))))
+
+  (:action stack
+    :parameters (?x - block ?y - block)
+    :precondition (and (holding ?x) (clear ?y))
+    :effect (and (on ?x ?y) (clear ?x) (handempty) (not (holding ?x)) (not (clear ?y))))
+
+  (:action unstack
+    :parameters (?x - block ?y - block)
+    :precondition (and (on ?x ?y) (clear ?x) (handempty))
+    :effect (and (holding ?x) (clear ?y) (not (on ?x ?y)) (not (clear ?x)) (not (handempty)))))</pre>
+<pre class="code" data-lang="pddl">
+;; Anomalia lui Sussman: C este pe A, B pe masă. Scop: A pe B, B pe C.
+(define (problem sussman)
+  (:domain blocks)
+  (:objects A B C - block)
+  (:init (on C A) (ontable A) (ontable B) (clear C) (clear B) (handempty))
+  (:goal (and (on A B) (on B C))))</pre>
+<p><b>Instanțierea (grounding)</b>: planificatorul înlocuiește parametrii cu obiecte în toate modurile posibile. Cu n blocuri: 2n acțiuni pickup/putdown + 2n(n−1) acțiuni stack/unstack. Numărul de acțiuni instanțiate crește polinomial, dar exponentul este aritatea maximă a schemelor – motiv pentru care modelele cu multe variabile pe acțiune devin greu de instanțiat.</p>
+</div>
+<div class="lvl" data-lvl="a">
+<h4>Dincolo de STRIPS: ADL și nivelurile PDDL</h4>
+<ul>
+<li><b>ADL</b>: precondiții negative, disjuncții, cuantificatori (<code>forall</code>, <code>exists</code>), <b>efecte condiționale</b> (<code>when</code>), egalitate. Se pot compila în STRIPS, dar uneori cu o explozie exponențială.</li>
+<li><b>PDDL 2.1</b>: fluenți numerici (combustibil, cost), acțiuni <b>durative</b> (timp) – baza planificării cu resurse și timp din ședința 4.</li>
+<li><b>PDDL 2.2/3</b>: predicate derivate, literali temporizați, preferințe și restricții asupra traiectoriei.</li>
+<li><b>PDDL+</b>: procese și evenimente continue – sisteme hibride.</li>
+<li><b>HTN</b> (Hierarchical Task Networks): descompunerea sarcinilor abstracte în metode; foarte folosită în jocuri și în roboții de serviciu.</li>
+</ul>
+</div>
+
+<h3>2.3 Încă două domenii clasice</h3>
+<div class="lvl" data-lvl="b">
+<p><b>Transport aerian de marfă</b> – acțiuni <code>load(c, p, a)</code>, <code>unload(c, p, a)</code>, <code>fly(p, from, to)</code>. Modelul abstractizează aproape totul: nu ne interesează combustibilul, orarul sau masa coletelor (până în ședința 4).</p>
+<pre class="code" data-lang="pddl">
+;; Transport aerian de marfă (Russell &amp; Norvig, §11.1) – PDDL cu tipuri
+(define (domain air-cargo)
+  (:requirements :strips :typing)
+  (:types cargo plane airport)
+  (:predicates (at-c ?c - cargo ?a - airport) (at-p ?p - plane ?a - airport)
+               (in ?c - cargo ?p - plane))
+  (:action load
+    :parameters (?c - cargo ?p - plane ?a - airport)
+    :precondition (and (at-c ?c ?a) (at-p ?p ?a))
+    :effect (and (not (at-c ?c ?a)) (in ?c ?p)))
+  (:action unload
+    :parameters (?c - cargo ?p - plane ?a - airport)
+    :precondition (and (in ?c ?p) (at-p ?p ?a))
+    :effect (and (at-c ?c ?a) (not (in ?c ?p))))
+  (:action fly
+    :parameters (?p - plane ?from - airport ?to - airport)
+    :precondition (at-p ?p ?from)
+    :effect (and (not (at-p ?p ?from)) (at-p ?p ?to))))</pre>
+<p><b>Roata de rezervă</b> – scopul: o roată bună montată pe ax; acțiuni: <code>remove(obj, loc)</code>, <code>puton(t, axle)</code>, <code>leaveovernight</code> (care „șterge” totul – un exemplu de acțiune cu efecte neplăcute).</p>
+</div>
+
+<h3>2.4 Planificare prin căutare în spațiul stărilor</h3>
+<div class="lvl" data-lvl="m">
+<h4>Progresie (căutare înainte)</h4>
+<p>Pornim din starea inițială, aplicăm toate acțiunile aplicabile, testăm scopul. Este exact căutarea din ședința 1, cu ACTIONS(s) = {a | PRE(a) ⊆ s}. Problema: <b>factorul de ramificare</b> este uriaș (în transportul aerian cu 10 aeroporturi, 50 de avioane și 200 de colete: mii de acțiuni aplicabile în fiecare stare, majoritatea irelevante pentru scop). Fără euristică bună, progresia este inutilizabilă.</p>
+<h4>Regresie (căutare înapoi, prin acțiuni relevante)</h4>
+<p>Pornim de la scop g și căutăm acțiuni care ar fi putut fi <b>ultimele</b> din plan. O acțiune a este:</p>
+<ul>
+<li><b>relevantă</b> pentru g dacă ADD(a) ∩ g ≠ ∅ (realizează ceva din scop);</li>
+<li><b>consistentă</b> cu g dacă DEL(a) ∩ g = ∅ (nu distruge nimic din scop).</li>
+</ul>
+<div class="formula">REGRESS(g, a) = (g − ADD(a)) ∪ PRE(a)</div>
+<p>Ne oprim când subscopul curent este satisfăcut de starea inițială. Avantaj: factor de ramificare mai mic (doar acțiunile relevante). Dezavantaj: nodurile sunt <i>mulțimi</i> de stări (descrieri parțiale), deci euristicile sunt mai greu de calculat, iar multe subscopuri sunt <b>imposibile</b> (ex.: <code>holding(A) ∧ handempty</code>). Fără eliminarea lor, regresia explodează – vedeți rezultatele din laborator.</p>
+</div>
+<div class="lvl" data-lvl="a">
+<h4>Complexitate</h4>
+<ul>
+<li><b>PlanSAT</b> (există un plan?) pentru STRIPS propozițional este <b>PSPACE-complet</b> (Bylander, 1994). Planurile pot avea lungime exponențială (turnurile din Hanoi).</li>
+<li><b>Bounded PlanSAT</b> (există un plan de lungime ≤ k?) este și el PSPACE-complet când k e dat în binar; NP-complet când k e polinomial – baza SATPlan (ședința 3).</li>
+<li>Pentru multe domenii concrete, PlanSAT e polinomial (lumea blocurilor: există mereu un plan de ≤ 2n pași – puneți totul pe masă, apoi construiți), dar <b>planificarea optimă</b> în lumea blocurilor rămâne NP-grea (Gupta &amp; Nau, 1992).</li>
+</ul>
+</div>
+
+<h3>2.5 Euristici independente de domeniu</h3>
+<div class="lvl" data-lvl="m">
+<p>Ideea din ședința 1: o euristică admisibilă = costul exact al unei <b>probleme relaxate</b>. Reprezentarea factorizată ne permite să relaxăm automat:</p>
+<div class="tablewrap"><table>
+<tr><th>Relaxare</th><th>Euristică</th><th>Admisibilă?</th><th>Observații</th></tr>
+<tr><td>Ignorăm precondițiile</td><td>număr de scopuri nesatisfăcute (dacă fiecare acțiune realizează un singur scop)</td><td>nu în general</td><td>exact: problemă de acoperire cu mulțimi (set cover) – NP-grea</td></tr>
+<tr><td>Ignorăm listele de ștergere</td><td>h<sup>+</sup> = costul planului relaxat optim</td><td>da</td><td>NP-grea; se aproximează:</td></tr>
+<tr><td>„</td><td>h<sub>max</sub>: costul celui mai scump subscop</td><td>da</td><td>slab informativă</td></tr>
+<tr><td>„</td><td>h<sub>add</sub>: suma costurilor subscopurilor</td><td>nu</td><td>presupune independența subscopurilor; foarte informativă</td></tr>
+<tr><td>„</td><td>h<sub>FF</sub>: lungimea unui plan relaxat extras din graful de planificare</td><td>nu</td><td>planificatorul FF (Hoffmann &amp; Nebel, 2001)</td></tr>
+<tr><td>Abstracție</td><td>baze de date de tipare (PDB), merge-and-shrink</td><td>da</td><td>ignoră o parte din fluenți</td></tr>
+<tr><td>Repere (landmarks)</td><td>h<sub>LM</sub>: numărul de repere nerealizate</td><td>varianta LM-cut: da</td><td>LAMA, Fast Downward</td></tr>
+</table></div>
+<p>Calculul h<sub>max</sub> / h<sub>add</sub> (punct fix pe problema fără ștergeri):</p>
+<div class="formula">c(p; s) = 0 dacă p ∈ s; &nbsp; c(p; s) = min<sub>a: p ∈ ADD(a)</sub> [ cost(a) + ⊕<sub>q ∈ PRE(a)</sub> c(q; s) ], &nbsp; ⊕ ∈ {max, Σ}</div>
+<p>și h(s) = ⊕<sub>g ∈ Scop</sub> c(g; s).</p>
+</div>
+<div class="lvl" data-lvl="a">
+<h4>Descompunerea în subscopuri și anomalia lui Sussman</h4>
+<p>O strategie naivă: rezolvăm subscopurile pe rând și concatenăm planurile. Anomalia lui Sussman (1975) arată că nu merge: inițial C este pe A, iar A și B sunt pe masă; scopul este on(A,B) ∧ on(B,C).</p>
+<ul>
+<li>Dacă realizăm întâi on(A,B) (dăm jos C, punem A pe B), pentru on(B,C) trebuie să desfacem A de pe B.</li>
+<li>Dacă realizăm întâi on(B,C), A rămâne blocat sub C și B.</li>
+</ul>
+<p>Planul optim (6 pași) <b>intercalează</b> acțiunile celor două subscopuri. h<sub>add</sub> greșește tocmai pentru că presupune independența. Planificatoarele cu <b>ordine parțială</b> (POP) au fost propuse ca soluție: lucrează în spațiul <i>planurilor</i>, adaugă acțiuni și restricții de ordonare doar când sunt necesare și rezolvă <b>amenințările</b> (o acțiune care șterge o precondiție protejată) prin promovare/retrogradare.</p>
+</div>
+
+<h3>2.6 Ce urmează</h3>
+<div class="lvl" data-lvl="b">
+<p>Fișa disciplinei cere trei familii de abordări: (1) căutare în spațiul stărilor (azi), (2) reprezentare prin <b>grafuri de planificare</b> și (3) reprezentare în <b>logica propozițională</b> (SATPlan) – ședința 3. Ședința 4 aplică planificarea la probleme reale: resurse, timp, incertitudine, mai mulți agenți.</p>
+</div>
+</section>
+
+<section class="part">
+<h2>2. Seminar<span class="tag">SEMINAR</span></h2>
+
+<div class="ex lvl" data-lvl="b">
+<div class="exh">S2.1 – Modelare STRIPS: ghidul virtual</div>
+<p>Un NPC-ghid se deplasează între săli adiacente ale unui muzeu virtual, poate lua o broșură dintr-o sală (dacă are mâinile libere) și o poate da unui vizitator aflat în aceeași sală. Definiți predicatele și schemele de acțiuni.</p>
+<details><summary>Soluție</summary>
+<p>Predicate: <code>at(g, r)</code>, <code>adj(r1, r2)</code>, <code>brochure-in(b, r)</code>, <code>carrying(g, b)</code>, <code>free(g)</code>, <code>visitor-in(v, r)</code>, <code>has(v, b)</code>.</p>
+<ul>
+<li><code>move(g, r1, r2)</code>: PRE at(g,r1), adj(r1,r2); ADD at(g,r2); DEL at(g,r1).</li>
+<li><code>take(g, b, r)</code>: PRE at(g,r), brochure-in(b,r), free(g); ADD carrying(g,b); DEL brochure-in(b,r), free(g).</li>
+<li><code>give(g, b, v, r)</code>: PRE at(g,r), visitor-in(v,r), carrying(g,b); ADD has(v,b), free(g); DEL carrying(g,b).</li>
+</ul>
+<p>Observați: <code>adj</code> este un predicat <b>static</b> (nu apare în niciun efect). Vizitatorul nu se mișcă – mediu static, cerință a planificării clasice.</p></details>
+</div>
+
+<div class="ex lvl" data-lvl="b">
+<div class="exh">S2.2 – Aplicarea acțiunilor</div>
+<p>s = {on(C,A), ontable(A), ontable(B), clear(C), clear(B), handempty}. Care acțiuni sunt aplicabile? Calculați RESULT(s, unstack(C,A)) și apoi RESULT(·, stack(C,B)).</p>
+<details><summary>Soluție</summary>
+<p>Aplicabile: <code>unstack(C,A)</code>, <code>pickup(B)</code>. (pickup(A) nu: A nu e liber.)</p>
+<p>s₁ = {ontable(A), ontable(B), clear(B), holding(C), clear(A)} (șterse: on(C,A), clear(C), handempty).</p>
+<p>s₂ = RESULT(s₁, stack(C,B)) = {ontable(A), ontable(B), clear(A), on(C,B), clear(C), handempty}.</p></details>
+</div>
+
+<div class="ex lvl" data-lvl="m">
+<div class="exh">S2.3 – Regresie</div>
+<p>Scop g = {on(A,B), on(B,C)}. (a) Ce acțiuni sunt relevante și consistente? (b) Regresați g prin fiecare. (c) Unul dintre subscopuri e imposibil – care și de ce?</p>
+<details><summary>Soluție</summary>
+<p>(a) Doar <code>stack(A,B)</code> (adaugă on(A,B)) și <code>stack(B,C)</code> (adaugă on(B,C)); niciuna nu șterge ceva din g.</p>
+<p>(b) REGRESS(g, stack(A,B)) = {on(B,C), holding(A), clear(B)}; REGRESS(g, stack(B,C)) = {on(A,B), holding(B), clear(C)}.</p>
+<p>(c) Al doilea: holding(B) împreună cu on(A,B) – nu poți ține în mână un bloc peste care se află altul. Invariantul „un bloc ținut în mână nu are nimic deasupra” îl elimină (funcția <code>bw_invalid</code> din laborator).</p></details>
+</div>
+
+<div class="ex lvl" data-lvl="m">
+<div class="exh">S2.4 – h<sub>max</sub> și h<sub>add</sub> pentru anomalia lui Sussman</div>
+<p>Pentru starea inițială din S2.2 și scopul din S2.3, calculați costurile relaxate ale fluenților necesari și cele trei euristici. Planul optim are 6 pași.</p>
+<details><summary>Soluție</summary>
+<div class="tablewrap"><table>
+<tr><th>Fluent</th><th>c<sub>add</sub></th><th>c<sub>max</sub></th><th>Justificare</th></tr>
+<tr><td>holding(C), holding(B)</td><td>1</td><td>1</td><td>unstack(C,A), pickup(B) – precondiții în s</td></tr>
+<tr><td>clear(A)</td><td>1</td><td>1</td><td>efect al unstack(C,A)</td></tr>
+<tr><td>holding(A)</td><td>2</td><td>2</td><td>pickup(A): 1 + c(clear(A)) = 2</td></tr>
+<tr><td>on(B,C)</td><td>2</td><td>2</td><td>stack(B,C): 1 + c(holding(B)) + c(clear(C)) = 1 + 1 + 0</td></tr>
+<tr><td>on(A,B)</td><td>3</td><td>3</td><td>stack(A,B): 1 + c(holding(A)) + c(clear(B)) = 1 + 2 + 0</td></tr>
+</table></div>
+<p>h<sub>goalcount</sub> = 2, <b>h<sub>max</sub> = max(3, 2) = 3</b> ≤ 6 ✓ (admisibilă), <b>h<sub>add</sub> = 3 + 2 = 5</b>. Aici h<sub>add</sub> nu supraestimează, dar poate face asta în alte stări: dacă două subscopuri au nevoie de aceeași acțiune scumpă, h<sub>add</sub> o numără de două ori.</p></details>
+</div>
+
+<div class="ex lvl" data-lvl="a">
+<div class="exh">S2.5 – h<sub>add</sub> poate supraestima</div>
+<p>Construiți o problemă STRIPS minimală în care h<sub>add</sub>(s₀) &gt; h*(s₀).</p>
+<details><summary>Soluție</summary><p>O singură acțiune a cu PRE = ∅, ADD = {p, q}, cost 1. Scop {p, q}. h* = 1, dar h<sub>add</sub> = c(p) + c(q) = 1 + 1 = 2. h<sub>max</sub> = 1 = h*. h<sub>FF</sub> extrage planul relaxat {a} și dă 1 – de aceea h<sub>FF</sub> e de obicei mai precisă decât h<sub>add</sub>.</p></details>
+</div>
+
+<div class="ex lvl" data-lvl="a">
+<div class="exh">S2.6 – Ignorarea precondițiilor ca problemă de acoperire</div>
+<p>Arătați că, dacă ignorăm precondițiile, costul optim al problemei relaxate este o instanță a problemei de acoperire cu mulțimi. Ce aproximare polinomială cunoașteți și ce garanție are?</p>
+<details><summary>Soluție</summary><p>Fără precondiții, orice acțiune poate fi aplicată oricând; ștergerile nu contează dacă ordonăm acțiunile ca fiecare scop să fie adăugat ultima dată de acțiunea aleasă pentru el. Trebuie să alegem un număr minim de acțiuni ale căror liste ADD acoperă scopul: <b>set cover</b>, NP-grea. Algoritmul greedy (alege acțiunea care acoperă cele mai multe scopuri neacoperite) dă o aproximare de factor H(k) ≈ ln k, dar pierde admisibilitatea.</p></details>
+</div>
+
+<div class="lvl" data-lvl="b m a">
+<h3>Discuție ghidată</h3>
+<ol>
+<li>Un LLM poate genera „planuri” în limbaj natural. Ce garanții oferă un planificator PDDL pe care un LLM nu le oferă? (Corectitudine verificabilă, completitudine, optimalitate.) Ce aduce LLM-ul în plus? (Modelare din text, cunoaștere de bun-simț.)</li>
+<li>Abordarea <i>LLM + planificator</i> (LLM-ul traduce cerința în PDDL, planificatorul rezolvă, un validator verifică) – ce poate merge prost la fiecare etapă?</li>
+</ol>
+</div>
+</section>
+
+<section class="part">
+<h2>3. Laborator<span class="tag">LABORATOR</span></h2>
+<p>Corespunde punctului 2 din secțiunea 8.2: <i>modelarea în spațiul stărilor, planificarea în logica propozițională (STRIPS/PDDL)</i>. Instalare: <code>pip install pyperplan</code> (planificator PDDL scris în Python, cu euristicile h<sub>max</sub>, h<sub>add</sub>, h<sub>FF</sub>, landmarks).</p>
+
+<h3>3.1 Simulator: lumea blocurilor</h3>
+<div class="widget" id="bw">
+  <div class="wtitle">Lumea blocurilor – execuție manuală și planificare automată</div>
+  <div class="ctrl">
+    Instanță: <select id="bwPreset"><option value="sussman">Anomalia lui Sussman (3)</option><option value="rev4">Inversarea unui turn (4)</option><option value="r5">Aleator (5 blocuri)</option><option value="r6">Aleator (6 blocuri)</option></select>
+    Planificator: <select id="bwAlg"><option value="bfs">BFS înainte</option><option value="gc">A* + nr. scopuri nesatisfăcute</option><option value="hmax">A* + h_max</option><option value="hadd" selected>A* + h_add</option><option value="gbfs">Greedy + h_add</option></select>
+    <button id="bwSolve">Planifică</button><button id="bwPlay" class="sec">Execută planul</button><button id="bwReset" class="sec">Reset</button>
+  </div>
+  <div class="grid2">
+    <div><canvas id="bwCv" width="460" height="250"></canvas><div style="font-size:13px;margin-top:4px">Stânga: starea curentă · Dreapta-sus (mic): scopul</div></div>
+    <div>
+      <div style="font-size:14px"><b>Acțiuni aplicabile</b> (click pentru a executa):</div>
+      <div id="bwActs" style="margin:6px 0"></div>
+      <div style="font-size:14px"><b>Starea (fluenți)</b>:</div>
+      <div class="out" id="bwState" style="max-height:110px"></div>
+    </div>
+  </div>
+  <div class="out" id="bwOut">Apăsați „Planifică”. Treceți cu mouse-ul peste o acțiune pentru a vedea PRE / ADD / DEL.</div>
+</div>
+
+<div class="lvl" data-lvl="b">
+<h4>L2.1 – Primul domeniu PDDL</h4>
+<ol>
+<li>Salvați fișierele <code>s02_blocks_domain.pddl</code> și <code>s02_sussman.pddl</code> (din §2.2 al cursului).</li>
+<li>Rulați: <code>pyperplan -s astar -H hff s02_blocks_domain.pddl s02_sussman.pddl</code>. Planul apare în <code>s02_sussman.pddl.soln</code>.</li>
+<li>Executați planul pas cu pas în simulatorul de mai sus și verificați că fiecare acțiune e aplicabilă.</li>
+<li>Scrieți problema „inversarea unui turn de 4 blocuri” și rulați-o cu <code>-s bfs</code> și <code>-s astar -H hmax</code>. Comparați timpul și numărul de noduri expandate (din jurnalul afișat).</li>
+</ol>
+<p>Domeniul transportului aerian (§2.3) și o problemă cu trei aeroporturi românești:</p>
+<pre class="code" data-lang="pddl">
+;; Două colete, două avioane: CND = Constanța, OTP = București, CLJ = Cluj
+(define (problem cargo-ro)
+  (:domain air-cargo)
+  (:objects C1 C2 - cargo  P1 P2 - plane  CND OTP CLJ - airport)
+  (:init (at-c C1 CND) (at-c C2 CLJ) (at-p P1 CND) (at-p P2 CLJ))
+  (:goal (and (at-c C1 CLJ) (at-c C2 OTP))))</pre>
+<details><summary>Plan găsit de pyperplan (A*, h<sub>max</sub>)</summary>
+<pre class="code" data-lang="text">
+(load c2 p2 clj)
+(load c1 p1 cnd)
+(fly p1 cnd clj)
+(fly p2 clj otp)
+(unload c2 p2 otp)
+(unload c1 p1 clj)
+</pre></details>
+</div>
+
+<div class="lvl" data-lvl="m">
+<h4>L2.2 – Planificator STRIPS de la zero</h4>
+<p>Codul implementează reprezentarea STRIPS, instanțierea lumii blocurilor, progresia (BFS și A*), regresia și euristicile h<sub>goalcount</sub>, h<sub>max</sub>, h<sub>add</sub>.</p>
+<pre class="code" data-lang="python">
+"""Planificare STRIPS prin căutare în spațiul stărilor: progresie (înainte) și regresie (înapoi).
+Euristici independente de domeniu: număr de scopuri nesatisfăcute, h_max, h_add (relaxarea listelor de ștergere).
+Rulare: python s02_strips.py"""
+import heapq, itertools, time
+from collections import deque
+
+class Action:
+    """Acțiune STRIPS instanțiată (ground): precondiții, listă de adăugare, listă de ștergere."""
+    def __init__(self, name, pre, add, dele, cost=1):
+        self.name, self.pre, self.add, self.dele, self.cost = name, frozenset(pre), frozenset(add), frozenset(dele), cost
+    def applicable(self, s):
+        return self.pre &lt;= s
+    def apply(self, s):                       # RESULT(s, a) = (s − DEL(a)) ∪ ADD(a)
+        return (s - self.dele) | self.add
+    def __repr__(self):
+        return self.name
+
+class Problem:
+    def __init__(self, init, goal, actions):
+        self.init, self.goal, self.actions = frozenset(init), frozenset(goal), actions
+
+# ---------- domeniul „lumea blocurilor” (instanțiere automată a schemelor de acțiuni) ----------
+def blocks_world(init, goal, blocks):
+    A = []
+    for x in blocks:
+        A.append(Action(f"pickup({x})", {f"clear({x})", f"ontable({x})", "handempty"},
+                        {f"holding({x})"}, {f"clear({x})", f"ontable({x})", "handempty"}))
+        A.append(Action(f"putdown({x})", {f"holding({x})"},
+                        {f"clear({x})", f"ontable({x})", "handempty"}, {f"holding({x})"}))
+        for y in blocks:
+            if x == y: continue
+            A.append(Action(f"unstack({x},{y})", {f"on({x},{y})", f"clear({x})", "handempty"},
+                            {f"holding({x})", f"clear({y})"}, {f"on({x},{y})", f"clear({x})", "handempty"}))
+            A.append(Action(f"stack({x},{y})", {f"holding({x})", f"clear({y})"},
+                            {f"on({x},{y})", f"clear({x})", "handempty"}, {f"holding({x})", f"clear({y})"}))
+    return Problem(init, goal, A)
+
+def towers(stacks):
+    """[['C','A'], ['B']] = A peste C pe masă; B pe masă  -&gt;  mulțime de fluenți."""
+    s = {"handempty"}
+    for st in stacks:
+        s.add(f"ontable({st[0]})"); s.add(f"clear({st[-1]})")
+        for lo, hi in zip(st, st[1:]): s.add(f"on({hi},{lo})")
+    return s
+
+# ---------- euristici ----------
+def h_goalcount(p, s):
+    """Relaxare: ignoră precondițiile -&gt; numărul de scopuri nesatisfăcute (nu e garantat admisibilă)."""
+    return len(p.goal - s)
+
+def _relaxed_costs(p, s, combine):
+    """Costuri în problema relaxată (fără liste de ștergere), calculate prin punct fix."""
+    cost = {f: 0 for f in s}
+    changed = True
+    while changed:
+        changed = False
+        for a in p.actions:
+            if all(f in cost for f in a.pre):
+                c = a.cost + (combine(cost[f] for f in a.pre) if a.pre else 0)
+                for f in a.add:
+                    if c &lt; cost.get(f, float("inf")):
+                        cost[f] = c; changed = True
+    return cost
+
+def h_max(p, s):                              # admisibilă
+    c = _relaxed_costs(p, s, lambda xs: max(xs, default=0))
+    return max((c.get(g, float("inf")) for g in p.goal), default=0)
+
+def h_add(p, s):                              # informativă, dar NEadmisibilă (presupune independența subscopurilor)
+    c = _relaxed_costs(p, s, sum)
+    return sum(c.get(g, float("inf")) for g in p.goal)
+
+# ---------- căutare înainte (progresie) ----------
+def forward_search(p, h=None, weight=1):
+    """h=None -&gt; BFS; altfel A* (weight=1) sau Weighted A* (weight&gt;1)."""
+    t0, cnt = time.perf_counter(), itertools.count()
+    start = p.init
+    if h is None:
+        frontier, parent = deque([start]), {start: None}
+    else:
+        frontier, parent, g = [(weight * h(p, start), next(cnt), start)], {start: None}, {start: 0}
+    expanded = 0
+    while frontier:
+        s = frontier.popleft() if h is None else heapq.heappop(frontier)[2]
+        expanded += 1
+        if p.goal &lt;= s:
+            plan = []
+            while parent[s] is not None:
+                s, a = parent[s]; plan.append(a)
+            return plan[::-1], expanded, time.perf_counter() - t0
+        for a in p.actions:
+            if a.applicable(s):
+                s2 = a.apply(s)
+                if h is None:
+                    if s2 not in parent:
+                        parent[s2] = (s, a); frontier.append(s2)
+                elif s2 not in g or g[s] + a.cost &lt; g[s2]:
+                    g[s2] = g[s] + a.cost; parent[s2] = (s, a)
+                    heapq.heappush(frontier, (g[s2] + weight * h(p, s2), next(cnt), s2))
+    return None, expanded, time.perf_counter() - t0
+
+# ---------- căutare înapoi (regresie) ----------
+def regress(goal, a):
+    """g' = (g − ADD(a)) ∪ PRE(a), doar dacă a este RELEVANTĂ (adaugă ceva din g) și CONSISTENTĂ (nu șterge nimic din g)."""
+    if not (a.add &amp; goal) or (a.dele &amp; goal):
+        return None
+    return (goal - a.add) | a.pre
+
+def bw_invalid(g):
+    """Invarianți ai lumii blocurilor: elimină subscopuri imposibile (ex. handempty și holding(x))."""
+    hold = [f for f in g if f.startswith("holding")]
+    if len(hold) &gt; 1 or (hold and "handempty" in g): return True
+    below, above = {}, {}
+    for f in g:
+        if f.startswith("on("):
+            x, y = f[3:-1].split(",")
+            if x in below or y in above or f"clear({y})" in g or f"ontable({x})" in g: return True
+            if f"holding({x})" in g or f"holding({y})" in g: return True
+            below[x], above[y] = y, x
+    for f in hold:
+        x = f[8:-1]
+        if f"clear({x})" in g or f"ontable({x})" in g: return True
+    return False
+
+def backward_search(p, invalid=lambda g: False, limit=50_000):
+    t0 = time.perf_counter()
+    frontier, parent, expanded = deque([p.goal]), {p.goal: None}, 0
+    while frontier:
+        g = frontier.popleft(); expanded += 1
+        if expanded &gt; limit:
+            break                             # oprire de siguranță: spațiul subscopurilor explodează
+        if g &lt;= p.init:                       # subscopul curent e satisfăcut în starea inițială
+            plan = []
+            while parent[g] is not None:
+                g, a = parent[g]; plan.append(a)
+            return plan, expanded, time.perf_counter() - t0     # deja în ordinea execuției
+        for a in p.actions:
+            g2 = regress(g, a)
+            if g2 is not None and g2 not in parent and not invalid(g2):
+                parent[g2] = (g, a); frontier.append(g2)
+    return None, expanded, time.perf_counter() - t0
+
+def validate(p, plan):
+    s = p.init
+    for a in plan:
+        assert a.applicable(s), f"{a} nu e aplicabilă"
+        s = a.apply(s)
+    return p.goal &lt;= s
+
+if __name__ == "__main__":
+    # Anomalia lui Sussman: C peste A; B pe masă  -&gt;  scop: A pe B pe C
+    sussman = blocks_world(towers([["A", "C"], ["B"]]), {"on(A,B)", "on(B,C)"}, "ABC")
+    six = blocks_world(towers([["A", "B", "C"], ["D", "E", "F"]]),
+                       {"on(F,E)", "on(E,D)", "on(D,C)", "on(C,B)", "on(B,A)"}, "ABCDEF")
+    for name, p in [("Sussman (3 blocuri)", sussman), ("6 blocuri", six)]:
+        print(f"== {name}: {len(p.actions)} acțiuni instanțiate")
+        runs = [("BFS înainte", lambda: forward_search(p)),
+                ("A* h_goalcount", lambda: forward_search(p, h_goalcount)),
+                ("A* h_max", lambda: forward_search(p, h_max)),
+                ("A* h_add", lambda: forward_search(p, h_add)),
+                ("BFS înapoi", lambda: backward_search(p)),
+                ("BFS înapoi+inv", lambda: backward_search(p, bw_invalid))]
+        for label, run in runs:
+            plan, exp, t = run()
+            ok = validate(p, plan) if plan else False
+            print(f"  {label:15s} lungime={len(plan) if plan else '-':&gt;3}  expandate={exp:6d}  timp={t*1000:8.1f} ms  valid={ok}")
+        print("  plan:", forward_search(p, h_add)[0])</pre>
+<p>Rezultate de referință (timpii depind de calculator):</p>
+<pre class="code" data-lang="text">
+== Sussman (3 blocuri): 18 acțiuni instanțiate
+  BFS înainte     lungime=  6  expandate=    22
+  A* h_goalcount  lungime=  6  expandate=    17
+  A* h_max        lungime=  6  expandate=    12
+  A* h_add        lungime=  6  expandate=    12
+  BFS înapoi      lungime=  6  expandate=  1060
+  BFS înapoi+inv  lungime=  6  expandate=    14
+== 6 blocuri: 72 acțiuni instanțiate
+  BFS înainte     lungime= 10  expandate=  1341
+  A* h_goalcount  lungime= 10  expandate=   156
+  A* h_max        lungime= 10  expandate=   126
+  A* h_add        lungime= 10  expandate=    28
+  BFS înapoi      lungime=  -  expandate= 50001   (oprit: spațiul subscopurilor explodează)
+  BFS înapoi+inv  lungime= 10  expandate=   143
+</pre>
+<ul class="check">
+<li><label><input type="checkbox">Explicați de ce BFS înapoi fără invarianți explodează, deși factorul de ramificare e mai mic.</label></li>
+<li><label><input type="checkbox">Observați că h<sub>max</sub> expandează puțin mai puține noduri decât h<sub>goalcount</sub>, dar costă de zeci de ori mai mult timp pe nod. Când merită o euristică scumpă?</label></li>
+<li><label><input type="checkbox">Implementați h<sub>FF</sub>: după calculul costurilor relaxate, extrageți înapoi un plan relaxat (pentru fiecare subscop alegeți acțiunea care l-a realizat cel mai ieftin) și numărați acțiunile distincte.</label></li>
+<li><label><input type="checkbox">Testați pe 8 blocuri cu configurații aleatoare; raportați media pe 10 instanțe.</label></li>
+</ul>
+</div>
+
+<div class="lvl" data-lvl="a">
+<h4>L2.3 – Extensii</h4>
+<ul class="check">
+<li><label><input type="checkbox">Scrieți un parser minimal de PDDL (expresii S cu paranteze) care produce obiecte <code>Action</code> instanțiate și rulați planificatorul vostru pe domeniul transportului aerian.</label></li>
+<li><label><input type="checkbox">Implementați <i>Enforced Hill-Climbing</i> cu h<sub>FF</sub> și <i>helpful actions</i> (strategia FF). Comparați cu A* pe 10 instanțe de 8–10 blocuri.</label></li>
+<li><label><input type="checkbox">Calculați reperele (landmarks) simple: fluenții din scop + precondițiile comune ale tuturor acțiunilor care realizează un reper. Folosiți numărul de repere nerealizate ca euristică.</label></li>
+</ul>
+</div>
+
+<h3>3.2 PDDL generat de AI – evaluare critică</h3>
+<div class="ai">LLM-urile scriu PDDL plauzibil, dar greșelile sunt subtile: planificatorul fie nu găsește plan, fie găsește unul „corect” într-un model greșit. Validați întotdeauna prin <b>execuție în simulator</b> și prin <b>teste</b> (probleme cu plan cunoscut, probleme fără soluție).</div>
+<div class="lvl" data-lvl="m a">
+<p>Un asistent AI a produs următoarea acțiune pentru domeniul blocurilor. Găsiți erorile și explicați ce planuri greșite ar permite.</p>
+<pre class="code" data-lang="pddl">
+(:action stack
+  :parameters (?x ?y - block)
+  :precondition (and (holding ?x))
+  :effect (and (on ?x ?y) (handempty) (not (holding ?x))))
+</pre>
+<details><summary>Erori</summary>
+<ol>
+<li>Lipsește precondiția <code>(clear ?y)</code> → se pot pune două blocuri pe același bloc.</li>
+<li>Lipsește efectul <code>(not (clear ?y))</code> → y rămâne „liber” după ce s-a pus ceva pe el.</li>
+<li>Lipsește efectul <code>(clear ?x)</code> → x nu mai poate fi ridicat niciodată; unele probleme devin fără soluție.</li>
+<li>Nu exclude <code>?x = ?y</code> (bloc pe el însuși) – în STRIPS pur se rezolvă prin precondiții (holding ?x și clear ?x nu pot fi simultan adevărate), dar aici lipsește tocmai <code>clear ?y</code>.</li>
+</ol></details>
+<p><b>Exercițiu de prompt engineering:</b> cereți unui LLM domeniul „roata de rezervă” în PDDL, incluzând în prompt (1) lista predicatelor, (2) cerința ca fiecare efect să fie justificat, (3) o problemă de test cu planul așteptat. Rulați cu pyperplan. Notați în declarația AI ce ați corectat.</p>
+</div>
+</section>
+
+<section class="part">
+<h2>4. Autoevaluare<span class="tag">QUIZ</span></h2>
+<div class="cards">
+  <div class="card"><div class="in"><div class="fr">Fluent</div><div class="bk">Fapt atomic care poate fi adevărat sau fals într-o stare (ex. on(A,B)).</div></div></div>
+  <div class="card"><div class="in"><div class="fr">Ipoteza lumii închise</div><div class="bk">Fluenții nemenționați în stare sunt falși.</div></div></div>
+  <div class="card"><div class="in"><div class="fr">RESULT(s,a) în STRIPS</div><div class="bk">(s − DEL(a)) ∪ ADD(a)</div></div></div>
+  <div class="card"><div class="in"><div class="fr">Acțiune relevantă</div><div class="bk">Adaugă cel puțin un literal din scop și nu șterge niciunul (consistentă).</div></div></div>
+  <div class="card"><div class="in"><div class="fr">h<sub>max</sub> vs h<sub>add</sub></div><div class="bk">max: admisibilă, slab informativă. Σ: informativă, neadmisibilă (presupune independența subscopurilor).</div></div></div>
+  <div class="card"><div class="in"><div class="fr">Anomalia lui Sussman</div><div class="bk">Subscopurile nu pot fi rezolvate independent și concatenate: planul optim le intercalează.</div></div></div>
+</div>
+<script type="application/json" class="quiz-data">
+[
+{"lvl":"b","q":"În STRIPS, ce se întâmplă cu un fluent care nu apare nici în ADD, nici în DEL?","o":["Devine fals","Rămâne neschimbat","Devine necunoscut","Depinde de precondiții"],"a":1,"e":"Asta este soluția STRIPS la problema cadrului: efectele descriu doar schimbările."},
+{"lvl":"b","q":"Un fișier de problemă PDDL conține:","o":["schemele acțiunilor","predicatele","obiectele, starea inițială și scopul","tipurile și cerințele (:requirements)"],"a":2,"e":"Domeniul conține tipuri, predicate, acțiuni; problema conține obiecte, :init și :goal."},
+{"lvl":"b","q":"Planificarea clasică presupune un mediu:","o":["parțial observabil și stochastic","complet observabil, determinist, static, discret","continuu și dinamic","multi-agent competitiv"],"a":1,"e":"Ședința 4 relaxează aceste ipoteze."},
+{"lvl":"m","q":"REGRESS({on(A,B), on(B,C)}, stack(A,B)) este:","o":["{on(B,C), holding(A), clear(B)}","{on(A,B), holding(B), clear(C)}","{holding(A), clear(B)}","{on(B,C), on(A,B), holding(A)}"],"a":0,"e":"(g − ADD) ∪ PRE: scoatem on(A,B), adăugăm holding(A), clear(B)."},
+{"lvl":"m","q":"Care euristică este admisibilă?","o":["h_add","h_FF","h_max","numărul de scopuri nesatisfăcute, în orice domeniu"],"a":2,"e":"h_max ≤ h+ ≤ h*. h_add și h_FF pot supraestima."},
+{"lvl":"m","q":"De ce regresia poate fi mai lentă decât progresia, deși are factor de ramificare mai mic?","o":["Pentru că nu e completă","Pentru că generează multe subscopuri imposibile, care nu pot fi recunoscute fără invarianți","Pentru că nu poate folosi BFS","Pentru că planul trebuie inversat"],"a":1,"e":"Vezi laboratorul: 50.000+ noduri fără invarianți, 143 cu ei."},
+{"lvl":"a","q":"Problema PlanSAT pentru STRIPS propozițional este:","o":["în P","NP-completă","PSPACE-completă","nedecidabilă"],"a":2,"e":"Bylander (1994). Cu simboluri funcționale (termeni infiniți) devine semidecidabilă."},
+{"lvl":"a","q":"Relaxarea „ignorăm precondițiile” duce la o problemă de tip:","o":["drum minim","acoperire cu mulțimi (set cover)","sortare topologică","flux maxim"],"a":1,"e":"Trebuie acoperit scopul cu un număr minim de liste ADD."},
+{"lvl":"a","q":"Pentru a = (PRE ∅, ADD {p,q}, cost 1) și scopul {p,q}, h_add este:","o":["0","1","2","3"],"a":2,"e":"c(p) + c(q) = 2 > h* = 1: h_add supraestimează."}
+]
+</script>
+</section>
+
+<section class="part">
+<h2>5. Temă și legătura cu proiectul</h2>
+<div class="lvl" data-lvl="b"><p><b>T1:</b> Scrieți în PDDL domeniul ghidului virtual din S2.1 și o problemă cu 4 săli, 2 broșuri, 2 vizitatori. Rulați pyperplan și atașați planul.</p></div>
+<div class="lvl" data-lvl="m"><p><b>T2:</b> Adăugați h<sub>FF</sub> în <code>s02_strips.py</code> și comparați cele 4 euristici pe 20 de instanțe aleatoare de 6–8 blocuri (noduri expandate, timp, lungime). Prezentați rezultatele într-un tabel și un grafic.</p></div>
+<div class="lvl" data-lvl="a"><p><b>T3:</b> Implementați un planificator cu ordine parțială (POP) minimal pentru STRIPS și arătați cum rezolvă anomalia lui Sussman (legături cauzale, amenințări, promovare/retrogradare).</p></div>
+<div class="note">Pentru proiect: dacă problema voastră implică <b>secvențe de acțiuni</b> cu precondiții (roboți, NPC-uri, logistică, fluxuri de lucru), modelați-o în PDDL. Un planificator gata făcut (Fast Downward, pyperplan) vă oferă o primă soluție de referință cu care să comparați abordarea voastră.</div>
+</section>
+
+<section class="part">
+<h2>6. Bibliografie</h2>
+<ol>
+<li>S. Russell, P. Norvig – <i>Artificial Intelligence: A Modern Approach</i>, ed. a 4-a, Pearson, 2020 – cap. 11 (Automated Planning), §11.1–11.3.</li>
+<li>A. Konar – <i>Artificial Intelligence and Soft Computing</i>, CRC Press, 1999 – capitolul despre planificare.</li>
+<li>AIMA Python – <code>planning.py</code>: <a href="https://github.com/aimacode/aima-python" target="_blank" rel="noopener">github.com/aimacode/aima-python</a>.</li>
+<li>pyperplan – <a href="https://github.com/aibasel/pyperplan" target="_blank" rel="noopener">github.com/aibasel/pyperplan</a>.</li>
+<li>J. Hoffmann, B. Nebel – „The FF Planning System”, <i>JAIR</i> 14, 2001 (pentru nivelul avansat).</li>
+<li>Python Tutorial – <a href="https://docs.python.org/3/tutorial/" target="_blank" rel="noopener">docs.python.org/3/tutorial</a>.</li>
+</ol>
+</section>
+
+<div class="pager"><a href="IAA_01_Curs_Sem_Lab.html">← Ședința 1</a><a href="IAA_03_Curs_Sem_Lab.html">Ședința 3 →</a></div>
+</main>
+</div>
+<footer>Material didactic pentru disciplina <b>Inteligență artificială aplicată</b> (MVMOD.1.1.10), Master „Medii virtuale multi-modale distribuite”, Facultatea de Matematică și Informatică, Universitatea „Ovidius” din Constanța, anul universitar 2026–2027. Conținutul urmează fișa disciplinei (secțiunile 8.1 și 8.2). Material elaborat cu asistența unui instrument AI generativ (Claude, Anthropic) – a se verifica și adapta de titularul disciplinei.</footer>
+<script>(function(){
+"use strict";
+var KEY = "IAA_" + (document.body.getAttribute("data-session") || "x") + "_";
+function store(k, v){ try{ if(v===undefined) return localStorage.getItem(KEY+k); localStorage.setItem(KEY+k, v); }catch(e){ return null; } }
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+/* ---------- temă ---------- */
+var themeBtn = document.getElementById("themeBtn");
+if(store("theme")==="dark") document.documentElement.classList.add("dark");
+if(themeBtn) themeBtn.onclick = function(){ var d=document.documentElement.classList.toggle("dark"); store("theme", d?"dark":"light"); document.dispatchEvent(new Event("themechange")); };
+var printBtn = document.getElementById("printBtn");
+if(printBtn) printBtn.onclick = function(){ document.querySelectorAll("details").forEach(function(d){d.open=true;}); window.print(); };
+
+/* ---------- insigne de nivel ---------- */
+var LBL = {b:"Începător", m:"Mediu", a:"Avansat"};
+document.querySelectorAll(".lvl").forEach(function(el){
+  var l = el.getAttribute("data-lvl"); var b = document.createElement("span");
+  b.className = "badge "+l; b.textContent = LBL[l]||l; el.insertBefore(b, el.firstChild);
+});
+
+/* ---------- filtru pe nivele ---------- */
+function applyFilter(f){
+  document.querySelectorAll(".lvl-filter button").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-f")===f); });
+  document.querySelectorAll("[data-lvl]").forEach(function(el){
+    var l = el.getAttribute("data-lvl");
+    el.classList.toggle("hide-lvl", f!=="all" && l.indexOf(f)<0);
+  });
+  store("filter", f); buildToc();
+}
+document.querySelectorAll(".lvl-filter button").forEach(function(b){ b.onclick=function(){ applyFilter(b.getAttribute("data-f")); }; });
+
+/* ---------- evidențiere sintaxă Python ---------- */
+var KW = "False None True and as assert async await break class continue def del elif else except finally for from global if import in is lambda nonlocal not or pass raise return try while with yield match case".split(" ");
+var BI = "print range len int float str list dict set tuple min max sum abs sorted enumerate zip map filter isinstance any all open round reversed super self heapq random math deque defaultdict itertools np".split(" ");
+function hlPython(src){
+  var re = /(#[^\n]*)|("""[\s\S]*?"""|'''[\s\S]*?'''|f?"(?:\\.|[^"\\\n])*"|f?'(?:\\.|[^'\\\n])*')|(\b\d+(?:\.\d+)?(?:e[-+]?\d+)?\b)|([A-Za-z_][A-Za-z0-9_]*)(\s*\()?/g;
+  var out = "", last = 0, m;
+  while((m = re.exec(src))){
+    out += esc(src.slice(last, m.index)); last = re.lastIndex;
+    if(m[1]) out += '<span class="c">'+esc(m[1])+'</span>';
+    else if(m[2]) out += '<span class="s">'+esc(m[2])+'</span>';
+    else if(m[3]) out += '<span class="n">'+m[3]+'</span>';
+    else if(m[4]){
+      var w = m[4], tail = m[5]||"";
+      if(KW.indexOf(w)>=0) out += '<span class="k">'+w+'</span>'+esc(tail);
+      else if(BI.indexOf(w)>=0) out += '<span class="bi">'+w+'</span>'+esc(tail);
+      else if(tail) out += '<span class="f">'+w+'</span>'+esc(tail);
+      else out += w;
+    }
+  }
+  return out + esc(src.slice(last));
+}
+function hlPddl(src){
+  return esc(src).replace(/(;[^\n]*)/g,'<span class="c">$1</span>')
+    .replace(/(\(\s*)(define|domain|problem|:requirements|:types|:predicates|:action|:parameters|:precondition|:effect|:objects|:init|:goal|:domain|and|not|or|forall|when)/g,'$1<span class="k">$2</span>')
+    .replace(/(\?[a-z0-9_-]+)/gi,'<span class="n">$1</span>')
+    .replace(/(:[a-z-]+)/gi,'<span class="f">$1</span>');
+}
+document.querySelectorAll("pre.code").forEach(function(pre){
+  var lang = pre.getAttribute("data-lang")||"python";
+  var src = pre.textContent.replace(/^\n/,"").replace(/\s+$/,"");
+  pre.innerHTML = lang==="python" ? hlPython(src) : (lang==="pddl" ? hlPddl(src) : esc(src));
+  var b = document.createElement("button"); b.className="copy"; b.textContent="Copiază";
+  b.onclick = function(){
+    var done=function(){ b.textContent="Copiat ✓"; setTimeout(function(){b.textContent="Copiază";},1500); };
+    if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(src).then(done, function(){ fallback(); }); } else fallback();
+    function fallback(){ var t=document.createElement("textarea"); t.value=src; document.body.appendChild(t); t.select(); try{document.execCommand("copy");}catch(e){} document.body.removeChild(t); done(); }
+  };
+  pre.appendChild(b);
+});
+
+/* ---------- flashcards ---------- */
+document.querySelectorAll(".card").forEach(function(c){ c.onclick=function(){ c.classList.toggle("flip"); }; });
+
+/* ---------- quiz ---------- */
+var answered = {};
+document.querySelectorAll("script.quiz-data").forEach(function(sc, qi){
+  var data = JSON.parse(sc.textContent); var host = document.createElement("div"); host.className="quiz";
+  sc.parentNode.insertBefore(host, sc);
+  var score = document.createElement("div"); score.className="score";
+  data.forEach(function(q, i){
+    var box = document.createElement("div"); box.className="qq"; if(q.lvl) box.setAttribute("data-lvl", q.lvl);
+    var html = '<div class="qt">'+(i+1)+'. '+(q.lvl?'<span class="badge '+q.lvl+'">'+LBL[q.lvl]+'</span> ':'')+q.q+'</div>';
+    q.o.forEach(function(o, j){ html += '<label><input type="radio" name="q'+qi+'_'+i+'" value="'+j+'"> '+o+'</label>'; });
+    html += '<div class="expl">'+(q.e||"")+'</div>';
+    box.innerHTML = html; host.appendChild(box);
+    box.querySelectorAll("input").forEach(function(inp){
+      inp.onchange = function(){
+        if(box.classList.contains("done")) return;
+        box.classList.add("done");
+        var j = +inp.value; var labels = box.querySelectorAll("label");
+        labels[q.a].classList.add("right"); if(j!==q.a) labels[j].classList.add("wrong");
+        box.querySelectorAll("input").forEach(function(x){ x.disabled=true; });
+        answered[qi+"_"+i] = (j===q.a); upd();
+      };
+    });
+  });
+  var reset = document.createElement("button"); reset.className="btn sec"; reset.textContent="Reia testul";
+  reset.onclick = function(){ host.querySelectorAll(".qq").forEach(function(b,i){ b.classList.remove("done"); b.querySelectorAll("label").forEach(function(l){l.className="";}); b.querySelectorAll("input").forEach(function(x){x.disabled=false;x.checked=false;}); delete answered[qi+"_"+i]; }); upd(); };
+  host.appendChild(score); host.appendChild(reset);
+  function upd(){ var n=0,ok=0; for(var k in answered){ if(k.indexOf(qi+"_")===0){ n++; if(answered[k]) ok++; } } score.textContent = "Scor: "+ok+" / "+n+" răspunsuri ("+data.length+" întrebări în total)"; progress(); }
+  upd();
+});
+
+/* ---------- liste de verificare + progres ---------- */
+var checks = document.querySelectorAll("ul.check input[type=checkbox]");
+checks.forEach(function(c, i){ if(store("chk"+i)==="1") c.checked=true; c.onchange=function(){ store("chk"+i, c.checked?"1":"0"); progress(); }; });
+function progress(){
+  var cks = document.querySelectorAll("ul.check input[type=checkbox]");
+  var tot = cks.length + document.querySelectorAll(".quiz .qq").length;
+  var done = 0; cks.forEach(function(c){ if(c.checked) done++; });
+  done += document.querySelectorAll(".quiz .qq.done").length;
+  var p = tot? Math.round(100*done/tot):0;
+  var bar = document.querySelector(".progress i"); if(bar) bar.style.width = p+"%";
+  var t = document.querySelector(".tocprog"); if(t) t.textContent = "Progres ședință: "+p+"% ("+done+"/"+tot+" sarcini + întrebări)";
+}
+
+/* ---------- cuprins ---------- */
+function buildToc(){
+  var toc = document.querySelector("nav.toc .links"); if(!toc) return; toc.innerHTML="";
+  document.querySelectorAll("main h2, main h3").forEach(function(h, i){
+    if(h.closest(".hide-lvl")) return;
+    if(!h.id) h.id = "s"+i;
+    var a = document.createElement("a"); a.href="#"+h.id; var hc = h.cloneNode(true); hc.querySelectorAll(".tag,.badge").forEach(function(x){x.remove();}); a.textContent = hc.textContent.trim();
+    a.className = h.tagName.toLowerCase(); toc.appendChild(a);
+  });
+}
+var spyLinks = [];
+window.addEventListener("scroll", function(){
+  var hs = document.querySelectorAll("main h2, main h3"), cur=null;
+  hs.forEach(function(h){ if(h.getBoundingClientRect().top < 120 && !h.closest(".hide-lvl")) cur = h.id; });
+  document.querySelectorAll("nav.toc a").forEach(function(a){ a.classList.toggle("act", a.getAttribute("href")==="#"+cur); });
+}, {passive:true});
+
+applyFilter(store("filter")||"all");
+progress();
+
+/* ---------- utilitare pentru simulări ---------- */
+window.IAA = {
+  rng: function(seed){ var s = seed>>>0 || 1; return function(){ s ^= s<<13; s>>>=0; s ^= s>>>17; s ^= s<<5; s>>>=0; return s/4294967296; }; },
+  css: function(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); },
+  fit: function(cv){ var r = window.devicePixelRatio||1; if(!cv._w){ cv._w = +cv.getAttribute("width"); cv._h = +cv.getAttribute("height"); cv.style.width = cv._w+"px"; cv.style.aspectRatio = cv._w+"/"+cv._h; cv.width = cv._w*r; cv.height = cv._h*r; } var g = cv.getContext("2d"); g.setTransform(r,0,0,r,0,0); g.W = cv._w; g.H = cv._h; return g; },
+  pos: function(cv, ev){ var b = cv.getBoundingClientRect(); return {x:(ev.clientX-b.left)*cv._w/b.width, y:(ev.clientY-b.top)*cv._h/b.height}; },
+  esc: esc
+};
+})();
+</script>
+<script>(function(){
+var cv=document.getElementById("bwCv"), B, init, goal, cur, acts, plan=null, playing=null;
+function towers(st){ var s=new Set(["handempty"]); st.forEach(function(t){ if(!t.length) return; s.add("ontable("+t[0]+")"); s.add("clear("+t[t.length-1]+")"); for(var i=1;i<t.length;i++) s.add("on("+t[i]+","+t[i-1]+")"); }); return s; }
+function goalOf(st){ var g=new Set(); st.forEach(function(t){ for(var i=1;i<t.length;i++) g.add("on("+t[i]+","+t[i-1]+")"); if(t.length) g.add("ontable("+t[0]+")"); }); return g; }
+function randTowers(bl, r){ var a=bl.slice(); for(var i=a.length-1;i>0;i--){ var j=Math.floor(r()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; } var out=[], k=0; while(k<a.length){ var n=1+Math.floor(r()*3); out.push(a.slice(k,k+n)); k+=n; } return out; }
+function ground(bl){
+  var A=[];
+  bl.forEach(function(x){
+    A.push({n:"pickup("+x+")", pre:["clear("+x+")","ontable("+x+")","handempty"], add:["holding("+x+")"], del:["clear("+x+")","ontable("+x+")","handempty"]});
+    A.push({n:"putdown("+x+")", pre:["holding("+x+")"], add:["clear("+x+")","ontable("+x+")","handempty"], del:["holding("+x+")"]});
+    bl.forEach(function(y){ if(x===y) return;
+      A.push({n:"unstack("+x+","+y+")", pre:["on("+x+","+y+")","clear("+x+")","handempty"], add:["holding("+x+")","clear("+y+")"], del:["on("+x+","+y+")","clear("+x+")","handempty"]});
+      A.push({n:"stack("+x+","+y+")", pre:["holding("+x+")","clear("+y+")"], add:["on("+x+","+y+")","clear("+x+")","handempty"], del:["holding("+x+")","clear("+y+")"]});
+    });
+  });
+  return A;
+}
+function appl(a,s){ return a.pre.every(function(p){ return s.has(p); }); }
+function res(a,s){ var n=new Set(s); a.del.forEach(function(d){ n.delete(d); }); a.add.forEach(function(d){ n.add(d); }); return n; }
+function key(s){ return Array.from(s).sort().join("|"); }
+function sat(s){ var ok=true; goal.forEach(function(g){ if(!s.has(g)) ok=false; }); return ok; }
+function relaxed(s, comb){
+  var c={}; s.forEach(function(f){ c[f]=0; }); var ch=true;
+  while(ch){ ch=false; acts.forEach(function(a){ var vals=[], ok=true; a.pre.forEach(function(p){ if(!(p in c)) ok=false; else vals.push(c[p]); }); if(!ok) return; var v=1+(vals.length? (comb==="max"?Math.max.apply(null,vals):vals.reduce(function(x,y){return x+y;},0)) : 0); a.add.forEach(function(f){ if(!(f in c) || v<c[f]){ c[f]=v; ch=true; } }); }); }
+  var out=[]; goal.forEach(function(g){ out.push(g in c? c[g] : 1e9); });
+  return comb==="max" ? Math.max.apply(null,out.concat([0])) : out.reduce(function(x,y){return x+y;},0);
+}
+function H(alg,s){ if(alg==="gc"){ var n=0; goal.forEach(function(g){ if(!s.has(g)) n++; }); return n; } if(alg==="hmax") return relaxed(s,"max"); if(alg==="hadd"||alg==="gbfs") return relaxed(s,"add"); return 0; }
+function solve(alg){
+  var t0=performance.now(), start=init, k0=key(start), parent={}, g={}, exp=0, LIMIT=150000;
+  parent[k0]=null; g[k0]=0; var st={}; st[k0]=start;
+  var heap=[], tie=0;
+  function push(f,k){ heap.push([f,++tie,k]); var i=heap.length-1; while(i>0){ var p=(i-1)>>1; if(cmp(heap[i],heap[p])<0){ var t=heap[i]; heap[i]=heap[p]; heap[p]=t; i=p; } else break; } }
+  function pop(){ var top=heap[0], last=heap.pop(); if(heap.length){ heap[0]=last; var i=0; for(;;){ var l=2*i+1, r=l+1, m=i; if(l<heap.length&&cmp(heap[l],heap[m])<0) m=l; if(r<heap.length&&cmp(heap[r],heap[m])<0) m=r; if(m===i) break; var t=heap[i]; heap[i]=heap[m]; heap[m]=t; i=m; } } return top; }
+  function cmp(a,b){ return a[0]-b[0] || a[1]-b[1]; }
+  var closed={};
+  if(alg==="bfs"){ var q=[k0], qi=0; while(qi<q.length){ var k=q[qi++]; exp++; var s=st[k]; if(sat(s)) return fin(k); if(exp>LIMIT) break; acts.forEach(function(a){ if(appl(a,s)){ var s2=res(a,s), k2=key(s2); if(!(k2 in parent)){ parent[k2]=[k,a.n]; st[k2]=s2; q.push(k2); } } }); } return {fail:true, exp:exp}; }
+  push(H(alg,start),k0);
+  while(heap.length){ var k=pop()[2]; if(closed[k]) continue; closed[k]=1; exp++; var s=st[k]; if(sat(s)) return fin(k); if(exp>LIMIT) break;
+    acts.forEach(function(a){ if(!appl(a,s)) return; var s2=res(a,s), k2=key(s2), g2=g[k]+1; if(!(k2 in g) || g2<g[k2]){ g[k2]=g2; parent[k2]=[k,a.n]; st[k2]=s2; var h=H(alg,s2); push(alg==="gbfs"?h:g2+h, k2); } }); }
+  return {fail:true, exp:exp};
+  function fin(k){ var p=[]; while(parent[k]){ p.push(parent[k][1]); k=parent[k][0]; } return {plan:p.reverse(), exp:exp, ms:performance.now()-t0}; }
+}
+function layout(s){
+  var on={}, tbl=[], hold=null;
+  s.forEach(function(f){ var m=/^on\((\w),(\w)\)$/.exec(f); if(m) on[m[2]]=m[1]; m=/^ontable\((\w)\)$/.exec(f); if(m) tbl.push(m[1]); m=/^holding\((\w)\)$/.exec(f); if(m) hold=m[1]; });
+  tbl.sort(); return {stacks: tbl.map(function(b){ var t=[b]; while(on[t[t.length-1]]) t.push(on[t[t.length-1]]); return t; }), hold:hold};
+}
+var COLS={A:"#d9534f",B:"#2f5d8a",C:"#2e7d4f",D:"#b26a00",E:"#7b61c9",F:"#2a9d8f"};
+function draw(){
+  var g=IAA.fit(cv), W=g.W, Hh=g.H; g.clearRect(0,0,W,Hh);
+  g.fillStyle=IAA.css("--muted"); g.fillRect(0,Hh-14,W*0.68,3);
+  var L=layout(cur), bs=34;
+  L.stacks.forEach(function(t,i){ t.forEach(function(b,j){ box(g, 14+i*(bs+12), Hh-14-(j+1)*bs, bs, b); }); });
+  if(L.hold){ g.strokeStyle=IAA.css("--muted"); g.beginPath(); g.moveTo(W*0.34,0); g.lineTo(W*0.34,20); g.stroke(); box(g, W*0.34-bs/2, 22, bs, L.hold); }
+  // scop mic
+  var GL=layout(new Set(Array.from(goal).concat(["handempty"]))), sb=18, ox=W*0.72;
+  g.fillStyle=IAA.css("--muted"); g.font="12px sans-serif"; g.fillText("Scop", ox, 14);
+  var gx=ox, partial=[];
+  // scopul poate fi parțial (Sussman): desenăm lanțurile on(x,y)
+  var on={}, under={}; goal.forEach(function(f){ var m=/^on\((\w),(\w)\)$/.exec(f); if(m){ on[m[2]]=m[1]; under[m[1]]=m[2]; } });
+  var bottoms=Object.keys(on).filter(function(b){ return !under[b]; }).sort();
+  bottoms.forEach(function(b,i){ var t=[b]; while(on[t[t.length-1]]) t.push(on[t[t.length-1]]); t.forEach(function(x,j){ box(g, gx+i*(sb+8), 110-(j+1)*sb, sb, x); }); });
+  g.strokeStyle=IAA.css("--line"); g.strokeRect(ox-6,2,W-ox,116);
+  if(sat(cur)){ g.fillStyle="#2e7d4f"; g.font="bold 14px sans-serif"; g.fillText("✓ Scop atins", ox, 140); }
+  // acțiuni aplicabile + fluenți
+  var host=document.getElementById("bwActs"); host.innerHTML="";
+  acts.filter(function(a){ return appl(a,cur); }).forEach(function(a){ var b=document.createElement("button"); b.className="sec"; b.style.margin="2px"; b.textContent=a.n; b.title="PRE: "+a.pre.join(", ")+"\nADD: "+a.add.join(", ")+"\nDEL: "+a.del.join(", "); b.onclick=function(){ cur=res(a,cur); draw(); }; host.appendChild(b); });
+  document.getElementById("bwState").textContent = Array.from(cur).sort().join("  ");
+}
+function box(g,x,y,s,b){ g.fillStyle=COLS[b]||"#555"; g.fillRect(x,y,s-2,s-2); g.fillStyle="#fff"; g.font="bold "+Math.round(s*0.45)+"px sans-serif"; g.textAlign="center"; g.fillText(b,x+s/2-1,y+s*0.65); g.textAlign="left"; }
+function setup(){
+  var p=document.getElementById("bwPreset").value, r=IAA.rng((Date.now()%9973)+1);
+  if(p==="sussman"){ B=["A","B","C"]; init=towers([["A","C"],["B"]]); goal=new Set(["on(A,B)","on(B,C)"]); }
+  else if(p==="rev4"){ B=["A","B","C","D"]; init=towers([["A","B","C","D"]]); goal=goalOf([["D","C","B","A"]]); }
+  else { B=(p==="r5"?"ABCDE":"ABCDEF").split(""); init=towers(randTowers(B,r)); goal=goalOf(randTowers(B,r)); }
+  acts=ground(B); cur=init; plan=null; if(playing){ clearInterval(playing); playing=null; }
+  document.getElementById("bwOut").textContent="Instanță cu "+B.length+" blocuri, "+acts.length+" acțiuni instanțiate. Scop: "+Array.from(goal).join(" ∧ ");
+  draw();
+}
+document.getElementById("bwPreset").onchange=setup;
+document.getElementById("bwReset").onclick=function(){ cur=init; if(playing){ clearInterval(playing); playing=null; } draw(); };
+document.getElementById("bwSolve").onclick=function(){
+  var alg=document.getElementById("bwAlg").value, out=document.getElementById("bwOut"); out.textContent="Se caută...";
+  setTimeout(function(){ var r=solve(alg); if(r.fail){ out.textContent="Oprit după "+r.exp+" noduri expandate fără soluție."; return; } plan=r.plan; out.textContent="Plan de lungime "+r.plan.length+" · noduri expandate: "+r.exp+" · timp: "+r.ms.toFixed(1)+" ms\n"+r.plan.map(function(a,i){ return (i+1)+". "+a; }).join("\n"); }, 20);
+};
+document.getElementById("bwPlay").onclick=function(){
+  if(!plan) return; cur=init; draw(); var i=0; if(playing) clearInterval(playing);
+  playing=setInterval(function(){ if(i>=plan.length){ clearInterval(playing); playing=null; return; } var a=acts.filter(function(x){ return x.n===plan[i]; })[0]; cur=res(a,cur); i++; draw(); }, 600);
+};
+document.addEventListener("themechange", draw);
+setup();
+})();
+</script>
+</body>
+</html>

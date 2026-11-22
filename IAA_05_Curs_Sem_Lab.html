@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IAA 05 – Algoritmi genetici: operatori, parametri și variante</title>
+<style>:root{
+  --bg:#f7f6f2; --panel:#ffffff; --ink:#1d2433; --muted:#5c6577; --line:#e3e0d8;
+  --accent:#2f5d8a; --accent-soft:#e6eef7; --code-bg:#1f2430; --code-ink:#e6e6e6;
+  --b:#2e7d4f; --b-soft:#e5f3ea; --m:#b26a00; --m-soft:#fbf0de; --a:#9b2c4f; --a-soft:#f8e4ea;
+  --ok:#2e7d4f; --bad:#b3261e; --shadow:0 1px 2px rgba(0,0,0,.05),0 4px 14px rgba(0,0,0,.05);
+  --radius:10px; --sans:"Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --serif:Georgia,"Times New Roman",serif; --mono:"JetBrains Mono","Cascadia Code",Consolas,"Liberation Mono",monospace;
+}
+html.dark{
+  --bg:#14171d; --panel:#1c2029; --ink:#e4e6eb; --muted:#9aa3b2; --line:#2c3240;
+  --accent:#7fb0e0; --accent-soft:#1f2b3a; --code-bg:#0f1218;
+  --b:#6cc48f; --b-soft:#17291f; --m:#e0a24a; --m-soft:#2d2415; --a:#e57a9c; --a-soft:#2e1a22;
+  --shadow:none;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.62 var(--sans)}
+a{color:var(--accent)}
+header.top{position:sticky;top:0;z-index:20;background:var(--panel);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:8px 18px;flex-wrap:wrap}
+header.top .brand{font-weight:700;letter-spacing:.2px;white-space:nowrap}
+header.top .brand small{font-weight:400;color:var(--muted);margin-left:6px}
+.lvl-filter{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+.lvl-filter button,.tbtn{border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:5px 11px;border-radius:999px;cursor:pointer;font:inherit;font-size:13.5px}
+.lvl-filter button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+html.dark .lvl-filter button.on{color:#10141a}
+.progress{height:4px;background:var(--line);width:100%;position:absolute;left:0;bottom:-1px}
+.progress i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:28px;max-width:1320px;margin:0 auto;padding:24px 18px 80px}
+nav.toc{position:sticky;top:70px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:14px;border-right:1px solid var(--line);padding-right:12px}
+nav.toc a{display:block;text-decoration:none;color:var(--muted);padding:3px 8px;border-radius:6px;line-height:1.35}
+nav.toc a.h3{padding-left:20px;font-size:13px}
+nav.toc a:hover,nav.toc a.act{color:var(--ink);background:var(--accent-soft)}
+nav.toc .tocprog{font-size:12.5px;color:var(--muted);margin:12px 8px}
+main{min-width:0}
+.hero{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:26px 28px;box-shadow:var(--shadow);margin-bottom:22px}
+.hero .kicker{text-transform:uppercase;letter-spacing:1.4px;font-size:12px;color:var(--accent);font-weight:700}
+.hero h1{font-family:var(--serif);font-size:34px;line-height:1.2;margin:6px 0 10px}
+.hero .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chip{display:inline-block;font-size:12.5px;padding:3px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent);border:1px solid transparent}
+section.part{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:8px 28px 22px;margin-bottom:22px;box-shadow:var(--shadow)}
+h2{font-family:var(--serif);font-size:27px;margin:26px 0 8px;padding-bottom:6px;border-bottom:2px solid var(--line)}
+h2 .tag{font-family:var(--sans);font-size:12px;vertical-align:middle;margin-left:8px;padding:2px 8px;border-radius:6px;background:var(--accent);color:#fff;letter-spacing:.5px}
+html.dark h2 .tag{color:#10141a}
+h3{font-size:20px;margin:26px 0 8px}
+h4{font-size:16.5px;margin:18px 0 6px}
+p,li{max-width:80ch}
+.lvl{border-left:4px solid var(--line);padding:10px 16px 6px;margin:14px 0;border-radius:0 8px 8px 0;position:relative}
+.lvl[data-lvl=b]{border-color:var(--b);background:var(--b-soft)}
+.lvl[data-lvl=m]{border-color:var(--m);background:var(--m-soft)}
+.lvl[data-lvl=a]{border-color:var(--a);background:var(--a-soft)}
+.badge{display:inline-block;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;padding:2px 8px;border-radius:5px;color:#fff;margin-bottom:4px}
+.badge.b{background:var(--b)}.badge.m{background:var(--m)}.badge.a{background:var(--a)}
+html.dark .badge{color:#10141a}
+.hide-lvl{display:none!important}
+.note,.tip,.warn,.ai,.def{border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin:14px 0;background:var(--panel)}
+.note::before,.tip::before,.warn::before,.ai::before,.def::before{display:block;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px}
+.note::before{content:"Observație";color:var(--accent)}
+.tip::before{content:"Sfat";color:var(--b)}
+.warn::before{content:"Atenție";color:var(--bad)}
+.ai{border-color:#7b61c9;background:rgba(123,97,201,.07)}.ai::before{content:"AI generativ – utilizare responsabilă";color:#7b61c9}
+.def{border-left:4px solid var(--accent)}.def::before{content:"Definiție";color:var(--accent)}
+.formula{font-family:var(--serif);font-size:17px;background:var(--accent-soft);padding:10px 14px;border-radius:8px;margin:10px 0;overflow-x:auto;white-space:nowrap}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14.5px}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}
+th{background:var(--accent-soft)}
+.tablewrap{overflow-x:auto}
+pre.code{position:relative;background:var(--code-bg);color:var(--code-ink);padding:14px 16px;border-radius:8px;overflow:auto;font:13.5px/1.5 var(--mono);max-height:560px}
+pre.code .copy{position:absolute;top:6px;right:6px;font:12px var(--sans);background:#394050;color:#fff;border:0;border-radius:5px;padding:3px 8px;cursor:pointer;opacity:.8}
+pre.code .copy:hover{opacity:1}
+.k{color:#c792ea}.s{color:#c3e88d}.c{color:#7f8aa3;font-style:italic}.n{color:#f78c6c}.f{color:#82aaff}.bi{color:#ffcb6b}
+code{font-family:var(--mono);font-size:.92em;background:var(--accent-soft);padding:1px 5px;border-radius:4px}
+pre code{background:none;padding:0}
+details{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:10px 0;background:var(--panel)}
+details>summary{cursor:pointer;font-weight:600;color:var(--accent)}
+details[open]>summary{margin-bottom:8px}
+.ex{border:1px dashed var(--line);border-radius:8px;padding:10px 16px;margin:14px 0}
+.ex .exh{font-weight:700}
+.widget{border:1px solid var(--line);border-radius:10px;padding:14px;margin:16px 0;background:var(--bg)}
+.widget .wtitle{font-weight:700;margin-bottom:8px}
+.widget .ctrl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0;font-size:14px}
+.widget button,.btn{border:1px solid var(--accent);background:var(--accent);color:#fff;padding:5px 12px;border-radius:6px;cursor:pointer;font:inherit;font-size:14px}
+html.dark .widget button,html.dark .btn{color:#10141a}
+.widget button.sec,.btn.sec{background:transparent;color:var(--accent)}
+.widget select,.widget input[type=number],.widget input[type=text],.widget textarea{font:inherit;font-size:14px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
+.widget canvas{max-width:100%;background:var(--panel);border:1px solid var(--line);border-radius:6px;display:block}
+.widget .out{font:13px/1.45 var(--mono);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 10px;white-space:pre-wrap;max-height:260px;overflow:auto;margin-top:8px}
+.stats{display:flex;gap:14px;flex-wrap:wrap;font-size:14px;margin-top:6px}
+.stats b{font-variant-numeric:tabular-nums}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.quiz .qq{border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:12px 0;background:var(--panel)}
+.quiz .qq .qt{font-weight:600;margin-bottom:6px}
+.quiz label{display:block;padding:5px 8px;border-radius:6px;cursor:pointer;margin:2px 0}
+.quiz label:hover{background:var(--accent-soft)}
+.quiz label.right{background:var(--b-soft);outline:1px solid var(--ok)}
+.quiz label.wrong{background:var(--a-soft);outline:1px solid var(--bad)}
+.quiz .expl{font-size:14px;color:var(--muted);margin-top:6px;display:none}
+.quiz .qq.done .expl{display:block}
+.quiz .score{font-weight:700;font-size:17px;margin-top:8px}
+ul.check{list-style:none;padding-left:0}
+ul.check li{padding:4px 0}
+ul.check input{margin-right:8px;transform:scale(1.15)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin:12px 0}
+.card{perspective:800px;height:150px;cursor:pointer}
+.card .in{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
+.card.flip .in{transform:rotateY(180deg)}
+.card .fr,.card .bk{position:absolute;inset:0;backface-visibility:hidden;border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:14px;overflow:auto}
+.card .fr{background:var(--panel);font-weight:700;font-size:15.5px}
+.card .bk{background:var(--accent-soft);transform:rotateY(180deg)}
+.agenda td:first-child{white-space:nowrap;font-variant-numeric:tabular-nums}
+.drag-item{display:inline-block;padding:4px 10px;margin:3px;border:1px solid var(--line);border-radius:6px;background:var(--panel);cursor:grab;font-size:14px}
+.ok{color:var(--ok);font-weight:700}.bad{color:var(--bad);font-weight:700}
+footer{max-width:1320px;margin:0 auto;padding:0 18px 40px;color:var(--muted);font-size:13px}
+.pager{display:flex;justify-content:space-between;gap:10px;margin:12px 0}
+@media (max-width:900px){.layout{grid-template-columns:1fr}nav.toc{display:none}.grid2{grid-template-columns:1fr}.hero h1{font-size:27px}section.part{padding:6px 16px 16px}}
+@media print{header.top,nav.toc,.widget button,.lvl-filter{display:none!important}.layout{display:block}details{display:block}details>*{display:block!important}section.part{box-shadow:none;break-inside:auto}body{background:#fff}}
+</style>
+</head>
+<body data-session="05">
+<header class="top">
+  <div class="brand">IAA · Inteligență artificială aplicată<small>Ședința 5/7 · Curs + Seminar + Laborator</small></div>
+  <div class="lvl-filter" role="group" aria-label="Filtru nivel">
+    <button data-f="all" class="on">Toate nivelele</button>
+    <button data-f="b">Începător</button>
+    <button data-f="m">Mediu</button>
+    <button data-f="a">Avansat</button>
+    <button class="tbtn" id="themeBtn" title="Temă luminoasă / întunecată">Temă</button>
+    <button class="tbtn" id="printBtn" title="Tipărește (deschide toate soluțiile)">Tipărire</button>
+  </div>
+  <div class="progress"><i></i></div>
+</header>
+<div class="layout">
+<nav class="toc"><div class="tocprog"></div><div class="links"></div></nav>
+<main>
+<div class="hero">
+  <div class="kicker">Ședința 5 din 7 · Orele de curs 9–10 din 14 · Capitolul 3 din fișa disciplinei (orele 2–3 din 5)</div>
+  <h1>Algoritmi genetici: reprezentări, operatori, parametri și variante</h1>
+  <p>Algoritmul genetic și variantele sale: codificări (binară, Gray, reală, permutări), operatori de selecție, încrucișare și mutație, scheme de înlocuire, strategii evolutive, modele insulare, reglarea parametrilor și evaluarea experimentală.</p>
+  <div class="meta">
+    <span class="chip">Curs: 2 ore</span><span class="chip">Laborator asociat: 2 ore (L3)</span>
+    <span class="chip">Python 3 · DEAP</span><span class="chip">Nivele: începător · mediu · avansat</span>
+  </div>
+</div>
+
+<section class="part">
+<h2>0. Organizarea ședinței</h2>
+<div class="tablewrap"><table class="agenda">
+<tr><th>Interval</th><th>Activitate</th><th>Metodă</th></tr>
+<tr><td>Săpt. 9 · 0–10 min</td><td>Recapitulare: AG canonic. Întrebare: „Cum codificăm un traseu prin 30 de orașe ca șir de biți?”</td><td>Problematizare</td></tr>
+<tr><td>10–50 min</td><td>§5.1–§5.3: reprezentări, selecție, încrucișare</td><td>Predare interactivă, simulatoare</td></tr>
+<tr><td>Lab · 50 min</td><td>Operatorii de la zero; teste de corectitudine; PMX/OX/CX de mână și în cod</td><td>Exercițiul</td></tr>
+<tr><td>Săpt. 10 · 0–50 min</td><td>§5.4–§5.6: mutație, înlocuire, variante, parametri, metodologie experimentală</td><td>Predare, conversație</td></tr>
+<tr><td>Lab · 50 min</td><td>DEAP: Rastrigin cu codificare reală; TSP cu permutări; comparații statistice</td><td>Exercițiul, cooperare</td></tr>
+</table></div>
+<h3>Obiective</h3>
+<ul class="check">
+<li><label><input type="checkbox">Pot alege o reprezentare potrivită pentru o problemă (binară, reală, permutare).</label></li>
+<li><label><input type="checkbox">Pot calcula probabilitățile de selecție pentru ruletă, rang și turnir.</label></li>
+<li><label><input type="checkbox">Pot aplica de mână PMX, OX și CX.</label></li>
+<li><label><input type="checkbox">Pot descrie variantele: steady-state, (μ, λ), (μ + λ), model insular, evoluție diferențială.</label></li>
+<li><label><input type="checkbox">Pot proiecta un experiment corect de comparare a doi algoritmi stocastici.</label></li>
+</ul>
+</section>
+
+<section class="part">
+<h2>1. Curs<span class="tag">CURS</span></h2>
+
+<h3>5.1 Reprezentarea soluțiilor</h3>
+<div class="lvl" data-lvl="b">
+<p>Reprezentarea (codificarea) este cea mai importantă decizie: operatorii lucrează pe ea, iar o reprezentare proastă face problema mult mai grea.</p>
+<div class="tablewrap"><table>
+<tr><th>Reprezentare</th><th>Exemplu</th><th>Probleme tipice</th></tr>
+<tr><td>Binară</td><td>1011001…</td><td>rucsac, selecție de atribute, SAT</td></tr>
+<tr><td>Întregi</td><td>[3, 0, 2, 2, 1]</td><td>atribuiri (sală/oră), colorare de grafuri</td></tr>
+<tr><td>Reală</td><td>[0,31; −2,7; 4,05]</td><td>optimizare numerică, reglarea parametrilor, rețele neuronale</td></tr>
+<tr><td>Permutare</td><td>[4, 1, 3, 0, 2]</td><td>TSP, ordinea sarcinilor (programare), rutare</td></tr>
+<tr><td>Arbore</td><td>(+ x (* 2 y))</td><td>programare genetică: evoluția de programe/formule</td></tr>
+</table></div>
+</div>
+<div class="lvl" data-lvl="m">
+<h4>Codificarea binară a numerelor reale</h4>
+<p>Pentru x ∈ [a, b] cu precizia de p zecimale avem nevoie de m biți, unde 2<sup>m</sup> − 1 ≥ (b − a) · 10<sup>p</sup>. Decodificarea: x = a + decimal(șir) · (b − a)/(2<sup>m</sup> − 1). Exemplu (Michalewicz): [−1, 2] cu 6 zecimale → 3 000 000 de valori → <b>m = 22</b> biți.</p>
+<p><b>Falezele Hamming</b>: 0111 (7) și 1000 (8) sunt vecine ca valori, dar diferă în toți biții – mutația „nu le vede” vecine. <b>Codul Gray</b> (g = n XOR (n ≫ 1)) face ca valorile consecutive să difere printr-un singur bit.</p>
+<p>Pentru probleme numerice continue, codificarea <b>reală</b> (vector de float-uri) e de regulă mai bună: fără pierdere de precizie, cu operatori care exploatează geometria spațiului.</p>
+</div>
+<div class="lvl" data-lvl="a">
+<h4>Proprietăți dorite ale unei reprezentări</h4>
+<ul>
+<li><b>Completitudine</b>: orice soluție poate fi reprezentată. <b>Validitate</b>: orice cromozom reprezintă o soluție validă (permutările garantează un tur valid, șirurile binare pentru TSP nu).</li>
+<li><b>Localitate</b> (Rothlauf): schimbări mici de genotip → schimbări mici de fenotip. Reprezentările cu localitate slabă transformă AG în căutare aleatoare.</li>
+<li><b>Redundanță</b>: mai multe genotipuri pentru același fenotip (turul 0-1-2-3 = 1-2-3-0 = 3-2-1-0) – poate ajuta sau încurca.</li>
+<li><b>Decodificatori</b>: cromozomul nu e soluția, ci instrucțiuni pentru un algoritm constructiv (ex. permutare → schema serială de programare din ședința 4). Revenim în ședința 6 la tratarea restricțiilor.</li>
+</ul>
+</div>
+
+<h3>5.2 Selecția</h3>
+<div class="lvl" data-lvl="b">
+<ul>
+<li><b>Ruleta</b> (proporțională): p<sub>i</sub> = f<sub>i</sub>/Σf. Simplă, dar sensibilă la scara fitness-ului: un „super-individ” acaparează populația; când toți au fitness apropiat, presiunea dispare.</li>
+<li><b>SUS</b> (Stochastic Universal Sampling): o singură rotire a unei rulete cu N brațe echidistante – numărul de copii al fiecărui individ diferă de valoarea așteptată cu cel mult 1.</li>
+<li><b>Rang</b>: sortăm populația; probabilitatea depinde doar de rang, nu de valoarea fitness-ului. Presiune controlată de parametrul s ∈ [1, 2].</li>
+<li><b>Turnir</b> de mărime k: alegem k indivizi la întâmplare, câștigă cel mai bun. Cel mai folosit în practică: simplu, paralelizabil, funcționează direct pentru minimizare. k mare = presiune mare.</li>
+<li><b>Trunchiere</b>: doar cei mai buni T% se pot reproduce (folosită în strategiile evolutive).</li>
+</ul>
+</div>
+<div class="lvl" data-lvl="m">
+<p><b>Selecția liniară pe ranguri</b> (Baker), rangul i = 0 (cel mai slab) … N − 1 (cel mai bun):</p>
+<div class="formula">p<sub>i</sub> = (2 − s)/N + 2i(s − 1) / (N(N − 1))</div>
+<p><b>Turnirul</b> cu întoarcere, individul de rang r (1 = cel mai bun) din N:</p>
+<div class="formula">P(r câștigă) = [(N − r + 1)<sup>k</sup> − (N − r)<sup>k</sup>] / N<sup>k</sup></div>
+<p>Pentru N = 5, k = 2: 0,36; 0,28; 0,20; 0,12; 0,04 – practic aceeași distribuție ca rangul liniar cu s = 1,8.</p>
+</div>
+<div class="lvl" data-lvl="a">
+<h4>Presiunea de selecție și timpul de preluare</h4>
+<p><b>Timpul de preluare</b> (takeover time, Goldberg &amp; Deb 1991): numărul de generații în care cel mai bun individ, doar prin selecție (fără variație), umple populația. Pentru turnir: ≈ (ln N + ln ln N)/ln k; pentru ruleta pe funcții exponențiale – rapid, pe funcții „plate” – foarte lent. Teoria comparată a selecțiilor (Blickle &amp; Thiele, 1995): <i>intensitatea selecției</i> I = (f̄<sub>după</sub> − f̄)/σ permite compararea operatorilor pe aceeași scară. Scalările de fitness (liniară, sigma-truncation, Boltzmann) sunt alternative pentru a menține ruleta utilizabilă.</p>
+</div>
+
+<div class="widget" id="selw">
+  <div class="wtitle">Comparator: probabilități de selecție</div>
+  <div class="ctrl">Fitness (separate prin virgulă): <input type="text" id="selF" value="100, 20, 15, 10, 8, 5, 3, 1" style="width:240px">
+    Rang s: <input type="number" id="selS" value="1.5" step="0.1" min="1" max="2" style="width:60px">
+    Turnir k: <input type="number" id="selK" value="2" min="1" max="10" style="width:56px">
+    <button id="selGo">Compară</button></div>
+  <canvas id="selCv" width="880" height="240"></canvas>
+  <p style="font-size:13px;margin:4px 0 0">Încercați: un super-individ (100 vs. restul mici), apoi fitness-uri aproape egale (1000, 999, 998, …). Ce selecție rămâne stabilă?</p>
+</div>
+
+<h3>5.3 Încrucișarea</h3>
+<div class="lvl" data-lvl="b">
+<ul>
+<li><b>Binar / întregi</b>: un punct, <b>două puncte</b>, <b>uniformă</b> (fiecare genă de la un părinte ales cu probabilitatea 0,5).</li>
+<li><b>Real</b>: <b>aritmetică</b> c = λa + (1 − λ)b; <b>BLX-α</b> – copilul e uniform în intervalul părinților extins cu α · |a − b| la ambele capete; <b>SBX</b> – copiii sunt aproape de părinți, cu distribuție controlată de η.</li>
+<li><b>Permutări</b>: încrucișarea cu un punct produce duplicate (orașe vizitate de două ori). Operatori dedicați:</li>
+</ul>
+<div class="tablewrap"><table>
+<tr><th>Operator</th><th>Ce păstrează</th><th>Ideea</th></tr>
+<tr><td>PMX</td><td>poziții absolute</td><td>copiază un segment din P1; restul din P2, rezolvând conflictele prin maparea definită de segment</td></tr>
+<tr><td>OX</td><td>ordine relativă, adiacențe</td><td>copiază un segment din P1; completează cu orașele lipsă în ordinea în care apar în P2, pornind după segment</td></tr>
+<tr><td>CX</td><td>poziții absolute</td><td>fiecare oraș stă pe poziția lui dintr-unul dintre părinți; se urmăresc cicluri</td></tr>
+<tr><td>ERX (edge recombination)</td><td>muchii</td><td>construiește copilul din muchiile comune părinților – foarte bun pentru TSP</td></tr>
+</table></div>
+</div>
+
+<div class="widget" id="cxw">
+  <div class="wtitle">Laborator vizual de încrucișare</div>
+  <div class="ctrl">Operator: <select id="cxOp"><option value="1p">un punct</option><option value="2p">două puncte</option><option value="u">uniformă</option><option value="pmx" selected>PMX</option><option value="ox">OX</option><option value="cx">CX</option></select>
+    <button id="cxGo">Încrucișare nouă</button><button class="sec" id="cxClassic">Exemplul din seminar</button></div>
+  <div id="cxView" style="font:14px/1.9 var(--mono)"></div>
+</div>
+
+<h3>5.4 Mutația</h3>
+<div class="lvl" data-lvl="b">
+<ul>
+<li>Binar: inversare de bit cu probabilitatea p<sub>m</sub> ≈ 1/L.</li>
+<li>Real: <b>gaussiană</b> x' = x + N(0, σ); uniformă în domeniu; polinomială (Deb).</li>
+<li>Permutări: <b>interschimbare</b> (swap) a două poziții; <b>inserție</b>; <b>inversiune</b> a unui segment (pentru TSP = o mutare 2-opt: schimbă exact două muchii).</li>
+</ul>
+</div>
+<div class="lvl" data-lvl="m">
+<p><b>Controlul parametrilor</b> (Eiben, Hinterding, Michalewicz, 1999): (1) <i>reglare</i> – valori fixe alese înainte; (2) <i>control determinist</i> – σ(t) scade după un program; (3) <i>adaptiv</i> – regula 1/5 a lui Rechenberg: dacă peste 1/5 dintre mutații reușesc, mărim σ, altfel o micșorăm; (4) <i>auto-adaptiv</i> – σ face parte din cromozom și evoluează: σ' = σ · e<sup>τ·N(0,1)</sup>.</p>
+</div>
+
+<h3>5.5 Înlocuire și variante de algoritmi evolutivi</h3>
+<div class="lvl" data-lvl="m">
+<div class="tablewrap"><table>
+<tr><th>Variantă</th><th>Descriere</th></tr>
+<tr><td>Generațional</td><td>copiii înlocuiesc toată populația (opțional cu elitism)</td></tr>
+<tr><td>Steady-state</td><td>la fiecare pas se creează 1–2 copii care înlocuiesc cei mai slabi / cei mai vechi indivizi</td></tr>
+<tr><td>(μ, λ)</td><td>μ părinți generează λ &gt; μ copii; supraviețuiesc cei mai buni μ <i>dintre copii</i> – permite „uitarea” (bun în medii dinamice)</td></tr>
+<tr><td>(μ + λ)</td><td>supraviețuiesc cei mai buni μ dintre părinți ∪ copii – elitist, convergență rapidă, risc de convergență prematură</td></tr>
+<tr><td>Model insular</td><td>mai multe subpopulații evoluează separat; periodic migrează câțiva indivizi – diversitate + paralelism (MPI, cluster)</td></tr>
+<tr><td>Celular</td><td>indivizii stau pe o grilă și se împerechează doar cu vecinii – difuzie lentă a soluțiilor bune</td></tr>
+<tr><td>CHC (Eshelman)</td><td>prevenirea incestului, încrucișare HUX, restart prin „cataclism” la convergență</td></tr>
+<tr><td>Memetic</td><td>AG + căutare locală aplicată copiilor (ex. AG + 2-opt pentru TSP)</td></tr>
+<tr><td>Evoluție diferențială (DE)</td><td>mutantul v = x<sub>r1</sub> + F(x<sub>r2</sub> − x<sub>r3</sub>), apoi încrucișare binomială cu x<sub>i</sub> – foarte eficientă pe probleme continue</td></tr>
+<tr><td>CMA-ES</td><td>strategie evolutivă care învață matricea de covarianță a distribuției de căutare – starea artei în optimizarea continuă fără gradient</td></tr>
+</table></div>
+</div>
+<div class="lvl" data-lvl="a">
+<h4>Optimizare multi-obiectiv: NSGA-II</h4>
+<p>Când avem mai multe obiective conflictuale (cost vs. calitate, makespan vs. consum de energie), nu există un singur optim, ci un <b>front Pareto</b>. NSGA-II (Deb et al., 2002) sortează populația pe fronturi de nedominare și folosește <b>distanța de aglomerare</b> pentru diversitate. În DEAP: <code>tools.selNSGA2</code>. Un rezultat util pentru proiect: prezentarea frontului Pareto oferă decidentului un meniu de compromisuri.</p>
+<h4>Teorema „No Free Lunch”</h4>
+<p>Wolpert &amp; Macready (1997): mediat pe <i>toate</i> funcțiile posibile, toți algoritmii de căutare au aceeași performanță. Consecință practică: un algoritm e bun doar în raport cu o clasă de probleme. Afirmația „AG e cel mai bun optimizator” nu are sens fără a preciza clasa.</p>
+</div>
+
+<h3>5.6 Reglare și evaluare experimentală</h3>
+<div class="lvl" data-lvl="m">
+<p>Fișa disciplinei cere compararea a cel puțin două abordări după calitatea soluției și timpul de rulare. Pentru algoritmi stocastici, asta înseamnă:</p>
+<ol>
+<li><b>Mai multe rulări independente</b> (minimum 10–30) cu seed-uri diferite, documentate.</li>
+<li><b>Același buget</b>: același număr de evaluări ale funcției-obiectiv (nu același număr de generații!).</li>
+<li>Raportați <b>media, abaterea standard, mediana, cel mai bun</b>, plus timpul.</li>
+<li>Test statistic neparametric: <b>Mann–Whitney U</b> / <b>Wilcoxon</b> (<code>scipy.stats</code>), nu doar „media e mai mică”.</li>
+<li>Grafice de convergență (fitness vs. evaluări) cu bandă de variație.</li>
+<li>Reglare automată a parametrilor: irace, Optuna, SMAC – pe instanțe <i>diferite</i> de cele de test.</li>
+</ol>
+</div>
+</section>
+
+<section class="part">
+<h2>2. Seminar<span class="tag">SEMINAR</span></h2>
+
+<div class="ex lvl" data-lvl="b">
+<div class="exh">S5.1 – Câți biți?</div>
+<p>(a) Câți biți sunt necesari pentru x ∈ [−5,12; 5,12] cu 3 zecimale? (b) Decodificați șirul 1000000000 (10 biți) pentru x ∈ [0, 1]. (c) Scrieți codul Gray pentru 5, 6, 7, 8 pe 4 biți și verificați că valorile consecutive diferă printr-un bit.</p>
+<details><summary>Soluție</summary>
+<p>(a) (b − a) · 10³ = 10 240; 2<sup>13</sup> − 1 = 8191 &lt; 10 240 ≤ 2<sup>14</sup> − 1 = 16 383 → <b>14 biți</b>.</p>
+<p>(b) decimal = 512; x = 512/1023 ≈ 0,5005.</p>
+<p>(c) 5 → 0111, 6 → 0101, 7 → 0100, 8 → 1100. Distanțe Hamming între vecini: 1, 1, 1 (în binar, 7 → 8: 0111 → 1000 – 4 biți).</p></details>
+</div>
+
+<div class="ex lvl" data-lvl="m">
+<div class="exh">S5.2 – PMX, OX, CX de mână</div>
+<p>P1 = (1 2 3 | 4 5 6 7 | 8 9), P2 = (9 3 7 | 8 2 6 5 | 1 4). Puncte de tăietură după pozițiile 3 și 7. Aplicați PMX și OX (copilul care moștenește segmentul din P1) și CX (pornind de la P1).</p>
+<details><summary>Soluție</summary>
+<p><b>PMX</b>: copilul primește segmentul 4 5 6 7 din P1. Din segmentul lui P2 rămân de plasat 8 și 2. 8 stătea, în P2, pe poziția ocupată în copil de 4; 4 se află în P2 pe ultima poziție → 8 merge pe ultima poziție. 2 stătea pe poziția lui 5; 5 se află în P2 pe poziția lui 7 (în copil, ocupată); 7 se află în P2 pe poziția 3 → 2 merge pe poziția 3. Restul din P2: <b>(9 3 2 4 5 6 7 1 8)</b>.</p>
+<p><b>OX</b>: segmentul 4 5 6 7 rămâne pe loc. Ordinea din P2 pornind după a doua tăietură: 1 4 9 3 7 8 2 6 5 → fără 4, 5, 6, 7: 1 9 3 8 2. Completăm pozițiile 8, 9, 1, 2, 3: <b>(3 8 2 4 5 6 7 1 9)</b>.</p>
+<p><b>CX</b>: ciclul 1: poz. 1 (1) → în P2 e 9 → 9 e pe poz. 9 în P1 → în P2 e 4 → 4 e pe poz. 4 → în P2 e 8 → 8 e pe poz. 8 → în P2 e 1 → închis. Pozițiile {1, 4, 8, 9} din P1, restul din P2 (al doilea ciclu din P2, al treilea iar din P1 – poz. 6 are 6 în ambii): <b>(1 3 7 4 2 6 5 8 9)</b>.</p>
+<p>Verificați rezultatele cu <code>s05_operators.py</code> și cu simulatorul (butonul „Exemplul din seminar”).</p></details>
+</div>
+
+<div class="ex lvl" data-lvl="m">
+<div class="exh">S5.3 – Ruletă vs. rang</div>
+<p>Fitness: 100, 20, 15, 10, 5. (a) Probabilitățile prin ruletă. (b) Prin rang liniar cu s = 1,5. (c) Adăugăm constanta 1000 la toate fitness-urile. Ce se întâmplă cu (a) și cu (b)?</p>
+<details><summary>Soluție</summary>
+<p>(a) Σ = 150: 0,667; 0,133; 0,100; 0,067; 0,033. (b) N = 5, ranguri 4…0: p<sub>i</sub> = 0,1 + 0,05·i → 0,30; 0,25; 0,20; 0,15; 0,10. (c) Ruleta: Σ = 5150 → 0,214; 0,198; 0,197; 0,196; 0,195 – aproape uniformă, presiunea dispare. Rangul nu se schimbă (e invariant la transformări monotone ale fitness-ului).</p></details>
+</div>
+
+<div class="ex lvl" data-lvl="b">
+<div class="exh">S5.4 – BLX-0,5</div>
+<p>Părinți a = (1,0; 4,0), b = (3,0; 4,0). În ce domeniu poate cădea copilul? Ce problemă apare pe a doua coordonată?</p>
+<details><summary>Soluție</summary><p>Coordonata 1: I = 2, interval [1 − 1; 3 + 1] = [0; 4]. Coordonata 2: I = 0 → copilul este exact 4,0. Când populația converge, BLX nu mai explorează: diversitatea vine doar din mutație. SBX are același comportament (pasul e proporțional cu distanța dintre părinți) – o proprietate dorită de auto-adaptare, dar periculoasă la convergență prematură.</p></details>
+</div>
+
+<div class="ex lvl" data-lvl="a">
+<div class="exh">S5.5 – Turnir și rang</div>
+<p>Un LLM afirmă: „turnirul binar (k = 2, cu întoarcere) este echivalent cu selecția liniară pe ranguri cu presiunea s = 2 − 1/N”. Verificați afirmația, în general și pentru N = 5.</p>
+<details><summary>Soluție</summary>
+<p>Turnir k = 2: P(r) = (2(N − r) + 1)/N² – liniar în r. Pentru N = 5: 9/25, 7/25, 5/25, 3/25, 1/25 = 0,36; 0,28; 0,20; 0,12; 0,04. Rang liniar: diferența dintre ranguri consecutive este 2(s − 1)/(N(N − 1)); în turnir este 2/N². Egalând: s − 1 = (N − 1)/N, deci <b>s = 2 − 1/N</b> (1,8 pentru N = 5). Verificare pe cel mai slab individ: (2 − s)/N = 1/N² = 0,04 ✓. Afirmația este <b>corectă</b> – dar ați acceptat-o abia după ce ați verificat-o, ceea ce contează.</p></details>
+</div>
+
+<div class="lvl" data-lvl="b m a">
+<h3>Discuție ghidată</h3>
+<ol>
+<li>Pentru orarul facultății, ce reprezentare ați alege: binară (variabilă de decizie pentru fiecare tuplu curs–sală–oră), întregi (pentru fiecare curs, indicele intervalului) sau permutare + decodificator? Argumentați.</li>
+<li>De ce comparația „AG-ul meu cu 100 de generații vs. hill climbing cu 100 de iterații” este incorectă?</li>
+</ol>
+</div>
+</section>
+
+<section class="part">
+<h2>3. Laborator<span class="tag">LABORATOR</span></h2>
+<p>Corespunde punctului 3 din secțiunea 8.2: <i>implementarea operatorilor de selecție, încrucișare și mutație; variante de algoritmi genetici</i>. Instalare: <code>pip install deap numpy scipy</code>.</p>
+
+<h3>Simulator: AG cu codificare reală pe Rastrigin 2D</h3>
+<div class="widget" id="rgw">
+  <div class="wtitle">Populația pe harta funcției Rastrigin (minim global în centru)</div>
+  <div class="ctrl">
+    Încrucișare: <select id="rgCx"><option value="blx">BLX-0,5</option><option value="arith">aritmetică</option><option value="sbx">SBX (η = 15)</option><option value="none">fără</option></select>
+    Selecție: <select id="rgSel"><option value="t2">turnir k = 2</option><option value="t5">turnir k = 5</option><option value="rw">ruletă (1/(1+f))</option></select>
+    σ mutație: <input type="number" id="rgSig" value="0.3" step="0.05" min="0" max="3" style="width:64px">
+    N: <input type="number" id="rgN" value="40" min="6" max="200" style="width:60px">
+    Înlocuire: <select id="rgRep"><option value="gen">generațională + elitism</option><option value="plus">(μ + λ)</option></select>
+  </div>
+  <div class="ctrl"><button id="rgStep">O generație</button><button id="rgRun">Rulează / Pauză</button><button class="sec" id="rgReset">Reset</button></div>
+  <div class="grid2"><canvas id="rgCv" width="420" height="420"></canvas><div><canvas id="rgCh" width="420" height="220"></canvas><div class="stats" style="flex-direction:column;gap:2px"><span>Generația: <b id="rgGen">0</b></span><span>Cel mai bun f: <b id="rgBest">–</b> la <b id="rgX">–</b></span><span>Evaluări: <b id="rgEv">0</b></span><span>Diversitate (dispersia medie): <b id="rgDiv">–</b></span></div></div></div>
+</div>
+
+<div class="lvl" data-lvl="b m">
+<h4>L5.1 – Operatorii de la zero</h4>
+<pre class="code" data-lang="python">
+"""Operatori genetici implementați de la zero: selecție, încrucișare, mutație (binar, real, permutări).
+Rulare: python s05_operators.py   (rulează și testele de corectitudine)"""
+import random, math
+
+# ---------------- SELECȚIE (maximizare) ----------------
+def tournament(pop, fits, k, rng):
+    """Alege k indivizi la întâmplare și îl întoarce pe cel mai bun. Presiunea crește cu k."""
+    best = max(rng.sample(range(len(pop)), k), key=lambda i: fits[i])
+    return pop[best]
+
+def rank_probs(n, s=1.5):
+    """Selecție liniară pe ranguri (Baker): rangul 0 = cel mai slab. s ∈ [1, 2] = presiunea de selecție."""
+    return [(2 - s) / n + 2 * i * (s - 1) / (n * (n - 1)) for i in range(n)]
+
+def sus(pop, fits, n, rng):
+    """Stochastic Universal Sampling: n „brațe” echidistante pe ruletă -&gt; varianță minimă."""
+    total = sum(fits); step = total / n; start = rng.uniform(0, step)
+    chosen, acc, i = [], fits[0], 0
+    for p in (start + j * step for j in range(n)):
+        while acc &lt; p:
+            i += 1; acc += fits[i]
+        chosen.append(pop[i])
+    return chosen
+
+# ---------------- ÎNCRUCIȘARE ----------------
+def two_point(a, b, rng):
+    i, j = sorted(rng.sample(range(1, len(a)), 2))
+    return a[:i] + b[i:j] + a[j:], b[:i] + a[i:j] + b[j:]
+
+def uniform(a, b, rng, p=0.5):
+    m = [rng.random() &lt; p for _ in a]
+    return [x if t else y for x, y, t in zip(a, b, m)], [y if t else x for x, y, t in zip(a, b, m)]
+
+def blx_alpha(a, b, rng, alpha=0.5, lo=-5.12, hi=5.12):
+    """BLX-α (cromozomi reali): copilul e uniform în [min − αI, max + αI], I = |a_i − b_i|."""
+    c = []
+    for x, y in zip(a, b):
+        mn, mx = min(x, y), max(x, y); I = mx - mn
+        c.append(min(hi, max(lo, rng.uniform(mn - alpha * I, mx + alpha * I))))
+    return c
+
+def sbx(a, b, rng, eta=15):
+    """Simulated Binary Crossover (Deb &amp; Agrawal): imită pe reali încrucișarea cu un punct."""
+    c1, c2 = [], []
+    for x, y in zip(a, b):
+        u = rng.random()
+        beta = (2 * u) ** (1 / (eta + 1)) if u &lt;= 0.5 else (1 / (2 * (1 - u))) ** (1 / (eta + 1))
+        c1.append(0.5 * ((1 + beta) * x + (1 - beta) * y)); c2.append(0.5 * ((1 - beta) * x + (1 + beta) * y))
+    return c1, c2
+
+def pmx(a, b, rng, cut=None):
+    """Partially Mapped Crossover (Goldberg &amp; Lingle) pentru permutări."""
+    n = len(a); i, j = cut or sorted(rng.sample(range(n + 1), 2))
+    child = [None] * n
+    child[i:j] = a[i:j]
+    for k in range(i, j):
+        v = b[k]
+        if v in child[i:j]:
+            continue
+        pos = k
+        while i &lt;= pos &lt; j:                     # urmăm maparea a[pos] -&gt; poziția lui în b
+            pos = b.index(a[pos])
+        child[pos] = v
+    return [b[k] if c is None else c for k, c in enumerate(child)]
+
+def ox(a, b, rng, cut=None):
+    """Order Crossover (Davis): păstrează segmentul din a, restul în ordinea relativă din b."""
+    n = len(a); i, j = cut or sorted(rng.sample(range(n + 1), 2))
+    seg = a[i:j]; rest = [x for x in b[j:] + b[:j] if x not in seg]
+    child = [None] * n; child[i:j] = seg
+    for k, pos in enumerate(list(range(j, n)) + list(range(0, i))):
+        child[pos] = rest[k]
+    return child
+
+def cx(a, b):
+    """Cycle Crossover (Oliver et al.): fiecare genă păstrează poziția din unul dintre părinți."""
+    n, child, start, take_a = len(a), [None] * len(a), 0, True
+    while None in child:
+        start = child.index(None); pos = start
+        while True:
+            child[pos] = a[pos] if take_a else b[pos]
+            pos = a.index(b[pos])
+            if pos == start: break
+        take_a = not take_a
+    return child
+
+# ---------------- MUTAȚIE ----------------
+def bit_flip(x, pm, rng):            return [1 - g if rng.random() &lt; pm else g for g in x]
+def gaussian(x, sigma, pm, rng):     return [g + rng.gauss(0, sigma) if rng.random() &lt; pm else g for g in x]
+def swap(p, rng):
+    p = p[:]; i, j = rng.sample(range(len(p)), 2); p[i], p[j] = p[j], p[i]; return p
+def inversion(p, rng):
+    p = p[:]; i, j = sorted(rng.sample(range(len(p) + 1), 2)); p[i:j] = reversed(p[i:j]); return p
+
+# ---------------- CODIFICARE BINARĂ ----------------
+def bits_needed(a, b, decimals):
+    """Număr minim de biți ca intervalul [a, b] să fie reprezentat cu precizia 10^-decimals."""
+    return math.ceil(math.log2((b - a) * 10 ** decimals + 1))
+def gray(n):   return n ^ (n &gt;&gt; 1)
+def ungray(g):
+    n = 0
+    while g: n ^= g; g &gt;&gt;= 1
+    return n
+
+if __name__ == "__main__":
+    rng = random.Random(0)
+    A, B = [1, 2, 3, 4, 5, 6, 7, 8, 9], [9, 3, 7, 8, 2, 6, 5, 1, 4]
+    print("PMX(cut 3..7):", pmx(A, B, rng, (3, 7)))
+    print("OX (cut 3..7):", ox(A, B, rng, (3, 7)))
+    print("CX           :", cx(A, B))
+    for _ in range(2000):                         # teste: copiii trebuie să fie permutări valide
+        a = rng.sample(range(12), 12); b = rng.sample(range(12), 12)
+        for c in (pmx(a, b, rng), ox(a, b, rng), cx(a, b), swap(a, rng), inversion(a, rng)):
+            assert sorted(c) == list(range(12))
+    print("teste permutări: OK")
+    print("biți pentru [-1, 2] cu 6 zecimale:", bits_needed(-1, 2, 6))
+    print("Gray:", [format(gray(i), "03b") for i in range(8)], "| invers OK:", all(ungray(gray(i)) == i for i in range(1000)))
+    print("probabilități rang (n=5, s=2):", [round(p, 3) for p in rank_probs(5, 2.0)])
+    k, n = 2, 5   # probabilitatea ca individul de rang r (1 = cel mai bun) să câștige un turnir de mărime k, cu întoarcere
+    print("turnir k=2, n=5:", [round(((n - r + 1) ** k - (n - r) ** k) / n ** k, 3) for r in range(1, n + 1)])</pre>
+<pre class="code" data-lang="text">
+PMX(cut 3..7): [9, 3, 2, 4, 5, 6, 7, 1, 8]
+OX (cut 3..7): [3, 8, 2, 4, 5, 6, 7, 1, 9]
+CX           : [1, 3, 7, 4, 2, 6, 5, 8, 9]
+teste permutări: OK
+biți pentru [-1, 2] cu 6 zecimale: 22
+Gray: ['000', '001', '011', '010', '110', '111', '101', '100'] | invers OK: True
+probabilități rang (n=5, s=2): [0.0, 0.1, 0.2, 0.3, 0.4]
+turnir k=2, n=5: [0.36, 0.28, 0.2, 0.12, 0.04]
+</pre>
+<ul class="check">
+<li><label><input type="checkbox">(Începător) Verificați de mână ieșirea pentru PMX, OX, CX (S5.2).</label></li>
+<li><label><input type="checkbox">(Începător) Estimați empiric probabilitățile turnirului (100 000 de extrageri) și comparați cu formula.</label></li>
+<li><label><input type="checkbox">(Mediu) Implementați ERX (edge recombination) și adăugați-l în testele de validitate.</label></li>
+<li><label><input type="checkbox">(Mediu) Scrieți teste pytest pentru <code>sus</code>: numărul de copii al fiecărui individ diferă de N·p<sub>i</sub> cu cel mult 1.</label></li>
+</ul>
+</div>
+
+<div class="lvl" data-lvl="m">
+<h4>L5.2 – DEAP: codificare reală pe Rastrigin (n = 10)</h4>
+<pre class="code" data-lang="python">
+"""AG cu codificare reală în DEAP: minimizarea funcției Rastrigin (n = 10), comparație între operatori.
+Necesită: pip install deap numpy       Rulare: python s05_deap_rastrigin.py"""
+import random, math, statistics, time
+import numpy as np
+from deap import base, creator, tools, algorithms
+
+N, LO, HI = 10, -5.12, 5.12
+def rastrigin(x):                      # minim global 0 în x = 0; ~10^n minime locale
+    return (10 * len(x) + sum(xi * xi - 10 * math.cos(2 * math.pi * xi) for xi in x),)
+
+creator.create("FitnessMin", base.Fitness, weights=(-1.0,))      # -1 = minimizare
+creator.create("Individual", list, fitness=creator.FitnessMin)
+
+def make_toolbox(cx, sel_k=3, sigma=0.3, indpb=0.1):
+    tb = base.Toolbox()
+    tb.register("attr", random.uniform, LO, HI)
+    tb.register("individual", tools.initRepeat, creator.Individual, tb.attr, N)
+    tb.register("population", tools.initRepeat, list, tb.individual)
+    tb.register("evaluate", rastrigin)
+    if cx == "blend":
+        tb.register("mate", tools.cxBlend, alpha=0.5)                             # BLX-0.5
+    elif cx == "sbx":
+        tb.register("mate", tools.cxSimulatedBinaryBounded, eta=15, low=LO, up=HI)
+    else:
+        tb.register("mate", tools.cxTwoPoint)
+    tb.register("mutate", tools.mutGaussian, mu=0, sigma=sigma, indpb=indpb)
+    tb.register("select", tools.selTournament, tournsize=sel_k)
+    def clip(func):                                    # decorator: readuce genele în domeniu
+        def wrapper(*args, **kw):
+            off = func(*args, **kw)
+            for ind in off:
+                for i in range(len(ind)): ind[i] = min(HI, max(LO, ind[i]))
+            return off
+        return wrapper
+    tb.decorate("mate", clip); tb.decorate("mutate", clip)
+    return tb
+
+def run(cx, seed, ngen=200, mu=100, mode="simple", **kw):
+    random.seed(seed); np.random.seed(seed)
+    tb = make_toolbox(cx, **kw)
+    pop, hof = tb.population(n=mu), tools.HallOfFame(1)
+    if mode == "simple":       # AG generațional cu elitism implicit doar prin Hall of Fame
+        algorithms.eaSimple(pop, tb, cxpb=0.8, mutpb=0.2, ngen=ngen, halloffame=hof, verbose=False)
+    else:                      # (μ + λ): părinți și copii concurează pentru supraviețuire
+        algorithms.eaMuPlusLambda(pop, tb, mu=mu, lambda_=mu, cxpb=0.7, mutpb=0.3, ngen=ngen, halloffame=hof, verbose=False)
+    return hof[0].fitness.values[0]
+
+if __name__ == "__main__":
+    configs = [("2 puncte, generațional", dict(cx="twopoint")),
+               ("BLX-0.5, generațional", dict(cx="blend")),
+               ("SBX, generațional", dict(cx="sbx")),
+               ("SBX, (μ+λ)", dict(cx="sbx", mode="mupluslambda")),
+               ("SBX, (μ+λ), turnir k=7", dict(cx="sbx", mode="mupluslambda", sel_k=7))]
+    print(f"Rastrigin n={N}, 100 indivizi × 200 generații, 10 rulări (mai mic = mai bine)")
+    for name, cfg in configs:
+        t = time.perf_counter()
+        res = [run(seed=s, **cfg) for s in range(10)]
+        print(f"  {name:26s} medie={statistics.mean(res):7.3f}  std={statistics.stdev(res):6.3f}  "
+              f"min={min(res):6.3f}  timp/rulare={(time.perf_counter()-t)/10:.2f}s")</pre>
+<pre class="code" data-lang="text">
+Rastrigin n=10, 100 indivizi × 200 generații, 10 rulări (mai mic = mai bine)
+  2 puncte, generațional     medie=  7.351  std= 4.392  min= 2.007
+  BLX-0.5, generațional      medie=  5.516  std= 2.775  min= 1.990
+  SBX, generațional          medie=  6.778  std= 3.309  min= 2.996
+  SBX, (μ+λ)                 medie=  9.689  std= 3.683  min= 4.979
+  SBX, (μ+λ), turnir k=7     medie= 10.631  std= 5.819  min= 2.990
+</pre>
+<ul class="check">
+<li><label><input type="checkbox">Observați: (μ + λ) cu presiune mare dă rezultate <i>mai proaste</i>. Explicați prin convergență prematură; verificați în simulator.</label></li>
+<li><label><input type="checkbox">Atenție la buget: (μ + λ) face același număr de evaluări? Recalculați la buget egal de evaluări.</label></li>
+<li><label><input type="checkbox">Testați cu <code>scipy.stats.mannwhitneyu</code> dacă BLX e semnificativ mai bun decât 2 puncte (30 de rulări).</label></li>
+<li><label><input type="checkbox">Desenați curbele de convergență cu <code>tools.Statistics</code> și <code>tools.Logbook</code>.</label></li>
+</ul>
+</div>
+
+<div class="lvl" data-lvl="m a">
+<h4>L5.3 – DEAP: permutări pentru TSP</h4>
+<pre class="code" data-lang="python">
+"""AG cu permutări în DEAP: problema comis-voiajorului (TSP) cu 30 de orașe.
+Comparație OX vs PMX și mutație prin inversiune vs interschimbare.  Rulare: python s05_tsp_ga.py"""
+import random, math, statistics
+from deap import base, creator, tools, algorithms
+
+def cities(n=30, seed=42):
+    r = random.Random(seed)
+    return [(r.uniform(0, 100), r.uniform(0, 100)) for _ in range(n)]
+C = cities()
+D = [[math.dist(a, b) for b in C] for a in C]
+def tour_len(t):
+    return (sum(D[t[i]][t[i - 1]] for i in range(len(t))),)
+
+def mut_inversion(ind):                  # inversează un segment = o mutare 2-opt aleatoare
+    i, j = sorted(random.sample(range(len(ind) + 1), 2))
+    ind[i:j] = ind[i:j][::-1]
+    return (ind,)
+
+creator.create("FitTSP", base.Fitness, weights=(-1.0,))
+creator.create("Tour", list, fitness=creator.FitTSP)
+
+def run(cx="ox", mut="inv", seed=0, mu=150, ngen=400):
+    random.seed(seed)
+    tb = base.Toolbox()
+    tb.register("indices", random.sample, range(len(C)), len(C))
+    tb.register("individual", tools.initIterate, creator.Tour, tb.indices)
+    tb.register("population", tools.initRepeat, list, tb.individual)
+    tb.register("evaluate", tour_len)
+    tb.register("mate", tools.cxOrdered if cx == "ox" else tools.cxPartialyMatched)   # numele DEAP: „Partialy”
+    tb.register("mutate", mut_inversion if mut == "inv" else tools.mutShuffleIndexes, **({} if mut == "inv" else {"indpb": 0.05}))
+    tb.register("select", tools.selTournament, tournsize=3)
+    pop, hof = tb.population(n=mu), tools.HallOfFame(1)
+    algorithms.eaSimple(pop, tb, cxpb=0.7, mutpb=0.3, ngen=ngen, halloffame=hof, verbose=False)
+    return hof[0].fitness.values[0], list(hof[0])
+
+def two_opt(t):
+    """Căutare locală 2-opt până la optim local – reper de comparație (și operator de „memetizare”)."""
+    t, improved = t[:], True
+    while improved:
+        improved = False
+        for i in range(1, len(t) - 1):
+            for j in range(i + 1, len(t)):
+                a, b, c, d = t[i - 1], t[i], t[j], t[(j + 1) % len(t)]
+                if D[a][c] + D[b][d] &lt; D[a][b] + D[c][d] - 1e-9:
+                    t[i:j + 1] = reversed(t[i:j + 1]); improved = True
+    return t
+
+if __name__ == "__main__":
+    print("TSP 30 de orașe, 150 indivizi × 400 generații, 5 rulări")
+    for cx in ("ox", "pmx"):
+        for mut in ("inv", "shuffle"):
+            res = [run(cx, mut, seed=s)[0] for s in range(5)]
+            print(f"  {cx.upper():3s} + {'inversiune' if mut=='inv' else 'interschimbări':14s} medie={statistics.mean(res):7.1f}  min={min(res):7.1f}")
+    r = random.Random(1)
+    res = [tour_len(two_opt(r.sample(range(30), 30)))[0] for _ in range(5)]
+    print(f"  2-opt din 5 starturi aleatoare      medie={statistics.mean(res):7.1f}  min={min(res):7.1f}")
+    best, tour = run("pmx", "shuffle", seed=0)
+    print(f"  PMX+interschimbări, seed 0: {best:.1f}  -&gt;  după 2-opt (pas memetic): {tour_len(two_opt(tour))[0]:.1f}")</pre>
+<pre class="code" data-lang="text">
+TSP 30 de orașe, 150 indivizi × 400 generații, 5 rulări
+  OX  + inversiune     medie=  438.9  min=  425.9
+  OX  + interschimbări medie=  447.7  min=  423.5
+  PMX + inversiune     medie=  438.9  min=  425.9
+  PMX + interschimbări medie=  569.8  min=  493.8
+  2-opt din 5 starturi aleatoare      medie=  450.4  min=  426.2
+  PMX+interschimbări, seed 0: 615.2  ->  după 2-opt (pas memetic): 442.6
+</pre>
+<p style="font-size:14px">Mediile OX + inversiune și PMX + inversiune coincid întâmplător (valorile pe seed-uri diferă: OX 456,0 / 425,9 / 453,9 / 432,5 / 426,2; PMX 451,9 / 464,8 / 425,9 / 425,9 / 425,9). Exact de aceea ne uităm și la distribuție, nu doar la medie.</p>
+<ul class="check">
+<li><label><input type="checkbox">(Mediu) De ce inversiunea este mult mai bună decât interschimbările pe TSP? (Indiciu: câte muchii schimbă fiecare?)</label></li>
+<li><label><input type="checkbox">(Avansat) Implementați un algoritm memetic: aplicați 2-opt fiecărui copil (sau la 10% dintre ei). Comparați la buget egal de <i>timp</i>.</label></li>
+<li><label><input type="checkbox">(Avansat) Implementați un model insular cu 4 insule (câte 40 de indivizi), migrare inelară la 20 de generații. Comparați cu o populație unică de 160.</label></li>
+<li><label><input type="checkbox">(Avansat) Rulați aceeași instanță TSP cu ACO în ședința 7 – păstrați seed-ul orașelor (42)!</label></li>
+</ul>
+</div>
+
+<h3>Evaluarea critică: parametri propuși de AI</h3>
+<div class="ai">Un LLM vă recomandă pentru Rastrigin: „populație 10, p<sub>c</sub> = 1, p<sub>m</sub> = 0,5, selecție prin ruletă direct pe f(x) – pentru că explorează mai mult”.</div>
+<div class="lvl" data-lvl="m a">
+<details><summary>Ce e în neregulă?</summary>
+<ol>
+<li>Ruleta pe f(x) la <b>minimizare</b> favorizează soluțiile <i>proaste</i> (vezi și ședința 4).</li>
+<li>p<sub>m</sub> = 0,5 per genă transformă AG în căutare aleatoare – informația acumulată se pierde.</li>
+<li>N = 10 e prea mic pentru n = 10 dimensiuni: diversitate insuficientă, convergență prematură.</li>
+<li>„Explorează mai mult” nu e un argument fără măsurători: cereți întotdeauna experimente cu rulări multiple. Testați propunerea cu <code>s05_deap_rastrigin.py</code> și raportați în declarația AI.</li>
+</ol></details>
+</div>
+</section>
+
+<section class="part">
+<h2>4. Autoevaluare<span class="tag">QUIZ</span></h2>
+<div class="cards">
+  <div class="card"><div class="in"><div class="fr">Faleză Hamming</div><div class="bk">Valori vecine cu codificări binare foarte diferite (0111/1000). Remediu: codul Gray.</div></div></div>
+  <div class="card"><div class="in"><div class="fr">Turnir</div><div class="bk">Alege k indivizi la întâmplare, câștigă cel mai bun. Presiunea crește cu k.</div></div></div>
+  <div class="card"><div class="in"><div class="fr">OX</div><div class="bk">Păstrează un segment din P1 și ordinea relativă a celorlalte gene din P2.</div></div></div>
+  <div class="card"><div class="in"><div class="fr">(μ + λ)</div><div class="bk">Supraviețuiesc cei mai buni μ dintre părinți și copii: elitist.</div></div></div>
+  <div class="card"><div class="in"><div class="fr">Model insular</div><div class="bk">Subpopulații separate cu migrare periodică: diversitate + paralelism.</div></div></div>
+  <div class="card"><div class="in"><div class="fr">No Free Lunch</div><div class="bk">Pe toate problemele posibile, toți algoritmii sunt egali în medie.</div></div></div>
+</div>
+<script type="application/json" class="quiz-data">
+[
+{"lvl":"b","q":"Pentru TSP, cea mai naturală reprezentare este:","o":["șir binar","vector real","permutare","arbore"],"a":2,"e":"Fiecare permutare a orașelor este un tur valid."},
+{"lvl":"b","q":"Ce selecție funcționează direct și pentru minimizare, fără transformarea fitness-ului?","o":["ruleta","SUS","turnirul","nicio selecție"],"a":2,"e":"Turnirul compară doar indivizii între ei."},
+{"lvl":"b","q":"Încrucișarea cu un punct aplicată pe două permutări poate produce:","o":["mereu o permutare validă","un copil cu orașe duplicate și orașe lipsă","doar copii identici cu părinții","un arbore"],"a":1,"e":"De aceea există PMX, OX, CX."},
+{"lvl":"m","q":"OX((1 2 3|4 5 6 7|8 9), (9 3 7|8 2 6 5|1 4)) dă:","o":["(9 3 2 4 5 6 7 1 8)","(3 8 2 4 5 6 7 1 9)","(1 3 7 4 2 6 5 8 9)","(1 2 3 8 2 6 5 8 9)"],"a":1,"e":"Prima variantă e PMX, a treia e CX."},
+{"lvl":"m","q":"Adăugăm 1000 la fitness-ul tuturor indivizilor. Care selecție își schimbă comportamentul?","o":["rangul","turnirul","ruleta","niciuna"],"a":2,"e":"Ruleta devine aproape uniformă; rangul și turnirul sunt invariante la transformări monotone."},
+{"lvl":"m","q":"Câți biți trebuie pentru [−5,12; 5,12] cu 3 zecimale?","o":["10","13","14","16"],"a":2,"e":"Sunt necesare 10 241 de valori; 2^13 = 8192 < 10 241 ≤ 2^14."},
+{"lvl":"m","q":"Pentru o comparație corectă între un AG și hill climbing trebuie să fixăm:","o":["același număr de iterații","același număr de evaluări ale funcției-obiectiv și mai multe rulări","același seed pentru o singură rulare","aceeași mărime a populației"],"a":1,"e":"O generație a AG costă N evaluări; o iterație de HC costă o evaluare."},
+{"lvl":"a","q":"Turnirul binar (k = 2, cu întoarcere) pe N indivizi este echivalent cu rangul liniar cu presiunea:","o":["s = 1","s = 2 − 1/N","s = 2","s = k"],"a":1,"e":"Vezi S5.5; pentru N = 5, s = 1,8."},
+{"lvl":"a","q":"Regula 1/5 a lui Rechenberg:","o":["mută 1/5 din gene","mărește σ dacă peste 1/5 din mutații reușesc, altfel îl micșorează","selectează 1/5 din populație","migrează 1/5 din insulă"],"a":1,"e":"Control adaptiv al pasului de mutație în strategiile evolutive."},
+{"lvl":"a","q":"NSGA-II folosește distanța de aglomerare pentru:","o":["a accelera evaluarea","a menține diversitatea de-a lungul frontului Pareto","a elimina restricțiile","a calcula gradientul"],"a":1,"e":"Între indivizi de pe același front sunt preferați cei din zone mai puțin aglomerate."}
+]
+</script>
+</section>
+
+<section class="part">
+<h2>5. Temă și legătura cu proiectul</h2>
+<div class="lvl" data-lvl="b"><p><b>T1:</b> Rulați AG-ul cu codificare reală din simulator cu 3 combinații de operatori; descrieți în 1 pagină ce observați despre diversitate și convergență, cu capturi de ecran.</p></div>
+<div class="lvl" data-lvl="m"><p><b>T2:</b> Pe Rastrigin n = 10, comparați statistic (30 de rulări, Mann–Whitney) BLX, SBX și evoluția diferențială (implementare proprie, F = 0,5, CR = 0,9) la buget egal de 20 000 de evaluări. Grafic de convergență cu mediană și cvartile.</p></div>
+<div class="lvl" data-lvl="a"><p><b>T3:</b> Implementați un model insular paralel (<code>multiprocessing</code> sau SCOOP în DEAP) pentru TSP cu 100 de orașe; analizați accelerarea și calitatea în funcție de frecvența migrării.</p></div>
+<div class="note">Pentru proiect: alegeți acum reprezentarea și operatorii, justificați-i în raport și planificați experimentele (număr de rulări, buget, statistici). Un capitol „Proiectarea experimentelor” bine făcut contează mult la susținere.</div>
+</section>
+
+<section class="part">
+<h2>6. Bibliografie</h2>
+<ol>
+<li>Z. Michalewicz – <i>Genetic Algorithms + Data Structures = Evolution Programs</i>, ed. a 3-a, Springer, 1996 – cap. 2–5 (codificare binară vs. reală), cap. 10 (TSP și operatori pentru permutări).</li>
+<li>S. Russell, P. Norvig – <i>Artificial Intelligence: A Modern Approach</i>, ed. a 4-a, 2020 – §4.1.4 (algoritmi evolutivi).</li>
+<li>A. Konar – <i>Artificial Intelligence and Soft Computing</i>, CRC Press, 1999 – capitolul despre algoritmi genetici.</li>
+<li>DEAP – documentație: <a href="https://deap.readthedocs.io/" target="_blank" rel="noopener">deap.readthedocs.io</a> (tutoriale „Overview”, „Operators and Algorithms”, exemplul TSP).</li>
+<li>A. E. Eiben, J. E. Smith – <i>Introduction to Evolutionary Computing</i>, ed. a 2-a, Springer, 2015 (pentru nivelul avansat).</li>
+</ol>
+</section>
+
+<div class="pager"><a href="IAA_04_Curs_Sem_Lab.html">← Ședința 4</a><a href="IAA_06_Curs_Sem_Lab.html">Ședința 6 →</a></div>
+</main>
+</div>
+<footer>Material didactic pentru disciplina <b>Inteligență artificială aplicată</b> (MVMOD.1.1.10), Master „Medii virtuale multi-modale distribuite”, Facultatea de Matematică și Informatică, Universitatea „Ovidius” din Constanța, anul universitar 2026–2027. Conținutul urmează fișa disciplinei (secțiunile 8.1 și 8.2). Material elaborat cu asistența unui instrument AI generativ (Claude, Anthropic) – a se verifica și adapta de titularul disciplinei.</footer>
+<script>(function(){
+"use strict";
+var KEY = "IAA_" + (document.body.getAttribute("data-session") || "x") + "_";
+function store(k, v){ try{ if(v===undefined) return localStorage.getItem(KEY+k); localStorage.setItem(KEY+k, v); }catch(e){ return null; } }
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+/* ---------- temă ---------- */
+var themeBtn = document.getElementById("themeBtn");
+if(store("theme")==="dark") document.documentElement.classList.add("dark");
+if(themeBtn) themeBtn.onclick = function(){ var d=document.documentElement.classList.toggle("dark"); store("theme", d?"dark":"light"); document.dispatchEvent(new Event("themechange")); };
+var printBtn = document.getElementById("printBtn");
+if(printBtn) printBtn.onclick = function(){ document.querySelectorAll("details").forEach(function(d){d.open=true;}); window.print(); };
+
+/* ---------- insigne de nivel ---------- */
+var LBL = {b:"Începător", m:"Mediu", a:"Avansat"};
+document.querySelectorAll(".lvl").forEach(function(el){
+  var l = el.getAttribute("data-lvl"); var b = document.createElement("span");
+  b.className = "badge "+l; b.textContent = LBL[l]||l; el.insertBefore(b, el.firstChild);
+});
+
+/* ---------- filtru pe nivele ---------- */
+function applyFilter(f){
+  document.querySelectorAll(".lvl-filter button").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-f")===f); });
+  document.querySelectorAll("[data-lvl]").forEach(function(el){
+    var l = el.getAttribute("data-lvl");
+    el.classList.toggle("hide-lvl", f!=="all" && l.indexOf(f)<0);
+  });
+  store("filter", f); buildToc();
+}
+document.querySelectorAll(".lvl-filter button").forEach(function(b){ b.onclick=function(){ applyFilter(b.getAttribute("data-f")); }; });
+
+/* ---------- evidențiere sintaxă Python ---------- */
+var KW = "False None True and as assert async await break class continue def del elif else except finally for from global if import in is lambda nonlocal not or pass raise return try while with yield match case".split(" ");
+var BI = "print range len int float str list dict set tuple min max sum abs sorted enumerate zip map filter isinstance any all open round reversed super self heapq random math deque defaultdict itertools np".split(" ");
+function hlPython(src){
+  var re = /(#[^\n]*)|("""[\s\S]*?"""|'''[\s\S]*?'''|f?"(?:\\.|[^"\\\n])*"|f?'(?:\\.|[^'\\\n])*')|(\b\d+(?:\.\d+)?(?:e[-+]?\d+)?\b)|([A-Za-z_][A-Za-z0-9_]*)(\s*\()?/g;
+  var out = "", last = 0, m;
+  while((m = re.exec(src))){
+    out += esc(src.slice(last, m.index)); last = re.lastIndex;
+    if(m[1]) out += '<span class="c">'+esc(m[1])+'</span>';
+    else if(m[2]) out += '<span class="s">'+esc(m[2])+'</span>';
+    else if(m[3]) out += '<span class="n">'+m[3]+'</span>';
+    else if(m[4]){
+      var w = m[4], tail = m[5]||"";
+      if(KW.indexOf(w)>=0) out += '<span class="k">'+w+'</span>'+esc(tail);
+      else if(BI.indexOf(w)>=0) out += '<span class="bi">'+w+'</span>'+esc(tail);
+      else if(tail) out += '<span class="f">'+w+'</span>'+esc(tail);
+      else out += w;
+    }
+  }
+  return out + esc(src.slice(last));
+}
+function hlPddl(src){
+  return esc(src).replace(/(;[^\n]*)/g,'<span class="c">$1</span>')
+    .replace(/(\(\s*)(define|domain|problem|:requirements|:types|:predicates|:action|:parameters|:precondition|:effect|:objects|:init|:goal|:domain|and|not|or|forall|when)/g,'$1<span class="k">$2</span>')
+    .replace(/(\?[a-z0-9_-]+)/gi,'<span class="n">$1</span>')
+    .replace(/(:[a-z-]+)/gi,'<span class="f">$1</span>');
+}
+document.querySelectorAll("pre.code").forEach(function(pre){
+  var lang = pre.getAttribute("data-lang")||"python";
+  var src = pre.textContent.replace(/^\n/,"").replace(/\s+$/,"");
+  pre.innerHTML = lang==="python" ? hlPython(src) : (lang==="pddl" ? hlPddl(src) : esc(src));
+  var b = document.createElement("button"); b.className="copy"; b.textContent="Copiază";
+  b.onclick = function(){
+    var done=function(){ b.textContent="Copiat ✓"; setTimeout(function(){b.textContent="Copiază";},1500); };
+    if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(src).then(done, function(){ fallback(); }); } else fallback();
+    function fallback(){ var t=document.createElement("textarea"); t.value=src; document.body.appendChild(t); t.select(); try{document.execCommand("copy");}catch(e){} document.body.removeChild(t); done(); }
+  };
+  pre.appendChild(b);
+});
+
+/* ---------- flashcards ---------- */
+document.querySelectorAll(".card").forEach(function(c){ c.onclick=function(){ c.classList.toggle("flip"); }; });
+
+/* ---------- quiz ---------- */
+var answered = {};
+document.querySelectorAll("script.quiz-data").forEach(function(sc, qi){
+  var data = JSON.parse(sc.textContent); var host = document.createElement("div"); host.className="quiz";
+  sc.parentNode.insertBefore(host, sc);
+  var score = document.createElement("div"); score.className="score";
+  data.forEach(function(q, i){
+    var box = document.createElement("div"); box.className="qq"; if(q.lvl) box.setAttribute("data-lvl", q.lvl);
+    var html = '<div class="qt">'+(i+1)+'. '+(q.lvl?'<span class="badge '+q.lvl+'">'+LBL[q.lvl]+'</span> ':'')+q.q+'</div>';
+    q.o.forEach(function(o, j){ html += '<label><input type="radio" name="q'+qi+'_'+i+'" value="'+j+'"> '+o+'</label>'; });
+    html += '<div class="expl">'+(q.e||"")+'</div>';
+    box.innerHTML = html; host.appendChild(box);
+    box.querySelectorAll("input").forEach(function(inp){
+      inp.onchange = function(){
+        if(box.classList.contains("done")) return;
+        box.classList.add("done");
+        var j = +inp.value; var labels = box.querySelectorAll("label");
+        labels[q.a].classList.add("right"); if(j!==q.a) labels[j].classList.add("wrong");
+        box.querySelectorAll("input").forEach(function(x){ x.disabled=true; });
+        answered[qi+"_"+i] = (j===q.a); upd();
+      };
+    });
+  });
+  var reset = document.createElement("button"); reset.className="btn sec"; reset.textContent="Reia testul";
+  reset.onclick = function(){ host.querySelectorAll(".qq").forEach(function(b,i){ b.classList.remove("done"); b.querySelectorAll("label").forEach(function(l){l.className="";}); b.querySelectorAll("input").forEach(function(x){x.disabled=false;x.checked=false;}); delete answered[qi+"_"+i]; }); upd(); };
+  host.appendChild(score); host.appendChild(reset);
+  function upd(){ var n=0,ok=0; for(var k in answered){ if(k.indexOf(qi+"_")===0){ n++; if(answered[k]) ok++; } } score.textContent = "Scor: "+ok+" / "+n+" răspunsuri ("+data.length+" întrebări în total)"; progress(); }
+  upd();
+});
+
+/* ---------- liste de verificare + progres ---------- */
+var checks = document.querySelectorAll("ul.check input[type=checkbox]");
+checks.forEach(function(c, i){ if(store("chk"+i)==="1") c.checked=true; c.onchange=function(){ store("chk"+i, c.checked?"1":"0"); progress(); }; });
+function progress(){
+  var cks = document.querySelectorAll("ul.check input[type=checkbox]");
+  var tot = cks.length + document.querySelectorAll(".quiz .qq").length;
+  var done = 0; cks.forEach(function(c){ if(c.checked) done++; });
+  done += document.querySelectorAll(".quiz .qq.done").length;
+  var p = tot? Math.round(100*done/tot):0;
+  var bar = document.querySelector(".progress i"); if(bar) bar.style.width = p+"%";
+  var t = document.querySelector(".tocprog"); if(t) t.textContent = "Progres ședință: "+p+"% ("+done+"/"+tot+" sarcini + întrebări)";
+}
+
+/* ---------- cuprins ---------- */
+function buildToc(){
+  var toc = document.querySelector("nav.toc .links"); if(!toc) return; toc.innerHTML="";
+  document.querySelectorAll("main h2, main h3").forEach(function(h, i){
+    if(h.closest(".hide-lvl")) return;
+    if(!h.id) h.id = "s"+i;
+    var a = document.createElement("a"); a.href="#"+h.id; var hc = h.cloneNode(true); hc.querySelectorAll(".tag,.badge").forEach(function(x){x.remove();}); a.textContent = hc.textContent.trim();
+    a.className = h.tagName.toLowerCase(); toc.appendChild(a);
+  });
+}
+var spyLinks = [];
+window.addEventListener("scroll", function(){
+  var hs = document.querySelectorAll("main h2, main h3"), cur=null;
+  hs.forEach(function(h){ if(h.getBoundingClientRect().top < 120 && !h.closest(".hide-lvl")) cur = h.id; });
+  document.querySelectorAll("nav.toc a").forEach(function(a){ a.classList.toggle("act", a.getAttribute("href")==="#"+cur); });
+}, {passive:true});
+
+applyFilter(store("filter")||"all");
+progress();
+
+/* ---------- utilitare pentru simulări ---------- */
+window.IAA = {
+  rng: function(seed){ var s = seed>>>0 || 1; return function(){ s ^= s<<13; s>>>=0; s ^= s>>>17; s ^= s<<5; s>>>=0; return s/4294967296; }; },
+  css: function(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); },
+  fit: function(cv){ var r = window.devicePixelRatio||1; if(!cv._w){ cv._w = +cv.getAttribute("width"); cv._h = +cv.getAttribute("height"); cv.style.width = cv._w+"px"; cv.style.aspectRatio = cv._w+"/"+cv._h; cv.width = cv._w*r; cv.height = cv._h*r; } var g = cv.getContext("2d"); g.setTransform(r,0,0,r,0,0); g.W = cv._w; g.H = cv._h; return g; },
+  pos: function(cv, ev){ var b = cv.getBoundingClientRect(); return {x:(ev.clientX-b.left)*cv._w/b.width, y:(ev.clientY-b.top)*cv._h/b.height}; },
+  esc: esc
+};
+})();
+</script>
+<script>(function(){
+/* ===== comparator de selecție ===== */
+function selDraw(){
+  var f=document.getElementById("selF").value.split(",").map(function(x){ return Math.max(0, parseFloat(x)||0); }), N=f.length;
+  var s=+document.getElementById("selS").value, k=Math.max(1,+document.getElementById("selK").value|0), tot=f.reduce(function(a,b){return a+b;},0);
+  var order=f.map(function(v,i){return i;}).sort(function(a,b){ return f[a]-f[b]; }), rank=[]; order.forEach(function(ix,r){ rank[ix]=r; });
+  var rw=f.map(function(v){ return tot>0?v/tot:1/N; });
+  var rk=f.map(function(v,i){ return N>1?(2-s)/N+2*rank[i]*(s-1)/(N*(N-1)):1; });
+  var tr=f.map(function(v,i){ var r=N-rank[i]; return (Math.pow(N-r+1,k)-Math.pow(N-r,k))/Math.pow(N,k); });
+  var cv=document.getElementById("selCv"), g=IAA.fit(cv), W=g.W, H=g.H; g.clearRect(0,0,W,H);
+  var series=[[rw,"#2f5d8a","ruletă"],[rk,"#b26a00","rang (s="+s+")"],[tr,"#2e7d4f","turnir (k="+k+")"]], gw=(W-60)/N, bw=gw/4, mx=Math.max.apply(null,rw.concat(rk,tr,[0.01]));
+  g.strokeStyle=IAA.css("--line"); g.beginPath(); g.moveTo(40,H-30); g.lineTo(W-10,H-30); g.stroke();
+  g.fillStyle=IAA.css("--muted"); g.font="11px sans-serif"; g.fillText(mx.toFixed(2),4,18); g.fillText("0",24,H-30);
+  f.forEach(function(v,i){ series.forEach(function(sr,j){ var h=(H-50)*sr[0][i]/mx; g.fillStyle=sr[1]; g.fillRect(44+i*gw+j*bw, H-30-h, bw-2, h); });
+    g.fillStyle=IAA.css("--ink"); g.fillText("f="+v, 44+i*gw, H-15); });
+  series.forEach(function(sr,j){ g.fillStyle=sr[1]; g.fillRect(W-340+j*112, 6, 10, 10); g.fillStyle=IAA.css("--muted"); g.fillText(sr[2], W-326+j*112, 15); });
+}
+document.getElementById("selGo").onclick=selDraw; ["selF","selS","selK"].forEach(function(id){ document.getElementById(id).onchange=selDraw; });
+document.addEventListener("themechange", selDraw); selDraw();
+
+/* ===== încrucișare vizuală ===== */
+var r=IAA.rng(77);
+function perm(n){ var a=[]; for(var i=1;i<=n;i++) a.push(i); for(var j=n-1;j>0;j--){ var k=Math.floor(r()*(j+1)); var t=a[j]; a[j]=a[k]; a[k]=t; } return a; }
+function cuts(n){ var i=1+Math.floor(r()*(n-2)), j=i+1+Math.floor(r()*(n-i-1)); return [i,j]; }
+function pmx(a,b,i,j){ var c=new Array(a.length).fill(null); for(var k=i;k<j;k++) c[k]=a[k];
+  for(k=i;k<j;k++){ var v=b[k]; if(c.slice(i,j).indexOf(v)>=0) continue; var pos=k; while(pos>=i&&pos<j) pos=b.indexOf(a[pos]); c[pos]=v; }
+  return c.map(function(x,k){ return x===null?b[k]:x; }); }
+function ox(a,b,i,j){ var seg=a.slice(i,j), rest=b.slice(j).concat(b.slice(0,j)).filter(function(x){ return seg.indexOf(x)<0; }), c=new Array(a.length).fill(null); for(var k=i;k<j;k++) c[k]=a[k];
+  var pos=[]; for(k=j;k<a.length;k++) pos.push(k); for(k=0;k<i;k++) pos.push(k); pos.forEach(function(p,t){ c[p]=rest[t]; }); return c; }
+function cxo(a,b){ var c=new Array(a.length).fill(null), fromA=true, src=[]; while(c.indexOf(null)>=0){ var st=c.indexOf(null), p=st; do{ c[p]=fromA?a[p]:b[p]; src[p]=fromA?"a":"b"; p=a.indexOf(b[p]); } while(p!==st); fromA=!fromA; } return {c:c, src:src}; }
+var classic=false;
+function cxShow(){
+  var op=document.getElementById("cxOp").value, n=9, A, B, i, j, C, src=[], txt="";
+  var isPerm = ["pmx","ox","cx"].indexOf(op)>=0;
+  if(isPerm){ if(classic){ A=[1,2,3,4,5,6,7,8,9]; B=[9,3,7,8,2,6,5,1,4]; i=3; j=7; } else { A=perm(n); B=perm(n); var cc=cuts(n); i=cc[0]; j=cc[1]; } }
+  else { n=12; A=[]; B=[]; for(var k=0;k<n;k++){ A.push(1); B.push(0); } var cc2=cuts(n); i=cc2[0]; j=cc2[1]; }
+  if(op==="1p"){ C=A.slice(0,i).concat(B.slice(i)); for(k=0;k<n;k++) src[k]=k<i?"a":"b"; txt="punct de tăietură după poziția "+i; }
+  else if(op==="2p"){ C=A.slice(0,i).concat(B.slice(i,j),A.slice(j)); for(k=0;k<n;k++) src[k]=(k>=i&&k<j)?"b":"a"; txt="tăieturi după pozițiile "+i+" și "+j; }
+  else if(op==="u"){ C=[]; for(k=0;k<n;k++){ var t=r()<0.5; C.push(t?A[k]:B[k]); src[k]=t?"a":"b"; } txt="fiecare genă: părinte ales cu p = 0,5"; }
+  else if(op==="pmx"){ C=pmx(A,B,i,j); C.forEach(function(v,k){ src[k]=(k>=i&&k<j)?"a":(B[k]===v?"b":"m"); }); txt="segment ["+(i+1)+".."+j+"] din P1; galben = genă plasată prin mapare"; }
+  else if(op==="ox"){ C=ox(A,B,i,j); C.forEach(function(v,k){ src[k]=(k>=i&&k<j)?"a":"o"; }); txt="segment ["+(i+1)+".."+j+"] din P1; verde-deschis = ordinea relativă din P2"; }
+  else { var rr=cxo(A,B); C=rr.c; src=rr.src; txt="ciclurile alternează între P1 și P2"; }
+  function row(lbl, arr, col){ return '<div><b style="display:inline-block;width:70px">'+lbl+'</b>'+arr.map(function(v,k){ var bg=col(k,v); var mark=(isPerm||op!=="u")&&(k===i||k===j)&&op!=="cx"&&op!=="u"?'border-left:2px solid #d9534f;':''; return '<span style="display:inline-block;min-width:30px;text-align:center;margin:1px;border-radius:4px;'+mark+'background:'+bg+';color:#fff">'+v+'</span>'; }).join("")+'</div>'; }
+  var CA="#2f5d8a", CB="#9b2c4f", CM="#b26a00", CO="#2e7d4f";
+  document.getElementById("cxView").innerHTML = row("P1",A,function(){return CA;})+row("P2",B,function(){return CB;})+row("Copil",C,function(k){ return src[k]==="a"?CA:src[k]==="b"?CB:src[k]==="m"?CM:CO; })+'<div style="font-family:var(--sans);font-size:13px;color:var(--muted)">'+txt+(isPerm?' · copilul este permutare validă: '+(C.slice().sort(function(x,y){return x-y;}).join()===A.slice().sort(function(x,y){return x-y;}).join()?"✓":"✗"):'')+'</div>';
+  classic=false;
+}
+document.getElementById("cxGo").onclick=cxShow; document.getElementById("cxOp").onchange=cxShow;
+document.getElementById("cxClassic").onclick=function(){ var o=document.getElementById("cxOp"); if(["pmx","ox","cx"].indexOf(o.value)<0) o.value="pmx"; classic=true; cxShow(); };
+classic=true; cxShow();
+
+/* ===== AG real pe Rastrigin 2D ===== */
+var R=5.12, rng=IAA.rng(2024), pop, gen, evals, hist, timer=null, bg=null;
+function f(x){ return 20 + x[0]*x[0] - 10*Math.cos(2*Math.PI*x[0]) + x[1]*x[1] - 10*Math.cos(2*Math.PI*x[1]); }
+function gauss(){ var u=1-rng(), v=rng(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+function clip(v){ return Math.max(-R, Math.min(R, v)); }
+function reset(){ var N=+document.getElementById("rgN").value; pop=[]; for(var i=0;i<N;i++){ var x=[(rng()*2-1)*R,(rng()*2-1)*R]; pop.push({x:x, f:f(x)}); } gen=0; evals=N; hist=[]; rec(); draw(); }
+function rec(){ var b=Math.min.apply(null,pop.map(function(p){return p.f;})), m=pop.reduce(function(a,p){return a+p.f;},0)/pop.length; hist.push([b,m]); }
+function select(){ var s=document.getElementById("rgSel").value, N=pop.length;
+  if(s==="rw"){ var w=pop.map(function(p){ return 1/(1+p.f); }), t=w.reduce(function(a,b){return a+b;},0), q=rng()*t, acc=0; for(var i=0;i<N;i++){ acc+=w[i]; if(acc>=q) return pop[i]; } return pop[N-1]; }
+  var k=s==="t2"?2:5, best=null; for(var j=0;j<k;j++){ var c=pop[Math.floor(rng()*N)]; if(!best||c.f<best.f) best=c; } return best; }
+function cross(a,b){ var t=document.getElementById("rgCx").value;
+  if(t==="none") return [a.slice(), b.slice()];
+  if(t==="arith"){ var l=rng(); return [[l*a[0]+(1-l)*b[0], l*a[1]+(1-l)*b[1]], [(1-l)*a[0]+l*b[0], (1-l)*a[1]+l*b[1]]]; }
+  if(t==="blx"){ function one(){ return [0,1].map(function(d){ var mn=Math.min(a[d],b[d]), mx=Math.max(a[d],b[d]), I=mx-mn; return mn-0.5*I + rng()*(I*2); }); } return [one(), one()]; }
+  var c1=[], c2=[]; for(var d=0; d<2; d++){ var u=rng(), be = u<=0.5 ? Math.pow(2*u,1/16) : Math.pow(1/(2*(1-u)),1/16); c1.push(0.5*((1+be)*a[d]+(1-be)*b[d])); c2.push(0.5*((1-be)*a[d]+(1+be)*b[d])); } return [c1,c2]; }
+function step(){
+  var N=pop.length, sig=+document.getElementById("rgSig").value, rep=document.getElementById("rgRep").value, kids=[];
+  var best=pop.reduce(function(a,p){ return p.f<a.f?p:a; });
+  while(kids.length<N){ var p1=select(), p2=select(), cc = rng()<0.9 ? cross(p1.x,p2.x) : [p1.x.slice(), p2.x.slice()];
+    cc.forEach(function(c){ for(var d=0; d<2; d++) if(rng()<0.5) c[d]+=sig*gauss(); c[0]=clip(c[0]); c[1]=clip(c[1]); kids.push({x:c, f:f(c)}); evals++; }); }
+  kids=kids.slice(0,N);
+  if(rep==="plus"){ pop = pop.concat(kids).sort(function(a,b){ return a.f-b.f; }).slice(0,N); }
+  else { kids.sort(function(a,b){ return b.f-a.f; }); kids[0]={x:best.x.slice(), f:best.f}; pop=kids; }
+  gen++; rec(); draw();
+}
+function draw(){
+  var cv=document.getElementById("rgCv"), g=IAA.fit(cv), W=g.W;
+  if(!bg){ var off=document.createElement("canvas"); off.width=210; off.height=210; var o=off.getContext("2d"), img=o.createImageData(210,210);
+    for(var py=0;py<210;py++) for(var px=0;px<210;px++){ var x=[(px/209*2-1)*R,(1-py/209*2)*R], v=f(x)/80, k=(py*210+px)*4; img.data[k]=255*Math.min(1,0.15+v*1.1); img.data[k+1]=255*Math.min(1,0.25+v*0.75); img.data[k+2]=255*Math.min(1,0.45+v*0.3); img.data[k+3]=255; }
+    o.putImageData(img,0,0); bg=off; }
+  g.imageSmoothingEnabled=true; g.drawImage(bg,0,0,W,W);
+  pop.forEach(function(p){ g.fillStyle="#fff"; g.strokeStyle="#111"; g.beginPath(); g.arc((p.x[0]/R+1)/2*W, (1-p.x[1]/R)/2*W, 3.5, 0, 7); g.fill(); g.stroke(); });
+  var b=pop.reduce(function(a,p){ return p.f<a.f?p:a; });
+  g.strokeStyle="#d9534f"; g.lineWidth=2; g.beginPath(); g.arc((b.x[0]/R+1)/2*W, (1-b.x[1]/R)/2*W, 7, 0, 7); g.stroke(); g.lineWidth=1;
+  g.strokeStyle="#fff"; g.beginPath(); g.moveTo(W/2-6,W/2); g.lineTo(W/2+6,W/2); g.moveTo(W/2,W/2-6); g.lineTo(W/2,W/2+6); g.stroke();
+  var mx=[0,0]; pop.forEach(function(p){ mx[0]+=p.x[0]; mx[1]+=p.x[1]; }); mx=[mx[0]/pop.length, mx[1]/pop.length];
+  var dv=pop.reduce(function(a,p){ return a+Math.hypot(p.x[0]-mx[0],p.x[1]-mx[1]); },0)/pop.length;
+  document.getElementById("rgGen").textContent=gen; document.getElementById("rgBest").textContent=b.f.toFixed(4); document.getElementById("rgX").textContent="("+b.x[0].toFixed(3)+", "+b.x[1].toFixed(3)+")";
+  document.getElementById("rgEv").textContent=evals; document.getElementById("rgDiv").textContent=dv.toFixed(3);
+  var ch=document.getElementById("rgCh"), h=IAA.fit(ch), x0=36, w=h.W-46, hh=h.H-36, len=Math.max(60,hist.length), top=Math.log10(hist[0][1]+1)+0.2;
+  h.clearRect(0,0,h.W,h.H); h.strokeStyle=IAA.css("--line"); h.fillStyle=IAA.css("--muted"); h.font="11px sans-serif";
+  [0,1].forEach(function(e){ var y=10+hh*(1-e/top); h.beginPath(); h.moveTo(x0,y); h.lineTo(x0+w,y); h.stroke(); h.fillText(Math.pow(10,e)-1, 6, y+4); });
+  h.fillText("log₁₀(1+f) vs. generație", x0+4, h.H-4);
+  [[0,"#d9534f"],[1,"#2f5d8a"]].forEach(function(s){ h.strokeStyle=s[1]; h.lineWidth=2; h.beginPath(); hist.forEach(function(v,i){ var x=x0+i/len*w, y=10+hh*(1-Math.log10(v[s[0]]+1)/top); if(i) h.lineTo(x,y); else h.moveTo(x,y); }); h.stroke(); }); h.lineWidth=1;
+}
+document.getElementById("rgStep").onclick=step;
+document.getElementById("rgRun").onclick=function(){ if(timer){ clearInterval(timer); timer=null; } else timer=setInterval(function(){ step(); if(gen>=300){ clearInterval(timer); timer=null; } }, 80); };
+document.getElementById("rgReset").onclick=function(){ if(timer){ clearInterval(timer); timer=null; } reset(); };
+document.getElementById("rgN").onchange=reset;
+document.addEventListener("themechange", draw);
+reset();
+})();
+</script>
+</body>
+</html>
